@@ -72,4 +72,4 @@
 
 ## ERD 설계 (데이터의 구조와 제약을 중점으로)
 
-<img src="ktb-v1-erd.png" width="1590" alt="V1 ERD 설계도">
+[ERD cloud 링크](https://www.erdcloud.com/d/QGeurKrvAhDgt6PxZ)
