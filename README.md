@@ -81,7 +81,7 @@
 
 ## 도메인 설계 (도메인의 규칙과 경계를 중점으로)
 
-<img src="ktb-v1-domain.drawio.png" width="731" alt="V1 도메인 설계도">
+<img src="ktb-v2-domain.drawio.png" width="1341" alt="V1 도메인 설계도">
 
 참고 [카카오페이 DDD](https://tech.kakaopay.com/post/backend-domain-driven-design/)
 
