@@ -111,7 +111,7 @@
 
 ## 객체 설계 (객체의 책임과 객체 간의 메시지를 중점으로)
 
-<img src="ktb-v2-object.drawio.png" width="1253" alt="V1 객체 설계도">
+<img src="ktb-v3-object.drawio.png" width="1003" alt="V1 객체 설계도">
 
 
 ## ERD 설계 (데이터의 구조와 제약을 중점으로)
