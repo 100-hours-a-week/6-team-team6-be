@@ -107,17 +107,17 @@ jobs:
 
   # github organization 승인 받은 뒤 재 시도예정
 
-#  sonarcloud:
-#    name: SonarCloud Analysis
-#    runs-on: ubuntu-latest
-#    needs: build-and-test
-#    if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#        with:
-#          fetch-depth: 0
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 #
 #      - name: Setup JDK ${{ env.JAVA_VERSION }}
 #        uses: actions/setup-java@v4
@@ -150,7 +150,7 @@ jobs:
   notify-failure:
     name: Discord Notification
     runs-on: ubuntu-latest
-    needs: [build-and-test, integration-test, sonarcloud]
+    needs: [build-and-test, integration-test] # 추석 풀고나면 sonarcloud 추가할 것
     if: failure()
 
     steps:
