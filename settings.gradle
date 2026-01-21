@@ -7,5 +7,6 @@ include 'ktb-billage-auth'
 include 'ktb-billage-post'
 include 'ktb-billage-chat'
 
+include 'ktb-billage-domain-common'
 include 'ktb-billage-global'
 include 'ktb-billage-infra'

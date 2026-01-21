@@ -1,0 +1,21 @@
+plugins {
+    id 'java-library'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'io.jsonwebtoken:jjwt-bom:0.13.0'
+    }
+}
+
+dependencies {
+    implementation project(':ktb-billage-auth')
+    implementation project(':ktb-billage-user')
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api'
+
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson'
+}
