@@ -1,4 +1,4 @@
-package ktb.billage.token.jwt;
+package ktb.billage.infra.token.jwt;
 
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;

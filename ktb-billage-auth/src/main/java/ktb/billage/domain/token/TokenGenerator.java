@@ -1,7 +1,9 @@
 package ktb.billage.domain.token;
 
 public interface TokenGenerator {
-    Tokens login();
+    String generateAccessToken(Long userId);
 
-    Tokens reissue(String refreshToken);
+    String generateRefreshToken(Long userId);
+
+    String generateRefreshToken(String refreshToken);
 }
