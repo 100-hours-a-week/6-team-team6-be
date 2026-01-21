@@ -2,6 +2,12 @@ package ktb.billage.exception;
 
 public enum ExceptionCode {
 
+    // auth
+    AUTHENTICATION_FAILED("AUTH01", 401),
+
+    // user
+    USER_NOT_FOUND("USER01", 404),
+
     // application
     SERVER_ERROR("SERVER01", 500),
 
