@@ -1,0 +1,19 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    // domain modules
+    implementation project(':ktb-billage-auth')
+    implementation project(':ktb-billage-user')
+    implementation project(':ktb-billage-post')
+    implementation project(':ktb-billage-chat')
+    implementation project(':ktb-billage-global')
+
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
