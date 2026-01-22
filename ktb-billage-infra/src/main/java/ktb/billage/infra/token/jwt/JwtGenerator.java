@@ -47,9 +47,4 @@ public class JwtGenerator implements TokenGenerator {
                 .compact();
 
     }
-
-    @Override
-    public String generateRefreshToken(String refreshToken) {
-        return "";
-    }
 }

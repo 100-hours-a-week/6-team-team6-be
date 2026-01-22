@@ -7,7 +7,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import ktb.billage.contract.auth.TokenParser;
+import ktb.billage.exception.AuthException;
 import org.springframework.stereotype.Component;
+
+import static ktb.billage.exception.ExceptionCode.EXPIRED_RTOKEN;
 
 @Component
 public class JwtParser implements TokenParser {
@@ -22,6 +25,14 @@ public class JwtParser implements TokenParser {
     public String parseId(String token) {
         return validate(token).getPayload()
                 .getSubject();
+    }
+
+    public void validateExpiration(String token) {
+        try {
+            parser.parseSignedClaims(token);
+        } catch (ExpiredJwtException e) {
+            throw new AuthException(EXPIRED_RTOKEN);
+        }
     }
 
     private Jws<Claims> validate(String token) {

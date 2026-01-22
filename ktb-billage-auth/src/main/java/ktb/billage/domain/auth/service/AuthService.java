@@ -1,9 +1,9 @@
 package ktb.billage.domain.auth.service;
 
+import ktb.billage.contract.user.PasswordEncoder;
 import ktb.billage.domain.token.TokenGenerator;
 import ktb.billage.domain.token.Tokens;
 import ktb.billage.domain.user.User;
-import ktb.billage.domain.user.port.PasswordEncoder;
 import ktb.billage.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,5 +30,18 @@ public class AuthService {
         refreshTokenService.save(user, refreshToken);
 
         return new Tokens(accessToken, refreshToken, user.getId());
+    }
+
+    @Transactional
+    public Tokens reissue(String refreshTokenPayload) { // FIXME. RT 생성 책임을 RTService에게 위임하기
+        var refreshToken = refreshTokenService.loadRefreshToken(refreshTokenPayload);
+
+        User user = refreshToken.getUser();
+        String accessToken = tokenGenerator.generateAccessToken(user.getId());
+        String newRefreshTokenPayload = tokenGenerator.generateRefreshToken(user.getId());
+
+        refreshTokenService.save(user, newRefreshTokenPayload);
+
+        return new Tokens(accessToken, newRefreshTokenPayload);
     }
 }

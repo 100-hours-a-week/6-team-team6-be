@@ -7,6 +7,7 @@ import ktb.billage.domain.token.Tokens;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +30,17 @@ public class AuthController {
         return ResponseEntity.ok().body(Map.of(
                 "accessToken", tokens.getAccessToken(),
                 "userId", tokens.getUserId()
+        ));
+    }
+
+    @PostMapping("/tokens")
+    public ResponseEntity<?> reissue(@CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
+        Tokens tokens = authService.reissue(refreshToken);
+
+        setCookie(response, tokens.getRefreshToken());
+
+        return ResponseEntity.ok().body(Map.of(
+                "accessToken", tokens.getAccessToken()
         ));
     }
 
