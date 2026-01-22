@@ -6,10 +6,11 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import ktb.billage.contract.auth.TokenParser;
 import org.springframework.stereotype.Component;
 
 @Component
-public class JwtParser {
+public class JwtParser implements TokenParser {
     private final io.jsonwebtoken.JwtParser parser;
 
     public JwtParser(JwtSecretProvider jwtSecretProvider) {
