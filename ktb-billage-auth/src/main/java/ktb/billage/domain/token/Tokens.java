@@ -1,6 +1,5 @@
 package ktb.billage.domain.token;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
