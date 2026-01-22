@@ -1,7 +1,6 @@
 package ktb.billage.web.common.exception;
 
 import ktb.billage.exception.BaseException;
-import ktb.billage.exception.ExceptionCode;
 
 import static ktb.billage.exception.ExceptionCode.PARAMETER_VALIDATION_FAILED;
 import static ktb.billage.exception.ExceptionCode.SERVER_ERROR;
