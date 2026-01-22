@@ -1,0 +1,14 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':ktb-billage-global:ktb-billage-common')
+    implementation project(':ktb-billage-global:ktb-billage-contract')
+    implementation project(':ktb-billage-user')
+
+    api 'org.springframework.boot:spring-boot-starter-security'
+
+    compileOnly 'jakarta.servlet:jakarta.servlet-api'
+}
+
