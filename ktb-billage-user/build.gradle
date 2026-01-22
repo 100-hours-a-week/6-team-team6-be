@@ -3,8 +3,9 @@ plugins {
 }
 
 dependencies {
-    api project(':ktb-billage-domain-common')
-    implementation project(':ktb-billage-global')
+    api project(':ktb-billage-global:ktb-billage-persistence')
+    implementation project(':ktb-billage-global:ktb-billage-common')
+    implementation project(':ktb-billage-global:ktb-billage-contract')
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 

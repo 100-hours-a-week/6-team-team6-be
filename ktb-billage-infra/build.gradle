@@ -2,15 +2,12 @@ plugins {
     id 'java-library'
 }
 
-dependencyManagement {
-    imports {
-        mavenBom 'io.jsonwebtoken:jjwt-bom:0.13.0'
-    }
-}
-
 dependencies {
     implementation project(':ktb-billage-auth')
     implementation project(':ktb-billage-user')
+    implementation project(':ktb-billage-global:ktb-billage-contract')
+
+    implementation(platform("io.jsonwebtoken:jjwt-bom:0.13.0"))
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
