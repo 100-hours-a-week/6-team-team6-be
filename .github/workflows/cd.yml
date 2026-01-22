@@ -1,0 +1,110 @@
+name: CD - Split Deploy (Dev/Prod)
+
+on:
+  workflow_run:
+    workflows: ["Backend CI"]
+    types: [completed]
+    branches: [main, dev]
+
+env:
+  APP_NAME: billage
+
+jobs:
+  # =================================================================================
+  # 개발 환경 배포
+  # - 브랜치가 'dev'일 때만 실행
+  # =================================================================================
+  deploy-dev:
+    name: Deploy to DEV
+    runs-on: ubuntu-latest
+    if: >-
+      ${{ 
+        github.event.workflow_run.conclusion == 'success' && 
+        github.event.workflow_run.head_branch == 'dev' && 
+        github.event.workflow_run.event == 'push' 
+      }}
+    environment: development  # GitHub Environment (Secrets 분리 가능)
+
+    steps:
+      - name: Configure AWS Credentials (DEV)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} # 필요하다면 DEV용 키 별도 사용 가능
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # IP 가져오기 (DEV 태그 검색)
+      - name: Get Dev Server IP
+        id: get-ip
+        run: |
+          # Dev는 태그가 명확하게 고정됨
+          TARGET_TAG="${{ env.APP_NAME }}-dev-main-server"
+          
+          IP=$(aws ec2 describe-instances \
+            --filters \
+              "Name=tag:Name,Values=$TARGET_TAG" \
+              "Name=tag:Environment,Values=dev" \
+              "Name=instance-state-name,Values=running" \
+            --query 'Reservations[0].Instances[0].PublicIpAddress' \
+            --output text)
+          
+          if [ "$IP" == "None" ] || [ -z "$IP" ]; then
+            echo "::error::DEV Server not found!"
+            exit 1
+          fi
+          echo "server_ip=$IP" >> $GITHUB_OUTPUT
+
+
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      # 아티팩트 다운로드
+      - name: Download Artifacts
+        uses: dawidd6/action-download-artifact@v9
+        with:
+          workflow: ci.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: build-artifact
+          path: artifacts/
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ steps.get-ip.outputs.server_ip }} >> ~/.ssh/known_hosts
+
+      # 3. 배포 실행 (DEV 스크립트)
+      - name: Deploy to Dev Server
+        run: |
+          # 아티팩트 폴더에서 JAR 파일 찾기
+          JAR_FILE=$(find ./artifacts -name "*.jar" | head -1)
+          echo "Found JAR: $JAR_FILE"
+          
+          # -o StrictHostKeyChecking=no : 처음 접속 시 물어보는 것 방지
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $JAR_FILE scripts/deploy_dev.sh ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }}:/home/${{ secrets.EC2_USER }}/deploy/
+          
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }} << 'EOF'
+
+            cd /home/${{ secrets.EC2_USER }}/deploy
+          
+            # 덮어쓰기
+            mv *.jar app.jar
+          
+            # 스크립트에 실행 권한 부여
+            chmod +x deploy_dev.sh
+          
+            # 배포 스크립트 실행
+            ./deploy_dev.sh
+          
+          EOF
+
+      - name: Notify Dev Deploy success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 완료**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
+
+      - name: Notify Dev Deploy failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 실패**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
