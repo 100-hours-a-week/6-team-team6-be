@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import ktb.billage.domain.auth.dto.AuthRequest;
 import ktb.billage.domain.auth.service.AuthService;
 import ktb.billage.domain.token.Tokens;
+import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +43,19 @@ public class AuthController {
         return ResponseEntity.ok().body(Map.of(
                 "accessToken", tokens.getAccessToken()
         ));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(
+            @AuthenticatedId Long userId,
+            @CookieValue(name = "refreshToken", required = false) String refreshToken
+    ) {
+        if (refreshToken == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        authService.logout(userId, refreshToken);
+        return ResponseEntity.noContent().build();
     }
 
     private void setCookie(HttpServletResponse response, String refreshToken) {
