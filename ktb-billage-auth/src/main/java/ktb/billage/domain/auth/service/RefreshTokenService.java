@@ -34,4 +34,10 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByPayload(payload)
                 .orElseThrow(() -> new AuthException(INVALID_RTOKEN));
     }
+
+    public void revokeToken(Long userId, String payload) {
+        refreshTokenRepository.findByPayload(payload)
+                .filter(refreshToken -> refreshToken.getUser().getId().equals(userId))
+                .ifPresent(refreshTokenRepository::delete);
+    }
 }

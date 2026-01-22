@@ -33,7 +33,7 @@ public class AuthService {
     }
 
     @Transactional
-    public Tokens reissue(String refreshTokenPayload) { // FIXME. RT 생성 책임을 RTService에게 위임하기
+    public Tokens reissue(String refreshTokenPayload) {
         var refreshToken = refreshTokenService.loadRefreshToken(refreshTokenPayload);
 
         User user = refreshToken.getUser();
@@ -43,5 +43,10 @@ public class AuthService {
         refreshTokenService.save(user, newRefreshTokenPayload);
 
         return new Tokens(accessToken, newRefreshTokenPayload);
+    }
+
+    @Transactional
+    public void logout(Long userId, String payload) {
+        refreshTokenService.revokeToken(userId, payload);
     }
 }
