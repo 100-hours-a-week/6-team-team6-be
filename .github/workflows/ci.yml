@@ -5,7 +5,7 @@ name: Backend CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, dev]
     paths:
       - 'src/**'                # 소스 코드
       - 'build.gradle'          # 의존성
@@ -13,7 +13,7 @@ on:
       - 'gradle/**'             # Gradle Wrapper 버전
       - '.github/workflows/**'  # CICD
   pull_request:
-    branches: [main, develop]
+    branches: [main, dev]
     paths:
       - 'src/**'
       - 'build.gradle'
@@ -26,7 +26,7 @@ env:
 
 jobs:
   # ===========================================
-  # 공통: Build & Unit Test (main, develop 모두)
+  # 공통: Build & Unit Test (main, dev 모두)
   # 예상 소요: ~3분
   # ===========================================
   build-and-test:
@@ -61,6 +61,13 @@ jobs:
           path: build/reports/tests/
           retention-days: 7
 
+      - name: Upload Build Artifact # 아티펙트로 구워서 다음 job들에게 전달 (CD에게 전달)
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: build/libs/*-SNAPSHOT.jar  # 빌드된 jar 파일 경로
+          retention-days: 1       # 하루만 보관하면 됨
+
   # ===========================================
   # main 브랜치 전용: Integration Test
   # 예상 소요: ~2분
@@ -93,12 +100,6 @@ jobs:
           path: build/reports/tests/integrationTest/
           retention-days: 7
 
-      - name: Upload Build Artifact # 아티펙트로 구워서 다음 job들에게 전달 (CD에게 전달)
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifact
-          path: build/libs/*.jar  # 빌드된 jar 파일 경로
-          retention-days: 1       # 하루만 보관하면 됨
 
   # ===========================================
   # main 브랜치 전용: SonarCloud 분석
