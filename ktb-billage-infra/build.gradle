@@ -16,4 +16,5 @@ dependencies {
 
     runtimeOnly 'io.jsonwebtoken:jjwt-impl'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson'
+    runtimeOnly 'com.mysql:mysql-connector-j'
 }
