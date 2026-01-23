@@ -28,6 +28,8 @@ public class User extends BaseEntity {
     private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[A-Za-z0-9]{8,16}$");
     private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[A-Za-z0-9]{6}$");
 
+    private static final String DEFAULT_AVATAR_URL = "temp.url";
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -46,7 +48,7 @@ public class User extends BaseEntity {
         this.loginId = loginId;
         this.password = encodedPassword; // TODO. 비밀번호 값에 대한 도메인 검증 방식 고민 필요
         this.nickname = nickname;
-        this.avatarUrl = "temp.url";
+        this.avatarUrl = DEFAULT_AVATAR_URL;
     }
 
     public void verifyPassword(PasswordEncoder passwordEncoder, String rawPassword) {
