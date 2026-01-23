@@ -1,8 +1,5 @@
-package ktb.billage.security.config;
+package ktb.billage.security.auth;
 
-import ktb.billage.security.filter.JwtAuthenticationFilter;
-import ktb.billage.security.handler.JwtAuthenticationEntryPoint;
-import ktb.billage.security.support.JwtAuthenticationInjector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

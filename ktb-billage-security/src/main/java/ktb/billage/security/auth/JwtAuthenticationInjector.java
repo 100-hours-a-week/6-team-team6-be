@@ -1,4 +1,4 @@
-package ktb.billage.security.support;
+package ktb.billage.security.auth;
 
 import ktb.billage.contract.auth.TokenParser;
 import lombok.RequiredArgsConstructor;
