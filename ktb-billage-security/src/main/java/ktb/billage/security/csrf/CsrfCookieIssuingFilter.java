@@ -1,4 +1,4 @@
-package ktb.billage.security.filter;
+package ktb.billage.security.csrf;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,11 +18,7 @@ public class CsrfCookieIssuingFilter extends OncePerRequestFilter {
     private final RequestMatcher csrfTokenIssueMatcher;
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         filterChain.doFilter(request, response);
 

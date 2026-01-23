@@ -1,4 +1,4 @@
-package ktb.billage.security.support;
+package ktb.billage.security.csrf;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
