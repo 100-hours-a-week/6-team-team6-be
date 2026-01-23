@@ -14,6 +14,9 @@ public enum ExceptionCode {
 
     // user
     USER_NOT_FOUND("USER01", 404),
+    INVALID_LOGIN_ID("USER02", 400),
+    INVALID_NICKNAME("USER03", 400),
+    DUPLICATE_LOGIN_ID("USER04", 409),
 
     // application
     SERVER_ERROR("SERVER01", 500),

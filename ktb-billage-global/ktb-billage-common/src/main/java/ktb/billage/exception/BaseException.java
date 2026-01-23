@@ -4,7 +4,7 @@ public class BaseException extends RuntimeException {
     private final ExceptionCode exceptionCode;
 
     public BaseException(ExceptionCode exceptionCode) {
-        super(exceptionCode.toString());
+        super(exceptionCode.getCode());
         this.exceptionCode = exceptionCode;
     }
 
