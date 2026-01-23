@@ -44,6 +44,13 @@ public class UserService {
         return new UserResponse.Id(user.getId());
     }
 
+    @Transactional(readOnly = true)
+    public UserResponse.MyProfile getMyProfile(Long userId) {
+        User user = findById(userId);
+
+        return new UserResponse.MyProfile(user.getLoginId(), user.getAvatarUrl());
+    }
+
     private void validateDuplicateLoginId(String loginId) {
         if (!userRepository.existsByLoginId(loginId)) {
             throw new UserException(DUPLICATE_LOGIN_ID);
