@@ -1,4 +1,4 @@
-package ktb.billage.security.handler;
+package ktb.billage.security.auth;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

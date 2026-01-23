@@ -1,12 +1,10 @@
-package ktb.billage.security.filter;
+package ktb.billage.security.auth;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import ktb.billage.security.exception.JwtAuthenticationException;
-import ktb.billage.security.handler.JwtAuthenticationEntryPoint;
-import ktb.billage.security.support.JwtAuthenticationInjector;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.AuthenticationException;
