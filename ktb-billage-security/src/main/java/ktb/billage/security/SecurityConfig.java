@@ -1,12 +1,11 @@
-package ktb.billage.security.config;
+package ktb.billage.security;
 
-import ktb.billage.security.filter.JwtAuthenticationFilter;
-import ktb.billage.security.handler.JwtAuthenticationEntryPoint;
-import ktb.billage.security.filter.CsrfCookieIssuingFilter;
+import ktb.billage.security.auth.JwtAuthenticationFilter;
+import ktb.billage.security.auth.JwtAuthenticationEntryPoint;
+import ktb.billage.security.csrf.CsrfCookieIssuingFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
