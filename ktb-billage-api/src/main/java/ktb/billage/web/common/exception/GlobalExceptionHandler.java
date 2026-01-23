@@ -2,6 +2,7 @@ package ktb.billage.web.common.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import ktb.billage.exception.BaseException;
+import ktb.billage.exception.InternalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +39,10 @@ public class GlobalExceptionHandler {
         return ErrorResponse.parameter();
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler({
+            Exception.class,
+            InternalException.class
+    })
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleException(Exception exception) {
         log.error("[Unexpected Exception] exception : {}", exception.getClass().getName());
