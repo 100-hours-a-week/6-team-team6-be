@@ -1,7 +1,5 @@
-package ktb.billage.security.config;
+package ktb.billage.security.csrf;
 
-import ktb.billage.security.filter.CsrfCookieIssuingFilter;
-import ktb.billage.security.support.CsrfRequestMatchers;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
