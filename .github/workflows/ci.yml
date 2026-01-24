@@ -7,15 +7,19 @@ on:
   push:
     branches: [main, dev]
     paths:
-      - 'src/**'                # 소스 코드
-      - 'build.gradle'          # 의존성
-      - 'settings.gradle'       # 프로젝트 설정
-      - 'gradle/**'             # Gradle Wrapper 버전
-      - '.github/workflows/**'  # CICD
+      - 'ktb-billage-*/src/**'        # 모든 모듈의 소스 코드
+      - 'ktb-billage-*/build.gradle'  # 각 모듈 빌드 파일
+      - '**/build.gradle*'            # 모든 빌드 파일
+      - 'build.gradle'                # 루트 빌드 파일
+      - 'settings.gradle'             # 프로젝트 설정
+      - 'gradle/**'                   # Gradle Wrapper 버전
+      - '.github/workflows/**'        # CICD
   pull_request:
     branches: [main, dev]
     paths:
-      - 'src/**'
+      - 'ktb-billage-*/src/**'
+      - 'ktb-billage-*/build.gradle'
+      - '**/build.gradle*'
       - 'build.gradle'
       - 'settings.gradle'
       - 'gradle/**'
@@ -58,14 +62,18 @@ jobs:
         if: failure() # fail시에 아티펙트에 저장해서 다운할 수 있게 함
         with:
           name: test-results
-          path: build/reports/tests/
+          path: '**/build/reports/tests/'  # 모든 모듈의 테스트 결과
           retention-days: 7
+
+      - name: Rename JAR to app.jar # 빌드된 jar를 app.jar로 정규화
+        run: |
+          mv ktb-billage-api/build/libs/*-SNAPSHOT.jar ktb-billage-api/build/libs/app.jar
 
       - name: Upload Build Artifact # 아티펙트로 구워서 다음 job들에게 전달 (CD에게 전달)
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
-          path: build/libs/*-SNAPSHOT.jar  # 빌드된 jar 파일 경로
+          path: ktb-billage-api/build/libs/app.jar  # 정규화된 jar 파일
           retention-days: 1       # 하루만 보관하면 됨
 
   # ===========================================
@@ -97,7 +105,7 @@ jobs:
         if: failure()
         with:
           name: integration-test-results
-          path: build/reports/tests/integrationTest/
+          path: '**/build/reports/tests/integrationTest/'  # 모든 모듈의 통합 테스트 결과
           retention-days: 7
 
 
