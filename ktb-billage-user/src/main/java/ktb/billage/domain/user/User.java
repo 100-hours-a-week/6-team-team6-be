@@ -6,19 +6,19 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import ktb.billage.contract.user.PasswordEncoder;
-import ktb.billage.domain.entity.BaseEntity;
-import ktb.billage.exception.AuthException;
-import ktb.billage.exception.InternalException;
-import ktb.billage.exception.UserException;
+import ktb.billage.common.entity.BaseEntity;
+import ktb.billage.common.exception.AuthException;
+import ktb.billage.common.exception.InternalException;
+import ktb.billage.common.exception.UserException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.regex.Pattern;
 
-import static ktb.billage.exception.ExceptionCode.AUTHENTICATION_FAILED;
-import static ktb.billage.exception.ExceptionCode.INVALID_LOGIN_ID;
-import static ktb.billage.exception.ExceptionCode.INVALID_NICKNAME;
+import static ktb.billage.common.exception.ExceptionCode.AUTHENTICATION_FAILED;
+import static ktb.billage.common.exception.ExceptionCode.INVALID_LOGIN_ID;
+import static ktb.billage.common.exception.ExceptionCode.INVALID_NICKNAME;
 
 @Entity
 @Getter

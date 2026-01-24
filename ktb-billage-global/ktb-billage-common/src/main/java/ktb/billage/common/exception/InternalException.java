@@ -1,4 +1,4 @@
-package ktb.billage.exception;
+package ktb.billage.common.exception;
 
 public class InternalException extends BaseException {
     public InternalException(ExceptionCode exceptionCode) {

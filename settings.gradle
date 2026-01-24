@@ -9,7 +9,6 @@ include 'ktb-billage-chat'
 
 include 'ktb-billage-global'
 include 'ktb-billage-global:ktb-billage-common'
-include 'ktb-billage-global:ktb-billage-persistence'
 include 'ktb-billage-global:ktb-billage-contract'
 include 'ktb-billage-security'
 include 'ktb-billage-infra'

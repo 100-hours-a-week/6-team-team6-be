@@ -4,11 +4,11 @@ import ktb.billage.contract.auth.TokenParser;
 import ktb.billage.domain.auth.RefreshToken;
 import ktb.billage.domain.auth.RefreshTokenRepository;
 import ktb.billage.domain.user.User;
-import ktb.billage.exception.AuthException;
+import ktb.billage.common.exception.AuthException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static ktb.billage.exception.ExceptionCode.INVALID_RTOKEN;
+import static ktb.billage.common.exception.ExceptionCode.INVALID_RTOKEN;
 
 @Service
 @RequiredArgsConstructor

@@ -7,10 +7,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import ktb.billage.contract.auth.TokenParser;
-import ktb.billage.exception.AuthException;
+import ktb.billage.common.exception.AuthException;
 import org.springframework.stereotype.Component;
 
-import static ktb.billage.exception.ExceptionCode.EXPIRED_RTOKEN;
+import static ktb.billage.common.exception.ExceptionCode.EXPIRED_RTOKEN;
 
 @Component
 public class JwtParser implements TokenParser {

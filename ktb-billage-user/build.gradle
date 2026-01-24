@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    api project(':ktb-billage-global:ktb-billage-persistence')
     implementation project(':ktb-billage-global:ktb-billage-common')
     implementation project(':ktb-billage-global:ktb-billage-contract')
 
