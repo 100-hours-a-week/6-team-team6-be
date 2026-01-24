@@ -1,4 +1,4 @@
-package ktb.billage.exception;
+package ktb.billage.common.exception;
 
 public enum ExceptionCode {
 

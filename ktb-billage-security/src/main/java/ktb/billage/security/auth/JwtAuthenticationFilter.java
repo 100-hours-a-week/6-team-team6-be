@@ -12,7 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-import static ktb.billage.exception.ExceptionCode.INVALID_TOKEN;
+import static ktb.billage.common.exception.ExceptionCode.INVALID_TOKEN;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

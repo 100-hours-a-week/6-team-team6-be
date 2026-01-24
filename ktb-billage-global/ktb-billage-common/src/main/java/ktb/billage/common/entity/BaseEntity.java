@@ -1,4 +1,4 @@
-package ktb.billage.domain.entity;
+package ktb.billage.common.entity;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
