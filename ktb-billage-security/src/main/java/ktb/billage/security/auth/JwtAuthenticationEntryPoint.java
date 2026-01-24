@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-import static ktb.billage.exception.ExceptionCode.AUTH_TOKEN_NOT_FOUND;
+import static ktb.billage.common.exception.ExceptionCode.AUTH_TOKEN_NOT_FOUND;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {

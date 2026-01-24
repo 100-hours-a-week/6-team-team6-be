@@ -1,4 +1,4 @@
-package ktb.billage.exception;
+package ktb.billage.common.exception;
 
 public class BaseException extends RuntimeException {
     private final ExceptionCode exceptionCode;

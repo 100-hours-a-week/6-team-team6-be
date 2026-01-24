@@ -1,8 +1,8 @@
 package ktb.billage.web.common.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
-import ktb.billage.exception.BaseException;
-import ktb.billage.exception.InternalException;
+import ktb.billage.common.exception.BaseException;
+import ktb.billage.common.exception.InternalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

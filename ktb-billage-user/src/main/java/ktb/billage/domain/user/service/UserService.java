@@ -5,15 +5,15 @@ import ktb.billage.contract.user.PasswordEncoder;
 import ktb.billage.domain.user.User;
 import ktb.billage.domain.user.UserRepository;
 import ktb.billage.domain.user.dto.UserResponse;
-import ktb.billage.exception.AuthException;
-import ktb.billage.exception.UserException;
+import ktb.billage.common.exception.AuthException;
+import ktb.billage.common.exception.UserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static ktb.billage.exception.ExceptionCode.AUTHENTICATION_FAILED;
-import static ktb.billage.exception.ExceptionCode.DUPLICATE_LOGIN_ID;
-import static ktb.billage.exception.ExceptionCode.USER_NOT_FOUND;
+import static ktb.billage.common.exception.ExceptionCode.AUTHENTICATION_FAILED;
+import static ktb.billage.common.exception.ExceptionCode.DUPLICATE_LOGIN_ID;
+import static ktb.billage.common.exception.ExceptionCode.USER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
