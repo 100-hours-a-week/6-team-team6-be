@@ -58,7 +58,6 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # 아티팩트 다운로드
       - name: Download Artifacts
         uses: dawidd6/action-download-artifact@v9
         with:
@@ -74,29 +73,20 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ steps.get-ip.outputs.server_ip }} >> ~/.ssh/known_hosts
 
-      # 3. 배포 실행 (DEV 스크립트)
       - name: Deploy to Dev Server
         run: |
-          # 아티팩트 폴더에서 JAR 파일 찾기
-          JAR_FILE=$(find ./artifacts -name "*.jar" | head -1)
-          echo "Found JAR: $JAR_FILE"
-          
-          # -o StrictHostKeyChecking=no : 처음 접속 시 물어보는 것 방지
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $JAR_FILE scripts/deploy_dev.sh ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }}:/home/${{ secrets.EC2_USER }}/deploy/
-          
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }} << 'EOF'
+          # 정규화된 app.jar와 배포 스크립트 전송
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              artifacts/app.jar \
+              scripts/deploy_dev.sh \
+              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }}:/home/${{ secrets.EC2_USER }}/deploy/
 
+          # 배포 스크립트 실행 (중단 배포)
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }} << 'EOF'
             cd /home/${{ secrets.EC2_USER }}/deploy
-          
-            # 덮어쓰기
-            mv *.jar app.jar
-          
-            # 스크립트에 실행 권한 부여
             chmod +x deploy_dev.sh
-          
-            # 배포 스크립트 실행
             ./deploy_dev.sh
-          
           EOF
 
       - name: Notify Dev Deploy success
@@ -108,3 +98,96 @@ jobs:
         if: failure()
         run: |
           curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 실패**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
+  
+
+  # =================================================================================
+  # 운영 환경 배포
+  # - 브랜치가 'main'일 때만 실행
+  # =================================================================================
+
+  deploy-prod:
+    name: Deploy to PROD
+    runs-on: ubuntu-latest
+    if: >-
+      ${{ 
+        github.event.workflow_run.conclusion == 'success' && 
+        github.event.workflow_run.head_branch == 'main' && 
+        github.event.workflow_run.event == 'push' 
+      }}
+    environment: production
+
+    steps:
+      - name: Configure AWS Credentials (PROD)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Get Prod Server IP
+        id: get-ip
+        run: |
+          TARGET_TAG="${{ env.APP_NAME }}-prod-main-server"
+          
+          IP=$(aws ec2 describe-instances \
+            --filters \
+              "Name=tag:Name,Values=$TARGET_TAG" \
+              "Name=tag:Environment,Values=prod" \
+              "Name=instance-state-name,Values=running" \
+            --query 'Reservations[0].Instances[0].PublicIpAddress' \
+            --output text)
+          
+          if [ "$IP" == "None" ] || [ -z "$IP" ]; then
+            echo "::error::PROD Server not found!"
+            exit 1
+          fi
+          echo "server_ip=$IP" >> $GITHUB_OUTPUT
+
+      - name: Download Artifacts
+        uses: dawidd6/action-download-artifact@v9
+        with:
+          workflow: ci.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: build-artifact
+          path: artifacts/
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ steps.get-ip.outputs.server_ip }} >> ~/.ssh/known_hosts
+
+      - name: Upload JAR to Deploy Directory
+        run: |
+          # 정규화된 app.jar를 backend 배포 디렉토리로 업로드
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              artifacts/app.jar \
+              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }}:/home/${{ secrets.EC2_USER }}/deploy/backend/app.jar
+
+      - name: Deploy Backend (Blue-Green)
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }} \
+              'bash /home/${{ secrets.EC2_USER }}/scripts/deploy.sh backend'
+
+      - name: Health Check
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }} \
+              'bash /home/${{ secrets.EC2_USER }}/scripts/health_check.sh backend'
+
+      - name: Notify Prod Deploy success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" -X POST -d '{"content": "**PROD 배포 성공**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
+
+      - name: Rollback on Failure
+        if: failure()
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }} \
+              'bash /home/${{ secrets.EC2_USER }}/scripts/rollback.sh backend'
+          curl -H "Content-Type: application/json" -X POST \
+              -d '{"content": "**PROD 배포 실패 및 롤백됨**: ${{ github.event.workflow_run.head_sha }}"}' \
+              ${{ secrets.DISCORD_WEBHOOK }}
