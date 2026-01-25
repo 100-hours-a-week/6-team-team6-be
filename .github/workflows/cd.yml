@@ -1,104 +1,149 @@
 name: CD - Split Deploy (Dev/Prod)
 
+#on:
+#  workflow_run:
+#    workflows: ["Backend CI"]
+#    types: [completed]
+#    branches: [main, dev]
+
 on:
-  workflow_run:
-    workflows: ["Backend CI"]
-    types: [completed]
-    branches: [main, dev]
+  push:
+    branches: [ feat/cicd/37 ]
 
 env:
   APP_NAME: billage
+  JAVA_VERSION: '25'
 
 jobs:
+
+  ################################################################################
+  # 임시로 cd Test를 위해서 아티팩트 빌드를 cd.yml에 포함
+    # 실제 운영 시에는 ci.yml에서 빌드 후 아티팩트 업로드
+  build-and-test:
+    name: Build & Unit Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK ${{ env.JAVA_VERSION }} & Cache
+        uses: actions/setup-java@v4 # 캐싱 확인 후 캐시키도 가져옴
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle' # 캐싱 (7일간 캐싱 가능하고 사용시 다시 카운트다운, 10GB까지)
+
+      - name: Lint Analysis # 린트 체크해서 early fail
+        run: ./gradlew checkstyleMain --no-daemon
+
+      - name: Build # 빌드와 테스트 분리하여 실패지점 확인
+        run: ./gradlew build -x test --no-daemon
+
+      - name: Rename JAR to app.jar # 빌드된 jar를 app.jar로 정규화
+        run: |
+          mv ktb-billage-api/build/libs/*-SNAPSHOT.jar ktb-billage-api/build/libs/app.jar
+
+      - name: Upload Build Artifact # 아티펙트로 구워서 다음 job들에게 전달 (CD에게 전달)
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: ktb-billage-api/build/libs/app.jar  # 정규화된 jar 파일
+          retention-days: 1       # 하루만 보관하면 됨
+
+
+
+
   # =================================================================================
   # 개발 환경 배포
   # - 브랜치가 'dev'일 때만 실행
   # =================================================================================
-  deploy-dev:
-    name: Deploy to DEV
-    runs-on: ubuntu-latest
-    if: >-
-      ${{ 
-        github.event.workflow_run.conclusion == 'success' && 
-        github.event.workflow_run.head_branch == 'dev' && 
-        github.event.workflow_run.event == 'push' 
-      }}
-    environment: development  # GitHub Environment (Secrets 분리 가능)
-
-    steps:
-      - name: Configure AWS Credentials (DEV)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} # 필요하다면 DEV용 키 별도 사용 가능
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      # IP 가져오기 (DEV 태그 검색)
-      - name: Get Dev Server IP
-        id: get-ip
-        run: |
-          # Dev는 태그가 명확하게 고정됨
-          TARGET_TAG="${{ env.APP_NAME }}-dev-main-server"
-          
-          IP=$(aws ec2 describe-instances \
-            --filters \
-              "Name=tag:Name,Values=$TARGET_TAG" \
-              "Name=tag:Environment,Values=dev" \
-              "Name=instance-state-name,Values=running" \
-            --query 'Reservations[0].Instances[0].PublicIpAddress' \
-            --output text)
-          
-          if [ "$IP" == "None" ] || [ -z "$IP" ]; then
-            echo "::error::DEV Server not found!"
-            exit 1
-          fi
-          echo "server_ip=$IP" >> $GITHUB_OUTPUT
-
-
-      - name: Checkout Source Code
-        uses: actions/checkout@v4
-
-      - name: Download Artifacts
-        uses: dawidd6/action-download-artifact@v9
-        with:
-          workflow: ci.yml
-          run_id: ${{ github.event.workflow_run.id }}
-          name: build-artifact
-          path: artifacts/
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ steps.get-ip.outputs.server_ip }} >> ~/.ssh/known_hosts
-
-      - name: Deploy to Dev Server
-        run: |
-          # 정규화된 app.jar와 배포 스크립트 전송
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-              artifacts/app.jar \
-              scripts/deploy_dev.sh \
-              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }}:/home/${{ secrets.EC2_USER }}/deploy/
-
-          # 배포 스크립트 실행 (중단 배포)
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }} << 'EOF'
-            cd /home/${{ secrets.EC2_USER }}/deploy
-            chmod +x deploy_dev.sh
-            ./deploy_dev.sh
-          EOF
-
-      - name: Notify Dev Deploy success
-        if: success()
-        run: |
-          curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 완료**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
-
-      - name: Notify Dev Deploy failure
-        if: failure()
-        run: |
-          curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 실패**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
-  
+#
+#  deploy-dev:
+#    name: Deploy to DEV
+#    runs-on: ubuntu-latest
+#    if: >-
+#      ${{
+#        github.event.workflow_run.conclusion == 'success' &&
+#        github.event.workflow_run.head_branch == 'dev' &&
+#        github.event.workflow_run.event == 'push'
+#      }}
+#    environment: development  # GitHub Environment (Secrets 분리 가능)
+#
+#    steps:
+#      - name: Configure AWS Credentials (DEV)
+#        uses: aws-actions/configure-aws-credentials@v4
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} # 필요하다면 DEV용 키 별도 사용 가능
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: ${{ secrets.AWS_REGION }}
+#
+#      # IP 가져오기 (DEV 태그 검색)
+#      - name: Get Dev Server IP
+#        id: get-ip
+#        run: |
+#          # Dev는 태그가 명확하게 고정됨
+#          TARGET_TAG="${{ env.APP_NAME }}-dev-main-server"
+#
+#          IP=$(aws ec2 describe-instances \
+#            --filters \
+#              "Name=tag:Name,Values=$TARGET_TAG" \
+#              "Name=tag:Environment,Values=dev" \
+#              "Name=instance-state-name,Values=running" \
+#            --query 'Reservations[0].Instances[0].PublicIpAddress' \
+#            --output text)
+#
+#          if [ "$IP" == "None" ] || [ -z "$IP" ]; then
+#            echo "::error::DEV Server not found!"
+#            exit 1
+#          fi
+#          echo "server_ip=$IP" >> $GITHUB_OUTPUT
+#
+#
+#      - name: Checkout Source Code
+#        uses: actions/checkout@v4
+#
+#      - name: Download Artifacts
+#        uses: dawidd6/action-download-artifact@v9
+#        with:
+#          workflow: ci.yml
+#          run_id: ${{ github.event.workflow_run.id }}
+#          name: build-artifact
+#          path: artifacts/
+#
+#      - name: Setup SSH
+#        run: |
+#          mkdir -p ~/.ssh
+#          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+#          chmod 600 ~/.ssh/deploy_key
+#          ssh-keyscan -H ${{ steps.get-ip.outputs.server_ip }} >> ~/.ssh/known_hosts
+#
+#      - name: Deploy to Dev Server
+#        run: |
+#          # 정규화된 app.jar와 배포 스크립트 전송
+#          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+#              artifacts/app.jar \
+#              scripts/deploy_dev.sh \
+#              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }}:/home/${{ secrets.EC2_USER }}/deploy/
+#
+#          # 배포 스크립트 실행 (중단 배포)
+#          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+#              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }} << 'EOF'
+#            cd /home/${{ secrets.EC2_USER }}/deploy
+#            chmod +x deploy_dev.sh
+#            ./deploy_dev.sh
+#          EOF
+#
+#      - name: Notify Dev Deploy success
+#        if: success()
+#        run: |
+#          curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 완료**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
+#
+#      - name: Notify Dev Deploy failure
+#        if: failure()
+#        run: |
+#          curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 실패**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
+#
 
   # =================================================================================
   # 운영 환경 배포
@@ -108,13 +153,15 @@ jobs:
   deploy-prod:
     name: Deploy to PROD
     runs-on: ubuntu-latest
-    if: >-
-      ${{ 
-        github.event.workflow_run.conclusion == 'success' && 
-        github.event.workflow_run.head_branch == 'main' && 
-        github.event.workflow_run.event == 'push' 
-      }}
+#    if: >-
+#      ${{
+#        github.event.workflow_run.conclusion == 'success' &&
+#        github.event.workflow_run.head_branch == 'main' &&
+#        github.event.workflow_run.event == 'push'
+#      }}
     environment: production
+    ### ========= 이것도 잠시 빌드 위해서 추가 ==========
+    needs: build-and-test
 
     steps:
       - name: Configure AWS Credentials (PROD)
@@ -143,13 +190,20 @@ jobs:
           fi
           echo "server_ip=$IP" >> $GITHUB_OUTPUT
 
+#      - name: Download Artifacts
+#        uses: dawidd6/action-download-artifact@v9
+#        with:
+#          workflow: ci.yml
+#          run_id: ${{ github.event.workflow_run.id }}
+#          name: build-artifact
+#          path: artifacts/
+
+      ##======잠시 테스트용으로 아티팩트 다운을 동일 workflow로 변경=====
       - name: Download Artifacts
-        uses: dawidd6/action-download-artifact@v9
+        uses: actions/download-artifact@v4
         with:
-          workflow: ci.yml
-          run_id: ${{ github.event.workflow_run.id }}
-          name: build-artifact
-          path: artifacts/
+          name: build-artifact   # 위에서 업로드한 이름과 동일해야 함
+          path: artifacts/       # 다운로드 받을 경로
 
       - name: Setup SSH
         run: |
@@ -180,7 +234,7 @@ jobs:
       - name: Notify Prod Deploy success
         if: success()
         run: |
-          curl -H "Content-Type: application/json" -X POST -d '{"content": "**PROD 배포 성공**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
+          curl -H "Content-Type: application/json" -X POST -d '{"content": "**PROD 배포 성공**: ${{ github.sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
 
       - name: Rollback on Failure
         if: failure()
