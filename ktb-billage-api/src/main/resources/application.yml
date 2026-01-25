@@ -8,7 +8,8 @@ spring:
       local: local
       dev: dev
       prod: prod
+
   config:
     import:
-      - classpath: application-jwt.yml
-      - classpath: application-dbsource.yml
+      - classpath:application-jwt.yml
+      - classpath:application-dbsource.yml
