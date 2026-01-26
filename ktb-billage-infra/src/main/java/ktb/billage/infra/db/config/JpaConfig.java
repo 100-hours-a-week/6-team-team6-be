@@ -1,4 +1,4 @@
-package ktb.billage.infra.jpa.config;
+package ktb.billage.infra.db.config;
 
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.stereotype.Component;
