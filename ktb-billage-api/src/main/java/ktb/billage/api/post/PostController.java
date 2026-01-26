@@ -7,6 +7,7 @@ import ktb.billage.domain.post.service.PostService;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,5 +47,11 @@ public class PostController {
 
         return ResponseEntity.ok()
                 .body(postService.changeRentalStatus(groupId, postId, userId, request.rentalStatus()));
+    }
+
+    @DeleteMapping("/groups/{groupId}/posts/{postId}")
+    ResponseEntity<Void> deletePost(@PathVariable Long groupId, @PathVariable Long postId, @AuthenticatedId Long userId) {
+        postService.delete(groupId, postId, userId);
+        return ResponseEntity.noContent().build();
     }
 }

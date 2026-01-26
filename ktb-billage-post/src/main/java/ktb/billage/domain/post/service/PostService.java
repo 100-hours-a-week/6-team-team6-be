@@ -79,6 +79,17 @@ public class PostService {
         return new PostResponse.ChangedStatus(post.getId(), post.getRentalStatus());
     }
 
+    @Transactional
+    public void delete(Long groupId, Long postId, Long userId) {
+
+        Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
+
+        Post post = findPost(postId);
+        validatePostSeller(post, membershipId);
+
+        post.delete();
+    }
+
     private List<PostImage> toPostImages(Post post, List<String> imageUrls) {
         return IntStream.range(0, imageUrls.size())
                 .mapToObj(index -> new PostImage(
