@@ -20,4 +20,8 @@ public abstract class BaseEntity {
     private LocalDateTime updatedAt;
 
     private LocalDateTime deletedAt;
+
+    protected void delete(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
 }
