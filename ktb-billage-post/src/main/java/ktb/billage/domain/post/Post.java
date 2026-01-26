@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -57,5 +58,18 @@ public class Post {
         this.feeUnit = feeUnit;
         this.imageCount = imageCount;
         this.rentalStatus = RentalStatus.AVAILABLE;
+    }
+
+    public boolean isOwner(Long membershipId) {
+        return Objects.equals(membershipId, this.sellerId);
+    }
+
+    public void update(String title, String content, int imageCount,
+                       BigDecimal rentalFee, FeeUnit feeUnit) {
+        this.title = title;
+        this.content = content;
+        this.imageCount = imageCount;
+        this.rentalFee = rentalFee;
+        this.feeUnit = feeUnit;
     }
 }

@@ -1,19 +1,30 @@
 package ktb.billage.domain.post.service;
 
 import ktb.billage.application.port.in.GroupPolicyFacade;
+import ktb.billage.common.exception.PostException;
 import ktb.billage.domain.post.FeeUnit;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.post.PostImage;
 import ktb.billage.domain.post.PostImageRepository;
 import ktb.billage.domain.post.PostRepository;
+import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.IntStream;
+import java.util.stream.Collectors;
+
+import static ktb.billage.common.exception.ExceptionCode.POST_IS_NOT_OWNED_BY_USER;
+import static ktb.billage.common.exception.ExceptionCode.POST_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +50,21 @@ public class PostService {
         return new PostResponse.Id(post.getId());
     }
 
+    @Transactional
+    public PostResponse.Id update(Long groupId, Long postId, Long userId, String title,
+                                  String content, PostRequest.ImageInfos imageInfos, BigDecimal rentalFee, FeeUnit feeUnit) {
+
+        Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
+
+        Post post = findPost(postId);
+        validatePostSeller(post, membershipId);
+
+        updateImages(post, imageInfos);
+        post.update(title, content, imageInfos.imageInfos().size(), rentalFee, feeUnit);
+
+        return new PostResponse.Id(post.getId());
+    }
+
     private List<PostImage> toPostImages(Post post, List<String> imageUrls) {
         return IntStream.range(0, imageUrls.size())
                 .mapToObj(index -> new PostImage(
@@ -47,5 +73,88 @@ public class PostService {
                         index + 1
                 ))
                 .toList();
+    }
+
+    private Post findPost(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new PostException(POST_NOT_FOUND));
+    }
+
+    private void validatePostSeller(Post post, Long membershipId) {
+        if (!post.isOwner(membershipId)) {
+            throw new PostException(POST_IS_NOT_OWNED_BY_USER);
+        }
+    }
+
+    private void updateImages(Post post, PostRequest.ImageInfos imageInfos) {
+        List<PostImage> existingImages = loadExistingImages(post);
+        Map<Long, PostImage> existingById = mapImagesById(existingImages);
+        Set<Long> requestedIds = toSetForRequestedImageIds(imageInfos);
+
+        softDeleteRemovedImages(existingImages, requestedIds);
+        applySortOrdersToExisting(imageInfos, existingById);
+        saveNewImages(collectNewImagesWithSortOrder(post, imageInfos));
+    }
+
+    private List<PostImage> loadExistingImages(Post post) {
+        return postImageRepository.findAllByPostId(post.getId());
+    }
+
+    private Map<Long, PostImage> mapImagesById(List<PostImage> images) {
+        return images.stream()
+                .collect(Collectors.toMap(PostImage::getId, image -> image, (left, right) -> left, HashMap::new));
+    }
+
+    private Set<Long> toSetForRequestedImageIds(PostRequest.ImageInfos imageInfos) {
+        return imageInfos.imageInfos().stream()
+                .map(PostRequest.ImageInfo::postImageId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    private void softDeleteRemovedImages(List<PostImage> existingImages, Set<Long> requestedIds) {
+        List<PostImage> toDelete = existingImages.stream()
+                .filter(image -> !requestedIds.contains(image.getId()))
+                .toList();
+
+        for (PostImage image : toDelete) {
+            image.delete();
+        }
+    }
+
+    private void applySortOrdersToExisting(PostRequest.ImageInfos imageInfos, Map<Long, PostImage> existingById) {
+        List<PostRequest.ImageInfo> infos = imageInfos.imageInfos();
+        for (int i = 0; i < infos.size(); i++) {
+            PostRequest.ImageInfo info = infos.get(i);
+            if (info.postImageId() == null) {
+                continue;
+            }
+
+            PostImage image = existingById.get(info.postImageId());
+            if (image != null) {
+                image.updateSortOrder(i + 1);
+            }
+        }
+    }
+
+    private List<PostImage> collectNewImagesWithSortOrder(Post post, PostRequest.ImageInfos imageInfos) {
+        List<PostImage> toCreate = new ArrayList<>();
+        List<PostRequest.ImageInfo> infos = imageInfos.imageInfos();
+        for (int i = 0; i < infos.size(); i++) {
+            PostRequest.ImageInfo info = infos.get(i);
+            if (info.postImageId() != null) {
+                continue;
+            }
+
+            toCreate.add(new PostImage(post, info.imageUrl(), i + 1));
+        }
+
+        return toCreate;
+    }
+
+    private void saveNewImages(List<PostImage> newImages) {
+        if (!newImages.isEmpty()) {
+            postImageRepository.saveAll(newImages);
+        }
     }
 }
