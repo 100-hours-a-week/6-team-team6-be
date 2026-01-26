@@ -9,13 +9,13 @@ import java.time.Instant;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    List<Post> findTop21ByOrderByCreatedAtDescIdDesc();
+    List<Post> findTop21ByOrderByUpdatedAtDescIdDesc();
 
     @Query("""
             select p from Post p
-            where p.createdAt < :cursorTime
-               or (p.createdAt = :cursorTime and p.id < :cursorId)
-            order by p.createdAt desc, p.id desc
+            where p.updatedAt < :cursorTime
+               or (p.updatedAt = :cursorTime and p.id < :cursorId)
+            order by p.updatedAt desc, p.id desc
             """)
     List<Post> findNextPage(@Param("cursorTime") Instant cursorTime,
                             @Param("cursorId") Long cursorId,
