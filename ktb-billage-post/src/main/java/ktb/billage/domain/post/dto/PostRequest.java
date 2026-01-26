@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import ktb.billage.common.validation.NoEmoji;
 import ktb.billage.domain.post.FeeUnit;
+import ktb.billage.domain.post.RentalStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,6 +41,11 @@ public class PostRequest {
     public record ImageInfo(
             @Nullable Long postImageId,
             @NotBlank String imageUrl
+    ) {
+    }
+
+    public record Change(
+            RentalStatus rentalStatus
     ) {
     }
 }
