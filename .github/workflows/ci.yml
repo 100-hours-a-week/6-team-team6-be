@@ -69,6 +69,10 @@ jobs:
         run: ./gradlew build -x test --no-daemon
 
       - name: Unit Test
+        env: ## 유닛테스트에서 추후에는 db 접속 필요없게 디벨롭하기
+          LOCAL_DB_URL: jdbc:mysql://localhost:3306/testdb
+          LOCAL_DB_USERNAME: root
+          LOCAL_DB_PASSWORD: test
         run: ./gradlew test --no-daemon
 
       - name: Upload Test Results
@@ -100,6 +104,20 @@ jobs:
     needs: build-and-test
     if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
 
+    services: # 여기도 MySQL 필요
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: testdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -112,6 +130,10 @@ jobs:
           cache: 'gradle'
 
       - name: Run Integration Tests
+        env:
+          LOCAL_DB_URL: jdbc:mysql://localhost:3306/testdb
+          LOCAL_DB_USERNAME: root
+          LOCAL_DB_PASSWORD: test
         run: ./gradlew integrationTest --no-daemon
 
       - name: Upload Integration Test Results
