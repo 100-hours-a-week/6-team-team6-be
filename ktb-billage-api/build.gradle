@@ -8,6 +8,7 @@ dependencies {
     implementation project(':ktb-billage-user')
     implementation project(':ktb-billage-post')
     implementation project(':ktb-billage-chat')
+    implementation project(':ktb-billage-group')
 
     // support modules
     implementation project(':ktb-billage-global:ktb-billage-contract')
