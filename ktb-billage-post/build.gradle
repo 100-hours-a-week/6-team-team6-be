@@ -1,3 +1,11 @@
 plugins {
     id 'java-library'
 }
+
+dependencies {
+    implementation project(':ktb-billage-group')
+    implementation project(':ktb-billage-global:ktb-billage-common')
+
+    implementation 'jakarta.validation:jakarta.validation-api'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+}
