@@ -7,6 +7,7 @@ import ktb.billage.domain.post.Post;
 import ktb.billage.domain.post.PostImage;
 import ktb.billage.domain.post.PostImageRepository;
 import ktb.billage.domain.post.PostRepository;
+import ktb.billage.domain.post.RentalStatus;
 import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,19 @@ public class PostService {
         post.update(title, content, imageInfos.imageInfos().size(), rentalFee, feeUnit);
 
         return new PostResponse.Id(post.getId());
+    }
+
+    @Transactional
+    public PostResponse.ChangedStatus changeRentalStatus(Long groupId, Long postId, Long userId, RentalStatus rentalStatus) {
+
+        Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
+
+        Post post = findPost(postId);
+        validatePostSeller(post, membershipId);
+
+        post.markAsStatus(rentalStatus);
+
+        return new PostResponse.ChangedStatus(post.getId(), post.getRentalStatus());
     }
 
     private List<PostImage> toPostImages(Post post, List<String> imageUrls) {

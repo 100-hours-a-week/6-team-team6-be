@@ -72,4 +72,8 @@ public class Post {
         this.rentalFee = rentalFee;
         this.feeUnit = feeUnit;
     }
+
+    public void markAsStatus(RentalStatus rentalStatus) {
+        this.rentalStatus = rentalStatus;
+    }
 }

@@ -7,6 +7,7 @@ import ktb.billage.domain.post.service.PostService;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -32,10 +33,18 @@ public class PostController {
 
     @PutMapping("/groups/{groupId}/posts/{postId}")
     ResponseEntity<PostResponse.Id> modifyPost(@PathVariable Long groupId, @PathVariable Long postId,
-                                 @Valid @RequestBody PostRequest.Update request, @AuthenticatedId Long userId) {
+                                               @Valid @RequestBody PostRequest.Update request, @AuthenticatedId Long userId) {
 
         return ResponseEntity.ok()
                 .body(postService.update(groupId, postId, userId, request.title(),
                         request.content(), request.imageUrls(), request.rentalFee(), request.feeUnit()));
+    }
+
+    @PatchMapping("/groups/{groupId}/posts/{postId}")
+    ResponseEntity<PostResponse.ChangedStatus> changeRentalStatus(@PathVariable Long groupId, @PathVariable Long postId,
+                                                                  @RequestBody PostRequest.Change request, @AuthenticatedId Long userId) {
+
+        return ResponseEntity.ok()
+                .body(postService.changeRentalStatus(groupId, postId, userId, request.rentalStatus()));
     }
 }
