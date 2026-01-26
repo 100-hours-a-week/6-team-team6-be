@@ -34,20 +34,7 @@ public class PostQueryService {
 
         CursorCodec.Cursor decoded = decodeCursor(cursor);
         List<Post> posts = loadPosts(decoded);
-        boolean hasNextPage = posts.size() > 20;
-        List<Post> pagePosts = hasNextPage ? posts.subList(0, 20) : posts;
-
-        List<PostResponse.Summary> summaries = pagePosts.stream()
-                .map(this::toSummary)
-                .toList();
-
-        String nextCursor = null;
-        if (hasNextPage) {
-            Post last = pagePosts.getLast();
-            nextCursor = cursorCodec.encode(last.getCreatedAt(), last.getId());
-        }
-
-        return new PostResponse.Summaries(summaries, nextCursor, hasNextPage);
+        return buildSummaries(posts);
     }
 
     public PostResponse.Detail getPost(Long groupId, Long postId, Long userId) {
@@ -56,6 +43,14 @@ public class PostQueryService {
         Post post = findPost(postId);
 
         return postQueryRepository.findPostDetail(postId, userId, membershipId);
+    }
+
+    public PostResponse.Summaries getPostsByKeywordAndCursor(Long groupId, Long userId, String keyword, String cursor) {
+        groupPolicyFacade.validateMembership(groupId, userId);
+
+        CursorCodec.Cursor decoded = decodeCursor(cursor);
+        List<Post> posts = loadPostsByKeyword(keyword, decoded);
+        return buildSummaries(posts);
     }
 
     private Post findPost(Long postId) {
@@ -77,6 +72,31 @@ public class PostQueryService {
         }
 
         return postRepository.findNextPage(decoded.time(), decoded.id(), PageRequest.of(0, 21));
+    }
+
+    private List<Post> loadPostsByKeyword(String keyword, CursorCodec.Cursor decoded) {
+        if (decoded == null) {
+            return postRepository.findTop21ByTitleContainingOrderByUpdatedAtDescIdDesc(keyword);
+        }
+
+        return postRepository.findNextPageByKeyword(keyword, decoded.time(), decoded.id(), PageRequest.of(0, 21));
+    }
+
+    private PostResponse.Summaries buildSummaries(List<Post> posts) {
+        boolean hasNextPage = posts.size() > 20;
+        List<Post> pagePosts = hasNextPage ? posts.subList(0, 20) : posts;
+
+        List<PostResponse.Summary> summaries = pagePosts.stream()
+                .map(this::toSummary)
+                .toList();
+
+        String nextCursor = null;
+        if (hasNextPage) {
+            Post last = pagePosts.getLast();
+            nextCursor = cursorCodec.encode(last.getCreatedAt(), last.getId());
+        }
+
+        return new PostResponse.Summaries(summaries, nextCursor, hasNextPage);
     }
 
     private PostResponse.Summary toSummary(Post post) { // FIXME. 이미지 N + 1 문제 야기
