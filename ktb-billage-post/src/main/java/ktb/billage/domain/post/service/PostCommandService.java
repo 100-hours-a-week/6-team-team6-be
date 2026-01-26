@@ -87,7 +87,7 @@ public class PostService {
         Post post = findPost(postId);
         validatePostSeller(post, membershipId);
 
-        post.delete();
+        post.delete(Instant.now());
     }
 
     private List<PostImage> toPostImages(Post post, List<String> imageUrls) {
@@ -143,7 +143,7 @@ public class PostService {
                 .toList();
 
         for (PostImage image : toDelete) {
-            image.delete();
+            image.delete(Instant.now());
         }
     }
 

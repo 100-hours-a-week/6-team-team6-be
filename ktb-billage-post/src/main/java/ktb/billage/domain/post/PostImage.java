@@ -8,7 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import ktb.billage.common.entity.BaseEntity;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,7 +42,7 @@ public class PostImage extends BaseEntity {
         this.sortOrder = sortOrder;
     }
 
-    public void delete() {
-        delete(LocalDateTime.now());
+    public void delete(Instant now) {
+        delete(now);
     }
 }

@@ -13,7 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 
 @Entity
@@ -79,7 +79,7 @@ public class Post extends BaseEntity {
         this.rentalStatus = rentalStatus;
     }
 
-    public void delete() {
-        super.delete(LocalDateTime.now());
+    public void delete(Instant now) {
+        super.delete(now);
     }
 }
