@@ -28,8 +28,8 @@ public class PostController {
 
     @PostMapping("/groups/{groupId}/posts")
     public ResponseEntity<PostResponse.Id> createPost(@PathVariable Long groupId,
-                                               @Valid @RequestBody PostRequest.Create request,
-                                               @AuthenticatedId Long userId) {
+                                                      @Valid @RequestBody PostRequest.Create request,
+                                                      @AuthenticatedId Long userId) {
 
         return ResponseEntity.status(CREATED)
                 .body(postCommandService.create(groupId, userId, request.title(),
@@ -38,7 +38,7 @@ public class PostController {
 
     @PutMapping("/groups/{groupId}/posts/{postId}")
     public ResponseEntity<PostResponse.Id> modifyPost(@PathVariable Long groupId, @PathVariable Long postId,
-                                               @Valid @RequestBody PostRequest.Update request, @AuthenticatedId Long userId) {
+                                                      @Valid @RequestBody PostRequest.Update request, @AuthenticatedId Long userId) {
 
         return ResponseEntity.ok()
                 .body(postCommandService.update(groupId, postId, userId, request.title(),
@@ -47,7 +47,7 @@ public class PostController {
 
     @PatchMapping("/groups/{groupId}/posts/{postId}")
     public ResponseEntity<PostResponse.ChangedStatus> changeRentalStatus(@PathVariable Long groupId, @PathVariable Long postId,
-                                                                  @RequestBody PostRequest.Change request, @AuthenticatedId Long userId) {
+                                                                         @RequestBody PostRequest.Change request, @AuthenticatedId Long userId) {
 
         return ResponseEntity.ok()
                 .body(postCommandService.changeRentalStatus(groupId, postId, userId, request.rentalStatus()));
@@ -60,7 +60,7 @@ public class PostController {
     }
 
     @GetMapping("/groups/{groupId}/posts")
-    public ResponseEntity<?> getPosts(@PathVariable Long groupId, @AuthenticatedId Long userId, @RequestParam(required = false) String cursor) {
+    public ResponseEntity<PostResponse.Summaries> getPosts(@PathVariable Long groupId, @AuthenticatedId Long userId, @RequestParam(required = false) String cursor) {
         return ResponseEntity.ok()
                 .body(postQueryService.getPostsByCursor(groupId, userId, cursor));
     }
@@ -69,5 +69,12 @@ public class PostController {
     public ResponseEntity<?> getPost(@PathVariable Long groupId, @PathVariable Long postId, @AuthenticatedId Long userId) {
         return ResponseEntity.ok()
                 .body(postQueryService.getPost(groupId, postId, userId));
+    }
+
+    @GetMapping("/groups/{groupId}/posts")
+    public ResponseEntity<PostResponse.Summaries> getPostsByKeywordAndCursor(@PathVariable Long groupId, @AuthenticatedId Long userId,
+                                                                             @RequestParam String keyword, @RequestParam(required = false) String cursor) {
+        return ResponseEntity.ok()
+                .body(postQueryService.getPostsByKeywordAndCursor());
     }
 }
