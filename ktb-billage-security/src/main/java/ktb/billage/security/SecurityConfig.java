@@ -3,7 +3,7 @@ package ktb.billage.security;
 import ktb.billage.security.auth.JwtAuthenticationFilter;
 import ktb.billage.security.auth.JwtAuthenticationEntryPoint;
 import ktb.billage.security.csrf.CsrfCookieIssuingFilter;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,7 +19,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
     private static final String[] ALLOWED_URL_LIST = new String[]{"/swagger**", "/auth/**"};
 
@@ -28,6 +27,18 @@ public class SecurityConfig {
     private final CsrfCookieIssuingFilter csrfCookieIssuingFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+    public SecurityConfig(@Qualifier("csrfProtectionMatcher") RequestMatcher csrfProtectionMatcher,
+                          CsrfTokenRepository csrfTokenRepository,
+                          CsrfCookieIssuingFilter csrfCookieIssuingFilter,
+                          JwtAuthenticationFilter jwtAuthenticationFilter,
+                          JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
+        this.csrfProtectionMatcher = csrfProtectionMatcher;
+        this.csrfTokenRepository = csrfTokenRepository;
+        this.csrfCookieIssuingFilter = csrfCookieIssuingFilter;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+    }
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) {
