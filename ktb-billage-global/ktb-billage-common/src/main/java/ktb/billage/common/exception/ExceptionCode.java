@@ -18,6 +18,10 @@ public enum ExceptionCode {
     INVALID_NICKNAME("USER03", 400),
     DUPLICATE_LOGIN_ID("USER04", 409),
 
+    // group
+    GROUP_NOT_FOUND("GROUP01", 404),
+    NOT_GROUP_MEMBER("GROUP02", 403),
+
     // image
     INVALID_IMAGE("IMAGE01", 400),
     UNSUPPORTED_IMAGE_TYPE("IMAGE02", 415),
