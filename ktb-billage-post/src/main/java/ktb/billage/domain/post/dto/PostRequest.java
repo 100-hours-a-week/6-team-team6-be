@@ -1,0 +1,24 @@
+package ktb.billage.domain.post.dto;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import ktb.billage.common.validation.NoEmoji;
+import ktb.billage.domain.post.FeeUnit;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+public class PostRequest {
+
+    public record Create(
+            @NotBlank @Size(min = 2, max = 50) @NoEmoji String title,
+            @NotBlank @Size(min = 1, max = 2000) @NoEmoji String content,
+            @Size(min = 1) List<@NotBlank String> imageUrls,
+            @NotNull @Min(1) @Max(100_000_000) BigDecimal rentalFee,
+            FeeUnit feeUnit
+    ) {
+    }
+}
