@@ -16,4 +16,10 @@ public class GroupPolicyFacade {
 
         return membershipService.findMembership(groupId, userId);
     }
+
+    public void validateMembership(Long groupId, Long userId) {
+        groupService.validateGroup(groupId);
+
+        membershipService.validateMembership(groupId, userId);
+    }
 }

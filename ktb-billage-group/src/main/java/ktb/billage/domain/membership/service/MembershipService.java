@@ -18,4 +18,10 @@ public class MembershipService {
                 .map(Membership::getId)
                 .orElseThrow(() ->  new GroupException(NOT_GROUP_MEMBER));
     }
+
+    public void validateMembership(Long groupId, Long userId) {
+        if (!membershipRepository.existsByGroupIdAndUserId(groupId, userId)) {
+            throw new GroupException(NOT_GROUP_MEMBER);
+        }
+    }
 }
