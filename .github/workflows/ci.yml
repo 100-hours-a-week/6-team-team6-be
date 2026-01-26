@@ -73,6 +73,10 @@ jobs:
           LOCAL_DB_URL: jdbc:mysql://localhost:3306/testdb
           LOCAL_DB_USERNAME: root
           LOCAL_DB_PASSWORD: test
+          CORS_ALLOWED_ORIGIN: "http://localhost:3000"
+          JWT_SECRET_KEY: "test-secret-key-for-ci-pipeline-do-not-use-in-production"
+          ACCESS_DURATION: "3600000"
+          REFRESH_DURATION: "604800000"
         run: ./gradlew test --no-daemon
 
       - name: Upload Test Results
@@ -134,6 +138,10 @@ jobs:
           LOCAL_DB_URL: jdbc:mysql://localhost:3306/testdb
           LOCAL_DB_USERNAME: root
           LOCAL_DB_PASSWORD: test
+          CORS_ALLOWED_ORIGIN: "http://localhost:3000"
+          JWT_SECRET_KEY: "test-secret-key-for-ci-pipeline-do-not-use-in-production"
+          ACCESS_DURATION: "3600000"
+          REFRESH_DURATION: "604800000"
         run: ./gradlew integrationTest --no-daemon
 
       - name: Upload Integration Test Results
