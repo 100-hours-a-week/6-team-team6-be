@@ -12,7 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZoneOffset;
 import java.util.List;
 
 @Service
@@ -56,7 +55,7 @@ public class PostQueryService {
 
     private List<Post> loadPosts(CursorCodec.Cursor decoded) {
         if (decoded == null) {
-            return postRepository.findTop21ByOrderByCreatedAtDescIdDesc();
+            return postRepository.findTop21ByOrderByUpdatedAtDescIdDesc();
         }
 
         return postRepository.findNextPage(decoded.time(), decoded.id(), PageRequest.of(0, 21));
