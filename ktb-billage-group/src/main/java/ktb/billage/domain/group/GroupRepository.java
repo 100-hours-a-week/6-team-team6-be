@@ -1,0 +1,8 @@
+package ktb.billage.domain.group;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface GroupRepository extends JpaRepository<Group, Long> {
+
+    boolean existsById(Long groupId);
+}
