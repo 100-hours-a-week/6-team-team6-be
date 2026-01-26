@@ -2,9 +2,11 @@ package ktb.billage.domain.post.service;
 
 import ktb.billage.application.port.in.GroupPolicyFacade;
 import ktb.billage.common.cursor.CursorCodec;
+import ktb.billage.common.exception.PostException;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.post.PostImage;
 import ktb.billage.domain.post.PostImageRepository;
+import ktb.billage.domain.post.PostQueryRepository;
 import ktb.billage.domain.post.PostRepository;
 import ktb.billage.domain.post.dto.PostResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static ktb.billage.common.exception.ExceptionCode.POST_NOT_FOUND;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,6 +27,7 @@ public class PostQueryService {
 
     private final CursorCodec cursorCodec;
     private final GroupPolicyFacade groupPolicyFacade;
+    private final PostQueryRepository postQueryRepository;
 
     public PostResponse.Summaries getPostsByCursor(Long groupId, Long userId, String cursor) {
         groupPolicyFacade.validateMembership(groupId, userId);
@@ -43,6 +48,19 @@ public class PostQueryService {
         }
 
         return new PostResponse.Summaries(summaries, nextCursor, hasNextPage);
+    }
+
+    public PostResponse.Detail getPost(Long groupId, Long postId, Long userId) {
+        Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
+
+        Post post = findPost(postId);
+
+        return postQueryRepository.findPostDetail(postId, userId, membershipId);
+    }
+
+    private Post findPost(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new PostException(POST_NOT_FOUND));
     }
 
     private CursorCodec.Cursor decodeCursor(String cursor) {
