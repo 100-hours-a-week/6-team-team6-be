@@ -26,17 +26,29 @@ subprojects {
 
     dependencies {
         implementation platform('org.springframework.boot:spring-boot-dependencies:4.0.1')
+        implementation platform('com.querydsl:querydsl-bom:5.1.0')
+
+        implementation('com.querydsl:querydsl-jpa') {
+            artifact {
+                classifier = 'jakarta'
+            }
+        }
 
         compileOnly 'org.projectlombok:lombok'
 
         annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:4.0.1')
         annotationProcessor 'org.projectlombok:lombok'
+        annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+        annotationProcessor('com.querydsl:querydsl-apt') {
+            artifact {
+                classifier = 'jakarta'
+            }
+        }
 
         testCompileOnly 'org.projectlombok:lombok'
 
         testAnnotationProcessor platform('org.springframework.boot:spring-boot-dependencies:4.0.1')
         testAnnotationProcessor 'org.projectlombok:lombok'
-
     }
 
     if (project.name != 'ktb-billage-global') {
