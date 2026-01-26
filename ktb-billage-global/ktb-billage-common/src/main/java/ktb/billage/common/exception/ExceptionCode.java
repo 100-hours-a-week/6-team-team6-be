@@ -11,7 +11,6 @@ public enum ExceptionCode {
     INVALID_RTOKEN("TOKEN02", 401),
     EXPIRED_RTOKEN("TOKEN03", 401),
 
-
     // user
     USER_NOT_FOUND("USER01", 404),
     INVALID_LOGIN_ID("USER02", 400),
@@ -21,6 +20,10 @@ public enum ExceptionCode {
     // group
     GROUP_NOT_FOUND("GROUP01", 404),
     NOT_GROUP_MEMBER("GROUP02", 403),
+
+    // post
+    POST_NOT_FOUND("POST01", 404),
+    POST_IS_NOT_OWNED_BY_USER("POST02", 403),
 
     // image
     INVALID_IMAGE("IMAGE01", 400),

@@ -1,12 +1,15 @@
 package ktb.billage.api.post;
 
+import jakarta.validation.Valid;
 import ktb.billage.domain.post.dto.PostRequest;
+import ktb.billage.domain.post.dto.PostResponse;
 import ktb.billage.domain.post.service.PostService;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,11 +21,21 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping("/groups/{groupId}/posts")
-    ResponseEntity<?> createPost(@PathVariable Long groupId,
-                                 @RequestBody PostRequest.Create request,
-                                 @AuthenticatedId Long userId) {
+    ResponseEntity<PostResponse.Id> createPost(@PathVariable Long groupId,
+                                               @Valid @RequestBody PostRequest.Create request,
+                                               @AuthenticatedId Long userId) {
+
         return ResponseEntity.status(CREATED)
                 .body(postService.create(groupId, userId, request.title(),
+                        request.content(), request.imageUrls(), request.rentalFee(), request.feeUnit()));
+    }
+
+    @PutMapping("/groups/{groupId}/posts/{postId}")
+    ResponseEntity<PostResponse.Id> modifyPost(@PathVariable Long groupId, @PathVariable Long postId,
+                                 @Valid @RequestBody PostRequest.Update request, @AuthenticatedId Long userId) {
+
+        return ResponseEntity.ok()
+                .body(postService.update(groupId, postId, userId, request.title(),
                         request.content(), request.imageUrls(), request.rentalFee(), request.feeUnit()));
     }
 }
