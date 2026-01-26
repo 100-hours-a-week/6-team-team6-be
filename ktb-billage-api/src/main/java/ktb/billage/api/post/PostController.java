@@ -64,4 +64,10 @@ public class PostController {
         return ResponseEntity.ok()
                 .body(postQueryService.getPostsByCursor(groupId, userId, cursor));
     }
+
+    @GetMapping("/groups/{groupId}/posts/{postId}")
+    public ResponseEntity<?> getPost(@PathVariable Long groupId, @PathVariable Long postId, @AuthenticatedId Long userId) {
+        return ResponseEntity.ok()
+                .body(postQueryService.getPost(groupId, postId, userId));
+    }
 }

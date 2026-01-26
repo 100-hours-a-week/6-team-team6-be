@@ -4,6 +4,7 @@ import ktb.billage.domain.post.FeeUnit;
 import ktb.billage.domain.post.RentalStatus;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 public class PostResponse {
@@ -27,6 +28,34 @@ public class PostResponse {
             BigDecimal rentalFee,
             FeeUnit feeUnit,
             RentalStatus rentalStatus
+    ) {
+    }
+
+    public record Detail(
+        String title,
+        String content,
+        ImageUrls imageUrls,
+        Long sellerId,
+        String sellerNickname,
+        String sellerAvatar,
+        BigDecimal rentalFee,
+        FeeUnit feeUnit,
+        RentalStatus rentalStatus,
+        Instant updatedAt,
+        Boolean isSeller,
+        Long chatroomId,
+        Long activeChatroomCount
+    ) {
+    }
+
+    public record ImageUrls(
+            List<ImageInfo> imageInfos
+    ) {
+    }
+
+    public record ImageInfo(
+            Long postImageId,
+            String imageUrl
     ) {
     }
 }
