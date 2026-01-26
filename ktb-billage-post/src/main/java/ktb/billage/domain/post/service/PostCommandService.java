@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,14 +29,14 @@ import static ktb.billage.common.exception.ExceptionCode.POST_IS_NOT_OWNED_BY_US
 import static ktb.billage.common.exception.ExceptionCode.POST_NOT_FOUND;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
-public class PostService {
+public class PostCommandService {
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
 
     private final GroupPolicyFacade groupPolicyFacade;
 
-    @Transactional
     public PostResponse.Id create(Long groupId, Long userId, String title,
                                   String content, List<String> imageUrls, BigDecimal rentalFee, FeeUnit feeUnit) {
 
@@ -51,7 +52,6 @@ public class PostService {
         return new PostResponse.Id(post.getId());
     }
 
-    @Transactional
     public PostResponse.Id update(Long groupId, Long postId, Long userId, String title,
                                   String content, PostRequest.ImageInfos imageInfos, BigDecimal rentalFee, FeeUnit feeUnit) {
 
@@ -66,7 +66,6 @@ public class PostService {
         return new PostResponse.Id(post.getId());
     }
 
-    @Transactional
     public PostResponse.ChangedStatus changeRentalStatus(Long groupId, Long postId, Long userId, RentalStatus rentalStatus) {
 
         Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
@@ -79,7 +78,6 @@ public class PostService {
         return new PostResponse.ChangedStatus(post.getId(), post.getRentalStatus());
     }
 
-    @Transactional
     public void delete(Long groupId, Long postId, Long userId) {
 
         Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
