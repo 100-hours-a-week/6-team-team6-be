@@ -1,6 +1,5 @@
 package ktb.billage.domain.post.service;
 
-import ktb.billage.application.port.in.GroupPolicyFacade;
 import ktb.billage.common.cursor.CursorCodec;
 import ktb.billage.common.exception.PostException;
 import ktb.billage.domain.post.Post;
@@ -26,31 +25,37 @@ public class PostQueryService {
     private final PostImageRepository postImageRepository;
 
     private final CursorCodec cursorCodec;
-    private final GroupPolicyFacade groupPolicyFacade;
     private final PostQueryRepository postQueryRepository;
 
-    public PostResponse.Summaries getPostsByCursor(Long groupId, Long userId, String cursor) {
-        groupPolicyFacade.validateMembership(groupId, userId);
-
+    public PostResponse.Summaries getPostsByCursor(String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
         List<Post> posts = loadPosts(decoded);
         return buildSummaries(posts);
     }
 
-    public PostResponse.Detail getPost(Long groupId, Long postId, Long userId) {
-        Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
-
-        Post post = findPost(postId);
-
-        return postQueryRepository.findPostDetail(postId, userId, membershipId);
-    }
-
-    public PostResponse.Summaries getPostsByKeywordAndCursor(Long groupId, Long userId, String keyword, String cursor) {
-        groupPolicyFacade.validateMembership(groupId, userId);
-
+    public PostResponse.Summaries getPostsByKeywordAndCursor(String keyword, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
         List<Post> posts = loadPostsByKeyword(keyword, decoded);
         return buildSummaries(posts);
+    }
+
+    public PostResponse.DetailCore getPostDetailCore(Long postId) {
+        Post post = findPost(postId);
+        List<PostResponse.ImageInfo> imageInfos = postQueryRepository.findImageInfos(postId);
+        return new PostResponse.DetailCore(
+                post.getTitle(),
+                post.getContent(),
+                new PostResponse.ImageUrls(imageInfos),
+                post.getSellerId(),
+                post.getRentalFee(),
+                post.getFeeUnit(),
+                post.getRentalStatus(),
+                post.getUpdatedAt()
+        );
+    }
+
+    public Long findSellerIdByPostId(Long postId) {
+        return findPost(postId).getSellerId();
     }
 
     private Post findPost(Long postId) {
