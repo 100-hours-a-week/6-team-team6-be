@@ -5,7 +5,7 @@ import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
 import ktb.billage.domain.post.service.PostCommandService;
 import ktb.billage.domain.post.service.PostQueryService;
-import ktb.billage.domain.chat.service.ChatQueryService;
+import ktb.billage.domain.chat.service.ChatroomQueryService;
 import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.user.dto.UserResponse;
@@ -20,12 +20,12 @@ public class PostFacade {
     private final PostQueryService postQueryService;
     private final GroupService groupService;
     private final MembershipService membershipService;
-    private final ChatQueryService chatQueryService;
+    private final ChatroomQueryService chatroomQueryService;
     private final UserService userService;
 
     public PostResponse.Id create(Long groupId, Long userId, PostRequest.Create request) {
         groupService.validateGroup(groupId);
-        Long membershipId = membershipService.findMembership(groupId, userId);
+        Long membershipId = membershipService.findMembershipId(groupId, userId);
         return postCommandService.create(
                 membershipId,
                 request.title(),
@@ -38,7 +38,7 @@ public class PostFacade {
 
     public PostResponse.Id update(Long groupId, Long postId, Long userId, PostRequest.Update request) {
         groupService.validateGroup(groupId);
-        Long membershipId = membershipService.findMembership(groupId, userId);
+        Long membershipId = membershipService.findMembershipId(groupId, userId);
         return postCommandService.update(
                 postId,
                 membershipId,
@@ -52,18 +52,14 @@ public class PostFacade {
 
     public PostResponse.ChangedStatus changeRentalStatus(Long groupId, Long postId, Long userId, RentalStatus rentalStatus) {
         groupService.validateGroup(groupId);
-        Long membershipId = membershipService.findMembership(groupId, userId);
+        Long membershipId = membershipService.findMembershipId(groupId, userId);
         return postCommandService.changeRentalStatus(postId, membershipId, rentalStatus);
     }
 
     public void delete(Long groupId, Long postId, Long userId) {
         groupService.validateGroup(groupId);
-        Long membershipId = membershipService.findMembership(groupId, userId);
+        Long membershipId = membershipService.findMembershipId(groupId, userId);
         postCommandService.delete(postId, membershipId);
-    }
-
-    public Long getSellerId(Long postId) {
-        return postQueryService.findSellerIdByPostId(postId);
     }
 
     public PostResponse.Summaries getPostsByCursor(Long groupId, Long userId, String cursor) {
@@ -80,7 +76,7 @@ public class PostFacade {
 
     public PostResponse.Detail getPostDetail(Long groupId, Long postId, Long userId) {
         groupService.validateGroup(groupId);
-        Long membershipId = membershipService.findMembership(groupId, userId);
+        Long membershipId = membershipService.findMembershipId(groupId, userId);
         PostResponse.DetailCore core = postQueryService.getPostDetailCore(postId);
         boolean isSeller = core.sellerId().equals(membershipId);
 
@@ -89,9 +85,9 @@ public class PostFacade {
 
         Long chatroomId = isSeller
                 ? -1L
-                : chatQueryService.findChatroomIdByPostIdAndBuyerId(postId, membershipId);
+                : chatroomQueryService.findChatroomIdByPostIdAndBuyerId(postId, membershipId);
         Long activeChatroomCount = isSeller
-                ? chatQueryService.countChatroomsByPostId(postId)
+                ? chatroomQueryService.countChatroomsByPostId(postId)
                 : -1L;
 
         return new PostResponse.Detail(
