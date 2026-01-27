@@ -14,7 +14,7 @@ public class GroupFacade {
     public Long requireMembershipIdForAccess(Long groupId, Long userId) {
         groupService.validateGroup(groupId);
 
-        return membershipService.findMembership(groupId, userId);
+        return membershipService.findMembershipId(groupId, userId);
     }
 
     public void validateMembership(Long groupId, Long userId) {
