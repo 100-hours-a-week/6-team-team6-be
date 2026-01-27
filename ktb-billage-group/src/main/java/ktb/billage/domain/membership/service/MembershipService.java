@@ -24,4 +24,19 @@ public class MembershipService {
             throw new GroupException(NOT_GROUP_MEMBER);
         }
     }
+
+    public void validateMembershipOwner(Long membershipId, Long userId) {
+        Membership membership = membershipRepository.findById(membershipId)
+                .orElseThrow(() -> new GroupException(NOT_GROUP_MEMBER));
+
+        if (!membership.isOwnedBy(userId)) {
+            throw new GroupException(NOT_GROUP_MEMBER);
+        }
+    }
+
+    public Long findUserIdByMembershipId(Long membershipId) {
+        return membershipRepository.findById(membershipId)
+                .map(Membership::getUserId)
+                .orElseThrow(() -> new GroupException(NOT_GROUP_MEMBER));
+    }
 }

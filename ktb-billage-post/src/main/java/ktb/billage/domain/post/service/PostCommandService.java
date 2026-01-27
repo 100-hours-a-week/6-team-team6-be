@@ -1,6 +1,5 @@
 package ktb.billage.domain.post.service;
 
-import ktb.billage.application.port.in.GroupPolicyFacade;
 import ktb.billage.common.exception.PostException;
 import ktb.billage.domain.post.FeeUnit;
 import ktb.billage.domain.post.Post;
@@ -35,12 +34,8 @@ public class PostCommandService {
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
 
-    private final GroupPolicyFacade groupPolicyFacade;
-
-    public PostResponse.Id create(Long groupId, Long userId, String title,
+    public PostResponse.Id create(Long membershipId, String title,
                                   String content, List<String> imageUrls, BigDecimal rentalFee, FeeUnit feeUnit) {
-
-        Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
 
         Post post = postRepository.save(new Post(
                 membershipId, title, content, rentalFee,
@@ -52,10 +47,8 @@ public class PostCommandService {
         return new PostResponse.Id(post.getId());
     }
 
-    public PostResponse.Id update(Long groupId, Long postId, Long userId, String title,
+    public PostResponse.Id update(Long postId, Long membershipId, String title,
                                   String content, PostRequest.ImageInfos imageInfos, BigDecimal rentalFee, FeeUnit feeUnit) {
-
-        Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
 
         Post post = findPost(postId);
         validatePostSeller(post, membershipId);
@@ -66,9 +59,7 @@ public class PostCommandService {
         return new PostResponse.Id(post.getId());
     }
 
-    public PostResponse.ChangedStatus changeRentalStatus(Long groupId, Long postId, Long userId, RentalStatus rentalStatus) {
-
-        Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
+    public PostResponse.ChangedStatus changeRentalStatus(Long postId, Long membershipId, RentalStatus rentalStatus) {
 
         Post post = findPost(postId);
         validatePostSeller(post, membershipId);
@@ -78,9 +69,7 @@ public class PostCommandService {
         return new PostResponse.ChangedStatus(post.getId(), post.getRentalStatus());
     }
 
-    public void delete(Long groupId, Long postId, Long userId) {
-
-        Long membershipId = groupPolicyFacade.requireMembershipIdForAccess(groupId, userId);
+    public void delete(Long postId, Long membershipId) {
 
         Post post = findPost(postId);
         validatePostSeller(post, membershipId);
