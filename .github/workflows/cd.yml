@@ -77,13 +77,16 @@ jobs:
 
       - name: Deploy to Dev Server
         run: |
-          # 정규화된 app.jar와 배포 스크립트 전송
+          # JAR 파일과 배포 스크립트를 임시 디렉토리로 전송
+          # 배포 스크립트가 /opt/billage/backend/로 이동 처리
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
               artifacts/app.jar \
               scripts/deploy_dev.sh \
               ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }}:/home/${{ secrets.EC2_USER }}/deploy/
 
-          # 배포 스크립트 실행 (중단 배포)
+          # 배포 스크립트 실행
+          # - 디렉토리 구조: /opt/billage/backend/ (애플리케이션)
+          # - 로그 디렉토리: /var/log/billage/backend/ (로그 파일)
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
               ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }} << 'EOF'
             cd /home/${{ secrets.EC2_USER }}/deploy
