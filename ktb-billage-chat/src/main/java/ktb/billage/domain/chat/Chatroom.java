@@ -1,6 +1,8 @@
-package ktb.billage.domain.chatmessage;
+package ktb.billage.domain.chat;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -9,13 +11,12 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ChatMessage {
+public class Chatroom {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private Long senderId;
+    private Long postId;
 
-    private Long chatroomId;
-
-    private String content;
+    private Long buyerId;
 }
