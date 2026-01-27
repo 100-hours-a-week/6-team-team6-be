@@ -7,4 +7,7 @@ public class UserResponse {
 
     public record MyProfile(String loginId, String avatarImageUrl) {
     }
+
+    public record UserProfile(Long userId, String nickname, String avatarImageUrl) {
+    }
 }
