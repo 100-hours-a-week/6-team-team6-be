@@ -48,6 +48,18 @@ public class PostResponse {
     ) {
     }
 
+    public record DetailCore(
+        String title,
+        String content,
+        ImageUrls imageUrls,
+        Long sellerId,
+        BigDecimal rentalFee,
+        FeeUnit feeUnit,
+        RentalStatus rentalStatus,
+        Instant updatedAt
+    ) {
+    }
+
     public record ImageUrls(
             List<ImageInfo> imageInfos
     ) {

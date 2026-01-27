@@ -27,4 +27,8 @@ public class Membership extends BaseEntity {
         this.groupId = groupId;
         this.userId = userId;
     }
+
+    public boolean isOwnedBy(Long userId) {
+        return this.userId.equals(userId);
+    }
 }

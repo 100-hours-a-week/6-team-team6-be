@@ -3,9 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation project(':ktb-billage-user')
-    implementation project(':ktb-billage-group')
-    implementation project(':ktb-billage-chat')
     implementation project(':ktb-billage-global:ktb-billage-common')
 
     implementation 'jakarta.validation:jakarta.validation-api'
