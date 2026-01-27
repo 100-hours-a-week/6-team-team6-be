@@ -1,15 +1,29 @@
 #!/bin/bash
+set -e
 
-JAR_PATH="/home/${USER}/deploy/app.jar"
+APP_DIR="/opt/billage/backend"
+JAR_PATH="${APP_DIR}/app.jar"
+ENV_FILE="${APP_DIR}/.env"
+TEMP_JAR="/home/${USER}/deploy/app.jar"
+LOG_FILE="/var/log/billage/backend/app.log"
 
-# 프로세스 확인 및 종료 (있으면 죽이고, 없으면 넘어감)
-# pgrep -f: 프로세스 이름으로 ID 찾기
-CURRENT_PID=$(pgrep -f app.jar)
+echo "[1/5] Validating files..."
+[ ! -f "${TEMP_JAR}" ] && echo "JAR not found: ${TEMP_JAR}" && exit 1
+[ ! -f "${ENV_FILE}" ] && echo ".env not found: ${ENV_FILE}" && exit 1
 
-if [ -n "$CURRENT_PID" ]; then
-  kill -9 $CURRENT_PID
-  sleep 2
-fi
+echo "[2/5] Loading environment variables..."
+set -a
+source ${ENV_FILE}
+set +a
 
-# 실행
-nohup java -jar $JAR_PATH > /dev/null 2>&1 &
+echo "[3/5] Stopping existing process..."
+pkill -f "app.jar" && sleep 5 || true
+
+echo "[4/5] Deploying..."
+mv ${TEMP_JAR} ${JAR_PATH}
+
+echo "[5/5] Starting application..."
+nohup java -jar ${JAR_PATH} > ${LOG_FILE} 2>&1 &
+sleep 5
+
+pgrep -f "app.jar" > /dev/null && echo "✓ Deployed (PID: $(pgrep -f app.jar))" || exit 1
