@@ -59,12 +59,6 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/groups/{groupId}/posts")
-    public ResponseEntity<PostResponse.Summaries> getPosts(@PathVariable Long groupId, @AuthenticatedId Long userId, @RequestParam(required = false) String cursor) {
-        return ResponseEntity.ok()
-                .body(postQueryService.getPostsByCursor(groupId, userId, cursor));
-    }
-
     @GetMapping("/groups/{groupId}/posts/{postId}")
     public ResponseEntity<?> getPost(@PathVariable Long groupId, @PathVariable Long postId, @AuthenticatedId Long userId) {
         return ResponseEntity.ok()
@@ -73,8 +67,13 @@ public class PostController {
 
     @GetMapping("/groups/{groupId}/posts")
     public ResponseEntity<PostResponse.Summaries> getPostsByKeywordAndCursor(@PathVariable Long groupId, @AuthenticatedId Long userId,
-                                                                             @RequestParam String keyword, @RequestParam(required = false) String cursor) {
+                                                                             @RequestParam(required = false) String keyword, @RequestParam(required = false) String cursor) {
+        if (keyword == null) {
+            return ResponseEntity.ok()
+                    .body(postQueryService.getPostsByCursor(groupId, userId, cursor));
+        }
+
         return ResponseEntity.ok()
-                .body(postQueryService.getPostsByKeywordAndCursor());
+                .body(postQueryService.getPostsByKeywordAndCursor(groupId, userId, keyword, cursor));
     }
 }
