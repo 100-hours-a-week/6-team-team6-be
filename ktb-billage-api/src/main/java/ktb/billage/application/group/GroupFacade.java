@@ -23,11 +23,11 @@ public class GroupFacade {
         membershipService.validateMembership(groupId, userId);
     }
 
-    public void validateMembershipOwner(Long membershipId, Long userId) {
-        membershipService.validateMembershipOwner(membershipId, userId);
-    }
-
     public Long findUserIdByMembershipId(Long membershipId) {
         return membershipService.findUserIdByMembershipId(membershipId);
+    }
+
+    public Long findGroupId(Long membershipId) {
+        return membershipService.findGroupIdByMembershipId(membershipId);
     }
 }

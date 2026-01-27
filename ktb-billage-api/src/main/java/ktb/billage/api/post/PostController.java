@@ -1,13 +1,9 @@
 package ktb.billage.api.post;
 
 import jakarta.validation.Valid;
-import ktb.billage.application.chat.ChatFacade;
-import ktb.billage.application.group.GroupFacade;
 import ktb.billage.application.post.PostFacade;
-import ktb.billage.application.user.UserFacade;
 import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
-import ktb.billage.domain.post.service.PostQueryService;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,90 +22,49 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RestController
 @RequiredArgsConstructor
 public class PostController {
-    private final GroupFacade groupFacade;
     private final PostFacade postFacade;
-    private final ChatFacade chatFacade;
-    private final UserFacade userFacade;
-    private final PostQueryService postQueryService;
 
     @PostMapping("/groups/{groupId}/posts")
     public ResponseEntity<PostResponse.Id> createPost(@PathVariable Long groupId,
                                                       @Valid @RequestBody PostRequest.Create request,
                                                       @AuthenticatedId Long userId) {
-        Long membershipId = groupFacade.requireMembershipIdForAccess(groupId, userId);
-
         return ResponseEntity.status(CREATED)
-                .body(postFacade.create(membershipId, request));
+                .body(postFacade.create(groupId, userId, request));
     }
 
     @PutMapping("/groups/{groupId}/posts/{postId}")
     public ResponseEntity<PostResponse.Id> modifyPost(@PathVariable Long groupId, @PathVariable Long postId,
                                                       @Valid @RequestBody PostRequest.Update request, @AuthenticatedId Long userId) {
-        Long membershipId = groupFacade.requireMembershipIdForAccess(groupId, userId);
-
         return ResponseEntity.ok()
-                .body(postFacade.update(postId, membershipId, request));
+                .body(postFacade.update(groupId, postId, userId, request));
     }
 
     @PatchMapping("/groups/{groupId}/posts/{postId}")
     public ResponseEntity<PostResponse.ChangedStatus> changeRentalStatus(@PathVariable Long groupId, @PathVariable Long postId,
                                                                          @RequestBody PostRequest.Change request, @AuthenticatedId Long userId) {
-        Long membershipId = groupFacade.requireMembershipIdForAccess(groupId, userId);
-
         return ResponseEntity.ok()
-                .body(postFacade.changeRentalStatus(postId, membershipId, request.rentalStatus()));
+                .body(postFacade.changeRentalStatus(groupId, postId, userId, request.rentalStatus()));
     }
 
     @DeleteMapping("/groups/{groupId}/posts/{postId}")
     public ResponseEntity<Void> deletePost(@PathVariable Long groupId, @PathVariable Long postId, @AuthenticatedId Long userId) {
-        Long membershipId = groupFacade.requireMembershipIdForAccess(groupId, userId);
-        postFacade.delete(postId, membershipId);
+        postFacade.delete(groupId, postId, userId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/groups/{groupId}/posts")
     public ResponseEntity<PostResponse.Summaries> getPostsByKeywordAndCursor(@PathVariable Long groupId, @AuthenticatedId Long userId,
                                                                              @RequestParam(required = false) String keyword, @RequestParam(required = false) String cursor) {
-        groupFacade.validateMembership(groupId, userId);
-
         return ResponseEntity.ok()
                 .body(
-                        keyword == null ? postQueryService.getPostsByCursor(cursor)
-                        : postQueryService.getPostsByKeywordAndCursor(keyword, cursor)
+                        keyword == null ? postFacade.getPostsByCursor(groupId, userId, cursor)
+                        : postFacade.getPostsByKeywordAndCursor(groupId, userId, keyword, cursor)
                 );
     }
 
     @GetMapping("/groups/{groupId}/posts/{postId}")
     public ResponseEntity<?> getPost(@PathVariable Long groupId, @PathVariable Long postId, @AuthenticatedId Long userId) {
-        Long membershipId = groupFacade.requireMembershipIdForAccess(groupId, userId);
-        PostResponse.DetailCore core = postQueryService.getPostDetailCore(postId);
-        boolean isSeller = core.sellerId().equals(membershipId);
-
-        Long sellerUserId = groupFacade.findUserIdByMembershipId(core.sellerId());
-        UserFacade.UserSummary sellerSummary = userFacade.getUserSummary(sellerUserId);
-
-        Long chatroomId = isSeller
-                ? -1L
-                : chatFacade.findChatroomIdByPostIdAndBuyerId(postId, membershipId);
-        Long activeChatroomCount = isSeller
-                ? chatFacade.countChatroomsByPostId(postId)
-                : -1L;
-
         return ResponseEntity.ok()
-                .body(new PostResponse.Detail(
-                        core.title(),
-                        core.content(),
-                        core.imageUrls(),
-                        core.sellerId(),
-                        sellerSummary.nickname(),
-                        sellerSummary.avatarUrl(),
-                        core.rentalFee(),
-                        core.feeUnit(),
-                        core.rentalStatus(),
-                        core.updatedAt(),
-                        isSeller,
-                        chatroomId,
-                        activeChatroomCount
-                ));
+                .body(postFacade.getPostDetail(groupId, postId, userId));
     }
 }

@@ -5,6 +5,11 @@ import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
 import ktb.billage.domain.post.service.PostCommandService;
 import ktb.billage.domain.post.service.PostQueryService;
+import ktb.billage.domain.chat.service.ChatQueryService;
+import ktb.billage.domain.group.service.GroupService;
+import ktb.billage.domain.membership.service.MembershipService;
+import ktb.billage.domain.user.dto.UserResponse;
+import ktb.billage.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,8 +18,14 @@ import org.springframework.stereotype.Service;
 public class PostFacade {
     private final PostCommandService postCommandService;
     private final PostQueryService postQueryService;
+    private final GroupService groupService;
+    private final MembershipService membershipService;
+    private final ChatQueryService chatQueryService;
+    private final UserService userService;
 
-    public PostResponse.Id create(Long membershipId, PostRequest.Create request) {
+    public PostResponse.Id create(Long groupId, Long userId, PostRequest.Create request) {
+        groupService.validateGroup(groupId);
+        Long membershipId = membershipService.findMembership(groupId, userId);
         return postCommandService.create(
                 membershipId,
                 request.title(),
@@ -25,7 +36,9 @@ public class PostFacade {
         );
     }
 
-    public PostResponse.Id update(Long postId, Long membershipId, PostRequest.Update request) {
+    public PostResponse.Id update(Long groupId, Long postId, Long userId, PostRequest.Update request) {
+        groupService.validateGroup(groupId);
+        Long membershipId = membershipService.findMembership(groupId, userId);
         return postCommandService.update(
                 postId,
                 membershipId,
@@ -37,15 +50,64 @@ public class PostFacade {
         );
     }
 
-    public PostResponse.ChangedStatus changeRentalStatus(Long postId, Long membershipId, RentalStatus rentalStatus) {
+    public PostResponse.ChangedStatus changeRentalStatus(Long groupId, Long postId, Long userId, RentalStatus rentalStatus) {
+        groupService.validateGroup(groupId);
+        Long membershipId = membershipService.findMembership(groupId, userId);
         return postCommandService.changeRentalStatus(postId, membershipId, rentalStatus);
     }
 
-    public void delete(Long postId, Long membershipId) {
+    public void delete(Long groupId, Long postId, Long userId) {
+        groupService.validateGroup(groupId);
+        Long membershipId = membershipService.findMembership(groupId, userId);
         postCommandService.delete(postId, membershipId);
     }
 
     public Long getSellerId(Long postId) {
         return postQueryService.findSellerIdByPostId(postId);
+    }
+
+    public PostResponse.Summaries getPostsByCursor(Long groupId, Long userId, String cursor) {
+        groupService.validateGroup(groupId);
+        membershipService.validateMembership(groupId, userId);
+        return postQueryService.getPostsByCursor(cursor);
+    }
+
+    public PostResponse.Summaries getPostsByKeywordAndCursor(Long groupId, Long userId, String keyword, String cursor) {
+        groupService.validateGroup(groupId);
+        membershipService.validateMembership(groupId, userId);
+        return postQueryService.getPostsByKeywordAndCursor(keyword, cursor);
+    }
+
+    public PostResponse.Detail getPostDetail(Long groupId, Long postId, Long userId) {
+        groupService.validateGroup(groupId);
+        Long membershipId = membershipService.findMembership(groupId, userId);
+        PostResponse.DetailCore core = postQueryService.getPostDetailCore(postId);
+        boolean isSeller = core.sellerId().equals(membershipId);
+
+        Long sellerUserId = membershipService.findUserIdByMembershipId(core.sellerId());
+        UserResponse.UserProfile sellerProfile = userService.findUserProfile(sellerUserId);
+
+        Long chatroomId = isSeller
+                ? -1L
+                : chatQueryService.findChatroomIdByPostIdAndBuyerId(postId, membershipId);
+        Long activeChatroomCount = isSeller
+                ? chatQueryService.countChatroomsByPostId(postId)
+                : -1L;
+
+        return new PostResponse.Detail(
+                core.title(),
+                core.content(),
+                core.imageUrls(),
+                core.sellerId(),
+                sellerProfile.nickname(),
+                sellerProfile.avatarImageUrl(),
+                core.rentalFee(),
+                core.feeUnit(),
+                core.rentalStatus(),
+                core.updatedAt(),
+                isSeller,
+                chatroomId,
+                activeChatroomCount
+        );
     }
 }
