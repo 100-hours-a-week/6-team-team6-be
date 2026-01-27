@@ -33,6 +33,11 @@ public class UserService {
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
     }
 
+    public UserResponse.UserProfile findUserProfile(Long userId) {
+        User user = findById(userId);
+        return new UserResponse.UserProfile(userId, user.getNickname(), user.getAvatarUrl());
+    }
+
     @Transactional
     public UserResponse.Id join(String loginId, String password) {
         validateDuplicateLoginId(loginId);
