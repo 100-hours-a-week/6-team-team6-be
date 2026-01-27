@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class ChatQueryService {
+public class ChatroomQueryService {
     private final ChatroomRepository chatroomRepository;
 
     public long countChatroomsByPostId(Long postId) {

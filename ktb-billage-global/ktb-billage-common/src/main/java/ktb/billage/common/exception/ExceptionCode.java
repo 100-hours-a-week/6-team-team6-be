@@ -25,10 +25,16 @@ public enum ExceptionCode {
     POST_NOT_FOUND("POST01", 404),
     POST_IS_NOT_OWNED_BY_USER("POST02", 403),
 
+    // chat
+    SELF_CHAT_DENIED("CHAT01", 403),
+
     // image
     INVALID_IMAGE("IMAGE01", 400),
     UNSUPPORTED_IMAGE_TYPE("IMAGE02", 415),
     IMAGE_SIZE_LIMIT("IMAGE03", 413),
+
+    // common
+    INVALID_CURSOR("CURSOR01", 400),
 
     // application
     SERVER_ERROR("SERVER01", 500),
