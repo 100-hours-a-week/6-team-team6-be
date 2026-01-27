@@ -89,7 +89,7 @@ jobs:
 
       - name: Rename JAR to app.jar # 빌드된 jar를 app.jar로 정규화
         run: |
-          mv ktb-billage-api/build/libs/*-SNAPSHOT.jar ktb-billage-api/build/libs/app.jar
+          mv ktb-billage-api/build/libs/ktb-billage-api.jar ktb-billage-api/build/libs/app.jar
 
       - name: Upload Build Artifact # 아티펙트로 구워서 다음 job들에게 전달 (CD에게 전달)
         uses: actions/upload-artifact@v4
