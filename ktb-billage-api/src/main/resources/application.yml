@@ -2,6 +2,9 @@ cors:
   allowed:
     origin: ${CORS_ALLOWED_ORIGIN}
 
+server:
+  port: 8080
+
 spring:
   profiles:
     group:
@@ -13,3 +16,9 @@ spring:
     import:
       - classpath:application-jwt.yml
       - classpath:application-dbsource.yml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
