@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     })
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleException(Exception exception) {
-        log.error("[Unexpected Exception] exception : {}", exception.getClass().getName());
+        log.error("[Unexpected Exception] exception : {}", exception.getClass().getName(), exception);
 
         return ErrorResponse.internal();
     }
