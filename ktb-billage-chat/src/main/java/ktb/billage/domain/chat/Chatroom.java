@@ -1,5 +1,6 @@
 package ktb.billage.domain.chat;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -21,21 +22,29 @@ public class Chatroom extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "post_id")
     private Long postId;
 
+    @Column(name = "buyer_id")
     private Long buyerId;
 
+    @Column(name = "last_message_id")
     private Long lastMessageId;
 
+    @Column(name = "seller_last_read_message_id")
     private Long sellerLastReadMessageId;
 
+    @Column(name = "seller_last_read_at")
     private Instant sellerLastReadAt;
 
+    @Column(name = "buyer_last_read_message_id")
     private Long buyerLastReadMessageId;
 
+    @Column(name = "buyer_last_read_at")
     private Instant buyerLastReadAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "room_status")
     private RoomStatus roomStatus;
 
     public Chatroom(Long postId, Long buyerId) {

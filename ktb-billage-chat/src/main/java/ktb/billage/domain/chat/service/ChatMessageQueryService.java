@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,7 +35,24 @@ public class ChatMessageQueryService {
                 .map(message -> toMessageItem(message, buyerId))
                 .toList();
 
-        return new ChatResponse.Messages(chatroomId, messageItems, nextCursor, hasNext);
+        return new ChatResponse.Messages(chatroomId, messageItems, new ChatResponse.CursorDto(nextCursor, hasNext));
+    }
+
+    public List<Long> countUnreadPartnerMessagesByAndBetween(List<ChatResponse.ChatroomSummaryCore> chatroomSummaries, Long myId, boolean isSeller) {
+        List<Long> unreadMessageCounts = new ArrayList<>();
+        for (ChatResponse.ChatroomSummaryCore chatroomSummary : chatroomSummaries) {
+            Long unreadCount;
+            if (chatroomSummary.sellerLastReadMessageId() == null) {
+                unreadCount = chatMessageRepository.countPartnerAllMessages(chatroomSummary.chatroomId(), myId);
+
+            } else {
+                unreadCount = chatMessageRepository.countPartnerMessagesBetween(chatroomSummary.chatroomId(), myId, chatroomSummary.lastMessageId(),
+                        isSeller ? chatroomSummary.sellerLastReadMessageId() : chatroomSummary.buyerLastReadMessageId());
+            }
+            unreadMessageCounts.add(unreadCount);
+        }
+
+        return unreadMessageCounts;
     }
 
     private CursorCodec.Cursor decodeCursor(String cursor) {

@@ -33,6 +33,12 @@ public class MembershipService {
         return findMembership(membershipId).getGroupId();
     }
 
+    public void validateMembershipOwner(Long userId, Long membershipId) {
+        if (!findMembership(membershipId).isOwnedBy(userId)) {
+            throw new GroupException(NOT_GROUP_MEMBER);
+        }
+    }
+
     private Membership findMembership(Long membershipId) {
         return membershipRepository.findById(membershipId)
                 .orElseThrow(() -> new GroupException(NOT_GROUP_MEMBER));

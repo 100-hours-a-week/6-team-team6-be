@@ -5,11 +5,13 @@ import java.util.List;
 
 public class ChatResponse {
 
+    public record CursorDto(String cursor, Boolean hasNext) {
+    }
+
     public record Messages(
             Long chatroomId,
             List<MessageItem> messageItems,
-            String nextCursor,
-            Boolean hasNext
+            CursorDto cursorDto
             ) {
     }
 
@@ -22,5 +24,42 @@ public class ChatResponse {
         public MessageItem(Long id, String who, String message, Instant createdAt) {
             this(String.valueOf(id), who, message, createdAt);
         }
+    }
+
+    public record ChatroomSummaries(
+            List<ChatroomSummary> chatroomSummaries,
+            CursorDto cursorDto
+    ) {
+    }
+
+    public record ChatroomSummary(
+            Long chatroomId,
+            Long chatPartnerId,
+            String chatPartnerAvatarUrl,
+            String chatPartnerNickname,
+            Long groupId,
+            String groupName,
+            String postFirstImageUrl,
+            Instant lastMessageAt,
+            String lastMessage,
+            Long unreadCount
+    ) {
+    }
+
+    public record ChatroomSummaryCores(
+            List<ChatroomSummaryCore> chatroomSummaryCores,
+            CursorDto cursorDto
+    ) {
+    }
+
+    public record ChatroomSummaryCore(
+            Long chatroomId,
+            Long chatPartnerId,
+            Long lastMessageId,
+            Instant lastMessageAt,
+            String lastMessage,
+            Long sellerLastReadMessageId,
+            Long buyerLastReadMessageId
+    ) {
     }
 }

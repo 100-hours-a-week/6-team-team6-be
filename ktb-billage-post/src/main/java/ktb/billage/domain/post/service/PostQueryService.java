@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static ktb.billage.common.exception.ExceptionCode.IMAGE_NOT_FOUND;
 import static ktb.billage.common.exception.ExceptionCode.POST_NOT_FOUND;
 
 @Service
@@ -56,6 +57,18 @@ public class PostQueryService {
 
     public Long findSellerIdByPostId(Long postId) {
         return findPost(postId).getSellerId();
+    }
+
+    public void validatePost(Long postId) {
+        if (!postRepository.existsById(postId)) {
+            throw new PostException(POST_NOT_FOUND);
+        }
+    }
+
+    public String findPostFirstImageUrl(Long postId) {
+        return postImageRepository.findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(postId)
+                .orElseThrow(() -> new PostException(IMAGE_NOT_FOUND))
+                .getImageUrl();
     }
 
     private Post findPost(Long postId) {
@@ -106,7 +119,8 @@ public class PostQueryService {
 
     private PostResponse.Summary toSummary(Post post) { // FIXME. 이미지 N + 1 문제 야기
         PostImage firstImage = postImageRepository
-                .findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(post.getId());
+                .findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(post.getId())
+                .orElseThrow(() -> new PostException(IMAGE_NOT_FOUND));
 
         return new PostResponse.Summary(
                 post.getId(),
