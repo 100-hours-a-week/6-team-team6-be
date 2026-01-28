@@ -77,12 +77,6 @@ public class PostCommandService {
         post.delete(Instant.now());
     }
 
-    public void validatePost(Long postId) {
-        if (!postRepository.existsById(postId)) {
-            throw new PostException(POST_NOT_FOUND);
-        }
-    }
-
     private List<PostImage> toPostImages(Post post, List<String> imageUrls) {
         return IntStream.range(0, imageUrls.size())
                 .mapToObj(index -> new PostImage(

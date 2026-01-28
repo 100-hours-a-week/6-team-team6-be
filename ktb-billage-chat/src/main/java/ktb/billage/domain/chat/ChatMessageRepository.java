@@ -22,4 +22,25 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
                                    @Param("time") Instant time,
                                    @Param("id") Long id,
                                    Pageable pageable);
+
+    @Query("""
+        select count(m) from ChatMessage m
+        where m.chatroomId = :chatroomId
+          and m.deletedAt is null
+          and m.senderId != :senderId
+    """)
+    Long countPartnerAllMessages(@Param("chatroomId") Long chatroomId, @Param("senderId") Long senderId);
+
+    @Query("""
+        select count(m) from ChatMessage m
+        where m.chatroomId = :chatroomId
+          and m.deletedAt is null
+          and m.senderId != :senderId
+          and m.id > :lastReadMessageId
+          and m.id <= :lastMessageId
+    """)
+    Long countPartnerMessagesBetween(@Param("chatroomId") Long chatroomId,
+                                     @Param("senderId") Long senderId,
+                                     @Param("lastMessageId") Long lastMessageId,
+                                     @Param("lastReadMessageId") Long lastReadMessageId);
 }

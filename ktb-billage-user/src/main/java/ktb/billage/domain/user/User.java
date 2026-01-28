@@ -1,5 +1,6 @@
 package ktb.billage.domain.user;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,12 +35,16 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "login_id", unique = true, nullable = false)
     private String loginId;
 
+    @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     private String nickname;
 
+    @Column(name = "avatar_url", nullable = false)
     private String avatarUrl;
 
     public User(String loginId, String encodedPassword, String nickname) {

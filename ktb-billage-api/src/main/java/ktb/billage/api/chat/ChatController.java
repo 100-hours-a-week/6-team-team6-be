@@ -1,6 +1,7 @@
 package ktb.billage.api.chat;
 
 import ktb.billage.application.chat.ChatFacade;
+import ktb.billage.domain.chat.dto.ChatResponse;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,5 +20,13 @@ public class ChatController {
                                          @AuthenticatedId Long userId, @RequestParam(required = false) String cursor) {
         return ResponseEntity.ok()
                 .body(chatFacade.getMessagesByCursor(postId, chatroomId, userId, cursor));
+    }
+
+    @GetMapping("/users/me/posts/{postId}/chatrooms")
+    public ResponseEntity<?> getChatroomsByMyPostId(@PathVariable Long postId, @AuthenticatedId Long userId,
+                                                    @RequestParam(required = false) String cursor) {
+
+        ChatResponse.ChatroomSummaries summaries = chatFacade.getChatroomsByMyPostId(postId, userId, cursor);
+        return ResponseEntity.ok().body(summaries);
     }
 }

@@ -23,7 +23,7 @@ public class ChatroomCommandService {
 
         Chatroom chatroom = chatroomRepository.save(new Chatroom(postId, buyerId));
 
-        return new ChatResponse.Messages(chatroom.getId(), List.of(), null, false);
+        return new ChatResponse.Messages(chatroom.getId(), List.of(), new ChatResponse.CursorDto(null, false));
     }
 
     private void validateNotSelfChat(Long sellerId, Long buyerId) {

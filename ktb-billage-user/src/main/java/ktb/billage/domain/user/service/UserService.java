@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static ktb.billage.common.exception.ExceptionCode.AUTHENTICATION_FAILED;
 import static ktb.billage.common.exception.ExceptionCode.DUPLICATE_LOGIN_ID;
 import static ktb.billage.common.exception.ExceptionCode.USER_NOT_FOUND;
@@ -54,6 +56,12 @@ public class UserService {
         User user = findById(userId);
 
         return new UserResponse.MyProfile(user.getLoginId(), user.getAvatarUrl());
+    }
+
+    public List<UserResponse.UserProfile> findUserProfiles(List<Long> userIds) {
+        return userRepository.findAllById(userIds).stream()
+                .map(user -> new UserResponse.UserProfile(user.getId(), user.getNickname(), user.getAvatarUrl()))
+                .toList();
     }
 
     private void validateDuplicateLoginId(String loginId) {
