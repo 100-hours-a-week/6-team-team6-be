@@ -20,6 +20,7 @@ spring:
     import:
       - classpath:application-jwt.yml
       - classpath:application-dbsource.yml
+      - classpath:application-s3.yml
 
 management:
   endpoints:
