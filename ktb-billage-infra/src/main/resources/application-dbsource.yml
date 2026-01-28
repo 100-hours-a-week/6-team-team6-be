@@ -10,6 +10,7 @@ spring:
     password: ${LOCAL_DB_PASSWORD}
 
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
 
@@ -27,6 +28,7 @@ spring:
     password: ${DEV_DB_PASSWORD}
 
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: validate
 
@@ -45,5 +47,6 @@ spring:
     password: ${PROD_DB_PASSWORD}
 
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: validate
