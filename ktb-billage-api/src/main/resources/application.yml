@@ -22,6 +22,9 @@ spring:
       - classpath:application-dbsource.yml
       - classpath:application-s3.yml
 
+  jpa:
+    open-in-view: false
+
 management:
   endpoints:
     web:
