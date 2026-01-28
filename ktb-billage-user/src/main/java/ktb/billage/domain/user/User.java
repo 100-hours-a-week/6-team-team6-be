@@ -31,7 +31,7 @@ public class User extends BaseEntity {
     private static final String DEFAULT_AVATAR_URL = "temp.url";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String loginId;
