@@ -6,6 +6,7 @@ import ktb.billage.domain.auth.service.AuthService;
 import ktb.billage.domain.token.Tokens;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -21,6 +22,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+
+    @Value("${app.cookie.secure:false}")
+    private boolean cookieSecure;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest.Login request, HttpServletResponse response) {
@@ -61,6 +65,7 @@ public class AuthController {
     private void setCookie(HttpServletResponse response, String refreshToken) {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
+                .secure(cookieSecure)
                 .path("/auth")
                 .sameSite("None")
                 .build(); // TODO. https 적용 후 secure 설정 추가
