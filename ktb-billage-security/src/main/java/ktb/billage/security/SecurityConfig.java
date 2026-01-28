@@ -20,7 +20,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private static final String[] ALLOWED_URL_LIST = new String[]{"/swagger**", "/auth/**", "/actuator/**", "/users"};
+    private static final String[] ALLOWED_URL_LIST = new String[]{"/swagger**", "/auth/**", "/actuator/**", "/users", "/error"};
 
     private final RequestMatcher csrfProtectionMatcher;
     private final CsrfTokenRepository csrfTokenRepository;
