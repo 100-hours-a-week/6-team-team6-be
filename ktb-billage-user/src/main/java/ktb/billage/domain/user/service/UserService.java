@@ -57,7 +57,7 @@ public class UserService {
     }
 
     private void validateDuplicateLoginId(String loginId) {
-        if (!userRepository.existsByLoginId(loginId)) {
+        if (userRepository.existsByLoginId(loginId)) {
             throw new UserException(DUPLICATE_LOGIN_ID);
         }
     }
