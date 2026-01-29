@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 public class ChatController {
@@ -28,5 +30,12 @@ public class ChatController {
 
         ChatResponse.ChatroomSummaries summaries = chatFacade.getChatroomsByMyPostId(postId, userId, cursor);
         return ResponseEntity.ok().body(summaries);
+    }
+
+    @GetMapping("/users/me/chatrooms/unread-count")
+    public ResponseEntity<?> getUnreadMessageCountOnMyAllChatrooms(@AuthenticatedId Long userId) {
+
+        Long unreadCount = chatFacade.countAllUnReadMessagesOnParticipantingChatrooms(userId);
+        return ResponseEntity.ok().body(Map.of("unreadChatMesageCount", unreadCount));
     }
 }

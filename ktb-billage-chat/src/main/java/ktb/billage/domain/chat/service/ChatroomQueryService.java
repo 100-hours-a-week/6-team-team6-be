@@ -50,6 +50,10 @@ public class ChatroomQueryService {
         );
     }
 
+    public List<ChatResponse.ChatroomMembershipDto> findChatroomIdsByMembershipIds(List<Long> membershipIds) {
+        return chatroomRepository.findAllByParticipantIds(membershipIds);
+    }
+
     private CursorCodec.Cursor decodeCursor(String cursor) {
         if (cursor == null || cursor.isBlank()) {
             return null;

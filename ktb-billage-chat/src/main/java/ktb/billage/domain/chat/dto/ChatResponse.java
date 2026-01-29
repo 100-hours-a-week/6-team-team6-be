@@ -62,4 +62,11 @@ public class ChatResponse {
             Long buyerLastReadMessageId
     ) {
     }
+
+    public record ChatroomMembershipDto(
+            Long chatroomId,
+            Long membershipId,
+            boolean isSeller
+    ) {
+    }
 }

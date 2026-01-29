@@ -4,6 +4,8 @@ import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import ktb.billage.common.entity.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,8 +21,9 @@ public class ChatMessage extends BaseEntity {
     @Column(name = "sender_id")
     private Long senderId;
 
-    @Column(name = "chatroom_id")
-    private Long chatroomId;
+    @JoinColumn(name = "chatroom_id")
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+    private Chatroom chatroom;
 
     private String content;
 
