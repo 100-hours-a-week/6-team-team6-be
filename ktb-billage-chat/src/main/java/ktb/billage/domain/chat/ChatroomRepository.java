@@ -70,7 +70,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
                 and (c.buyerId in :membershipIds
                     or p.sellerId in :membershipIds)
     """)
-    List<ChatResponse.ChatroomMembershipDto> findAllByParticipantIds(@Param("membershipIds") List<Long> membershipIds);
+    List<ChatResponse.ChatroomMembershipDto> findAllByParticipatingIds(@Param("membershipIds") List<Long> membershipIds);
 
     @Query("""
                 select new ktb.billage.domain.chat.dto.ChatResponse$PartnerProfile(

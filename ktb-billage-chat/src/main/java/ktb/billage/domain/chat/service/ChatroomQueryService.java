@@ -54,7 +54,7 @@ public class ChatroomQueryService {
     }
 
     public List<ChatResponse.ChatroomMembershipDto> findChatroomIdsByMembershipIds(List<Long> membershipIds) {
-        return chatroomRepository.findAllByParticipantIds(membershipIds);
+        return chatroomRepository.findAllByParticipatingIds(membershipIds);
     }
 
     public void validateChatroom(Long chatroomId) {
