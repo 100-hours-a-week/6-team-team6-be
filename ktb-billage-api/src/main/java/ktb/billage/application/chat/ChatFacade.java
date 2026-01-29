@@ -85,7 +85,7 @@ public class ChatFacade {
         );
     }
 
-    public Long countAllUnReadMessagesOnParticipantingChatrooms(Long userId) {
+    public Long countAllUnReadMessagesOnParticipatingChatrooms(Long userId) {
         List<Long> myMembershipIds = membershipService.findMembershipIds(userId);
         if (myMembershipIds.isEmpty()) {
             return 0L;

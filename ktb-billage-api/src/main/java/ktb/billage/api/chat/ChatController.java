@@ -35,7 +35,7 @@ public class ChatController {
     @GetMapping("/users/me/chatrooms/unread-count")
     public ResponseEntity<?> getUnreadMessageCountOnMyAllChatrooms(@AuthenticatedId Long userId) {
 
-        Long unreadCount = chatFacade.countAllUnReadMessagesOnParticipantingChatrooms(userId);
+        Long unreadCount = chatFacade.countAllUnReadMessagesOnParticipatingChatrooms(userId);
         return ResponseEntity.ok().body(Map.of("unreadChatMesageCount", unreadCount));
     }
 
