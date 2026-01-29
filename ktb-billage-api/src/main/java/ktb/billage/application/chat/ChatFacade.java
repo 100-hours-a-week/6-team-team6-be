@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -55,8 +56,8 @@ public class ChatFacade {
         Long groupId = membershipService.findGroupIdByMembershipId(sellerMembershipId);
         groupService.validateGroup(groupId);
 
-        ChatResponse.ChatroomSummaryCores cores = chatroomQueryService.getChatroomSummariesByPostIdAndCursor(postId, cursor);
-        List<Long> unreadMessageCounts = chatMessageQueryService.countUnreadPartnerMessagesByAndBetween(cores.chatroomSummaryCores(), sellerMembershipId, true);
+        ChatResponse.ChatroomSummaryCores cores = chatroomQueryService.findChatroomSummariesByPostIdAndCursor(postId, cursor);
+        List<Long> unreadMessageCounts = chatMessageQueryService.countUnreadPartnerMessagesByChatroomSummariesForSeller(cores.chatroomSummaryCores(), sellerMembershipId);
 
         GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
 
@@ -85,6 +86,42 @@ public class ChatFacade {
         );
     }
 
+    public ChatResponse.ChatroomSummaries getMyParticipatingChatrooms(Long userId, String cursor) {
+        List<Long> membershipIds = membershipService.findMembershipIds(userId);
+
+        ChatResponse.ChatroomSummaryCores chatroomSummaryCores = chatroomQueryService.findChatroomSummariesByMembershipIdsAndCursor(membershipIds, cursor);
+        List<Long> unreadCounts = chatMessageQueryService.countUnreadPartnerMessagesByChatroomSummariesAndMembershipIdForRole(chatroomSummaryCores, Set.copyOf(membershipIds));
+
+        List<ChatResponse.ChatroomSummary> summaries = new ArrayList<>();
+        List<ChatResponse.ChatroomSummaryCore> summaryCores = chatroomSummaryCores.chatroomSummaryCores();
+        for (int i = 0; i < summaryCores.size(); i++) {
+            ChatResponse.ChatroomSummaryCore core = summaryCores.get(i);
+            String postFirstImageUrl = postQueryService.findPostFirstImageUrl(core.postId());
+
+            Long groupId = membershipService.findGroupIdByMembershipId(core.chatPartnerId());
+            groupService.validateGroup(groupId);
+            GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
+
+            Long partnerUserId = membershipService.findUserIdByMembershipId(core.chatPartnerId());
+            UserResponse.UserProfile userProfile = userService.findUserProfile(partnerUserId);
+
+            summaries.add(new ChatResponse.ChatroomSummary(
+                    core.chatroomId(),
+                    core.chatPartnerId(),
+                    userProfile.avatarImageUrl(),
+                    userProfile.nickname(),
+                    groupId,
+                    groupProfile.groupName(),
+                    postFirstImageUrl,
+                    core.lastMessageAt(),
+                    core.lastMessage(),
+                    unreadCounts.get(i)
+                    ));
+        }
+
+        return new ChatResponse.ChatroomSummaries(summaries, chatroomSummaryCores.cursorDto());
+    }
+
     public Long countAllUnReadMessagesOnParticipatingChatrooms(Long userId) {
         List<Long> myMembershipIds = membershipService.findMembershipIds(userId);
         if (myMembershipIds.isEmpty()) {
@@ -93,7 +130,7 @@ public class ChatFacade {
 
         List<ChatResponse.ChatroomMembershipDto> myChatroomMemberships = chatroomQueryService.findChatroomIdsByMembershipIds(myMembershipIds);
 
-        Long unreadMessagesCountByMe = chatMessageQueryService.findUnreadMessagesCountByChatInfo(myChatroomMemberships);
+        Long unreadMessagesCountByMe = chatMessageQueryService.countUnreadMessagesByChatInfo(myChatroomMemberships);
         return unreadMessagesCountByMe;
     }
 

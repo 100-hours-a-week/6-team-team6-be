@@ -19,6 +19,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
                 c.id,
                 c.buyerId,
+                c.postId,
                 m.id,
                 m.createdAt,
                 m.content,
@@ -38,6 +39,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
                 c.id,
                 c.buyerId,
+                c.postId,
                 m.id,
                 m.createdAt,
                 m.content,
@@ -52,10 +54,56 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
               and (m.createdAt < :time or (m.createdAt = :time and c.id < :id))
             order by m.createdAt desc, c.id desc
             """)
-    List<ChatResponse.ChatroomSummaryCore> findNextSummaryCorePage(@Param("postId") Long postId,
-                                                                   @Param("time") Instant time,
-                                                                   @Param("id") Long id,
-                                                                   Pageable pageable);
+    List<ChatResponse.ChatroomSummaryCore> findNextSummaryCorePageByPostId(@Param("postId") Long postId,
+                                                                           @Param("time") Instant time,
+                                                                           @Param("id") Long id,
+                                                                           Pageable pageable);
+
+    @Query("""
+            select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
+                c.id,
+                c.buyerId,
+                c.postId,
+                m.id,
+                m.createdAt,
+                m.content,
+                c.sellerLastReadMessageId,
+                c.buyerLastReadMessageId
+            )
+            from Chatroom c
+            join ChatMessage m on m.chatroom.id = c.id
+            join Post p on c.postId = p.id
+            where c.deletedAt is null
+              and c.lastMessageId is not null
+              and (c.buyerId in :membershipIds or p.sellerId in :membershipIds)
+            order by m.createdAt desc, c.id desc
+            """)
+    List<ChatResponse.ChatroomSummaryCore> findTop21SummaryCoresByMembershipIds(@Param("membershipIds") List<Long> membershipIds, Pageable pageable);
+
+    @Query("""
+            select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
+                c.id,
+                c.buyerId,
+                c.postId,
+                m.id,
+                m.createdAt,
+                m.content,
+                c.sellerLastReadMessageId,
+                c.buyerLastReadMessageId
+            )
+            from Chatroom c
+            join ChatMessage m on m.chatroom.id = c.id
+            join Post p on c.postId = p.id
+            where  c.deletedAt is null
+              and c.lastMessageId is not null
+              and (c.buyerId in :membershipId or p.sellerId in :membershipId)
+              and (m.createdAt < :time or (m.createdAt = :time and c.id < :id))
+            order by m.createdAt desc, c.id desc
+            """)
+    List<ChatResponse.ChatroomSummaryCore> findNextSummaryCorePageByMembershipIds(@Param("membershipIds") List<Long> membershipIds,
+                                                                                  @Param("time")Instant time,
+                                                                                  @Param("id")Long id,
+                                                                                  Pageable pageable);
 
     @Query("""
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomMembershipDto(

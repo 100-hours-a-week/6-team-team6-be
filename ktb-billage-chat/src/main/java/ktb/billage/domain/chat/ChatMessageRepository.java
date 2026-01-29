@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
     List<ChatMessage> findTop21ByChatroomIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(Long chatroomId);
@@ -43,6 +44,48 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
                                      @Param("senderId") Long senderId,
                                      @Param("lastMessageId") Long lastMessageId,
                                      @Param("lastReadMessageId") Long lastReadMessageId);
+
+    @Query("""
+        select count(m) from ChatMessage m
+        where m.chatroom.id = :chatroomId
+            and m.deletedAt is null
+            and m.senderId not in :memberIds
+    """)
+    Long countAllMessagesNotIncludeSenderIds(@Param("chatroomId") Long chatroomId, @Param("memberIds") Set<Long> memberIds);
+
+    @Query("""
+        select count(m) from ChatMessage m
+        where m.chatroom.id = :chatroomId
+          and m.deletedAt is null
+          and m.senderId not in :senderIds
+          and m.id > :lastReadMessageId
+          and m.id <= :lastMessageId
+    """)
+    Long countMessagesNotIncludeSenderIdsBetween(@Param("chatroomId") Long chatroomId,
+                                                 @Param("memberIds") Set<Long> memberIds,
+                                                 @Param("lastMessageId") Long lastMessageId,
+                                                 @Param("lastReadMessageId") Long lastReadMessageId);
+
+    @Query("""
+        select count(m) from ChatMessage m
+        where m.chatroom.id = :chatroomId
+            and m.deletedAt is null
+            and m.senderId in :memberIds
+    """)
+    Long countAllMessagesIncludeSenderIds(@Param("chatroomId") Long chatroomId, @Param("memberIds") Set<Long> memberIds);
+
+    @Query("""
+        select count(m) from ChatMessage m
+        where m.chatroom.id = :chatroomId
+          and m.deletedAt is null
+          and m.senderId in :senderIds
+          and m.id > :lastReadMessageId
+          and m.id <= :lastMessageId
+    """)
+    Long countMessagesIncludeSenderIdsBetween(@Param("chatroomId") Long chatroomId,
+                                                 @Param("memberIds") Set<Long> memberIds,
+                                                 @Param("lastMessageId") Long lastMessageId,
+                                                 @Param("lastReadMessageId") Long lastReadMessageId);
 
     @Query("""
         select count(msg.id)
