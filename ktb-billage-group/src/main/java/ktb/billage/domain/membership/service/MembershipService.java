@@ -37,4 +37,8 @@ public class MembershipService {
         return membershipRepository.findById(membershipId)
                 .orElseThrow(() -> new GroupException(NOT_GROUP_MEMBER));
     }
+
+    public void join(Long userId) {
+        membershipRepository.save(new Membership(1L, userId));
+    }
 }
