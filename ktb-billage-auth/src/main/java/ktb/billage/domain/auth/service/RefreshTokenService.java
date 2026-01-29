@@ -25,7 +25,7 @@ public class RefreshTokenService {
 
     public RefreshToken loadRefreshToken(String payload) {
         RefreshToken refreshToken = findByPayload(payload);
-        tokenParser.validateExpiration(payload);
+        tokenParser.validateRefreshTokenExpiration(payload);
 
         return refreshToken;
     }

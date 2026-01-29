@@ -10,6 +10,7 @@ public enum ExceptionCode {
     INVALID_TOKEN("TOKEN01", 401),
     INVALID_RTOKEN("TOKEN02", 401),
     EXPIRED_RTOKEN("TOKEN03", 401),
+    EXPIRED_TOKEN("TOKEN04", 401),
 
     // user
     USER_NOT_FOUND("USER01", 404),

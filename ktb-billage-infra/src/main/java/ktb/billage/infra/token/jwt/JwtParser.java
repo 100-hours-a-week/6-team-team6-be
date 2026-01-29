@@ -11,6 +11,8 @@ import ktb.billage.common.exception.AuthException;
 import org.springframework.stereotype.Component;
 
 import static ktb.billage.common.exception.ExceptionCode.EXPIRED_RTOKEN;
+import static ktb.billage.common.exception.ExceptionCode.EXPIRED_TOKEN;
+import static ktb.billage.common.exception.ExceptionCode.INVALID_TOKEN;
 
 @Component
 public class JwtParser implements TokenParser {
@@ -27,7 +29,7 @@ public class JwtParser implements TokenParser {
                 .getSubject();
     }
 
-    public void validateExpiration(String token) {
+    public void validateRefreshTokenExpiration(String token) {
         try {
             parser.parseSignedClaims(token);
         } catch (ExpiredJwtException e) {
@@ -38,12 +40,10 @@ public class JwtParser implements TokenParser {
     private Jws<Claims> validate(String token) {
         try {
             return parser.parseSignedClaims(token);
-        } catch (IllegalArgumentException e) { // FIXME. 적절한 예외 응답 추가
-            return null;
+        } catch (IllegalArgumentException | MalformedJwtException | SignatureException e) { // FIXME. 적절한 예외 응답 추가
+            throw new AuthException(INVALID_TOKEN);
         } catch (ExpiredJwtException e) {
-            return null;
-        } catch (MalformedJwtException | SignatureException e) {
-            return null;
+            throw new AuthException(EXPIRED_TOKEN);
         }
     }
 }
