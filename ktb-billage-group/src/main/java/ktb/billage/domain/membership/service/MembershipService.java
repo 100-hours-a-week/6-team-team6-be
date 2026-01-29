@@ -6,6 +6,8 @@ import ktb.billage.domain.membership.MembershipRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static ktb.billage.common.exception.ExceptionCode.NOT_GROUP_MEMBER;
 
 @Service
@@ -37,6 +39,12 @@ public class MembershipService {
         if (!findMembership(membershipId).isOwnedBy(userId)) {
             throw new GroupException(NOT_GROUP_MEMBER);
         }
+    }
+
+    public List<Long> findMembershipIds(Long userId) {
+         return membershipRepository.findAllByUserIdAndDeletedAtIsNull(userId).stream()
+                 .map(Membership::getId)
+                 .toList();
     }
 
     private Membership findMembership(Long membershipId) {

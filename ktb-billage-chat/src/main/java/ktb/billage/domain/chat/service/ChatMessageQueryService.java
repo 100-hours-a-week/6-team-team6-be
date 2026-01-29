@@ -55,6 +55,16 @@ public class ChatMessageQueryService {
         return unreadMessageCounts;
     }
 
+    public Long findUnreadMessagesCountByChatInfo(List<ChatResponse.ChatroomMembershipDto> chatroomMembershipDtos) {
+        return chatroomMembershipDtos.stream()
+                .mapToLong(dto ->
+                        chatMessageRepository.findUnreadMessageCountByChatroomAndMembership(
+                                dto.chatroomId(), dto.membershipId(), dto.isSeller()
+                        )
+                )
+                .sum();
+    }
+
     private CursorCodec.Cursor decodeCursor(String cursor) {
         if (cursor == null || cursor.isBlank()) {
             return null;

@@ -84,6 +84,19 @@ public class ChatFacade {
         );
     }
 
+    public Long countAllUnReadMessagesOnParticipantingChatrooms(Long userId) {
+        List<Long> myMembershipIds = membershipService.findMembershipIds(userId);
+        if (myMembershipIds.isEmpty()) {
+            return 0L;
+        }
+
+        List<ChatResponse.ChatroomMembershipDto> myChatroomMemberships = chatroomQueryService.findChatroomIdsByMembershipIds(myMembershipIds);
+
+        Long unreadMessagesCountByMe = chatMessageQueryService.findUnreadMessagesCountByChatInfo(myChatroomMemberships);
+        return unreadMessagesCountByMe;
+
+    }
+
     private List<Long> toUserIds(List<ChatResponse.ChatroomSummaryCore> cores) {
         return cores.stream()
                 .mapToLong(ChatResponse.ChatroomSummaryCore::chatPartnerId)

@@ -4,6 +4,8 @@ plugins {
 
 dependencies {
     implementation project(':ktb-billage-global:ktb-billage-common')
+    implementation project(':ktb-billage-post')
+    implementation project(':ktb-billage-group')
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'io.hypersistence:hypersistence-utils-hibernate-71:3.14.1'

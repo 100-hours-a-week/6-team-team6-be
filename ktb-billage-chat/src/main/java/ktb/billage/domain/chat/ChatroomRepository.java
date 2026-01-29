@@ -26,7 +26,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
                 c.buyerLastReadMessageId
             )
             from Chatroom c
-            join ChatMessage m
+            join ChatMessage m on m.chatroom.id = c.id
             where c.postId = :postId
               and c.deletedAt is null
               and c.lastMessageId is not null
@@ -45,7 +45,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
                 c.buyerLastReadMessageId
             )
             from Chatroom c
-            join ChatMessage m
+            join ChatMessage m on m.chatroom.id = c.id
             where c.postId = :postId
               and c.deletedAt is null
               and c.lastMessageId is not null
@@ -56,4 +56,19 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
                                                                    @Param("time") Instant time,
                                                                    @Param("id") Long id,
                                                                    Pageable pageable);
+
+    @Query("""
+            select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomMembershipDto(
+                c.id,
+                case when c.buyerId in :membershipIds then c.buyerId else p.sellerId end,
+                case when c.buyerId in :membershipIds then false else true end
+            )
+            from Chatroom c
+            join Post p on c.postId = p.id
+            where c.deletedAt is null
+                and c.lastMessageId is not null
+                and (c.buyerId in :membershipIds
+                    or p.sellerId in :membershipIds)
+    """)
+    List<ChatResponse.ChatroomMembershipDto> findAllByParticipantIds(@Param("membershipIds") List<Long> membershipIds);
 }

@@ -13,7 +13,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     @Query("""
         select m from ChatMessage m
-        where m.chatroomId = :chatroomId
+        where m.chatroom.id = :chatroomId
           and m.deletedAt is null
           and (m.createdAt < :time or (m.createdAt = :time and m.id < :id))
         order by m.createdAt desc, m.id desc
@@ -25,7 +25,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     @Query("""
         select count(m) from ChatMessage m
-        where m.chatroomId = :chatroomId
+        where m.chatroom.id = :chatroomId
           and m.deletedAt is null
           and m.senderId != :senderId
     """)
@@ -33,7 +33,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     @Query("""
         select count(m) from ChatMessage m
-        where m.chatroomId = :chatroomId
+        where m.chatroom.id = :chatroomId
           and m.deletedAt is null
           and m.senderId != :senderId
           and m.id > :lastReadMessageId
@@ -43,4 +43,21 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
                                      @Param("senderId") Long senderId,
                                      @Param("lastMessageId") Long lastMessageId,
                                      @Param("lastReadMessageId") Long lastReadMessageId);
+
+    @Query("""
+        select count(msg.id)
+        from ChatMessage msg
+        join msg.chatroom room
+        where room.id = :chatroomId
+            and room.deletedAt is null
+            and msg.senderId != :membershipId
+            and room.lastMessageId >= msg.id
+            and (
+                   (:isSeller = true and room.sellerLastReadMessageId < msg.id)
+                or (:isSeller = false and room.buyerLastReadMessageId < msg.id)
+            )
+    """)
+    Long findUnreadMessageCountByChatroomAndMembership(@Param("chatroomId") Long chatroomId,
+                                                       @Param("membershipId") Long membershipId,
+                                                       @Param("isSeller") boolean isSeller);
 }
