@@ -38,4 +38,11 @@ public class ChatController {
         Long unreadCount = chatFacade.countAllUnReadMessagesOnParticipantingChatrooms(userId);
         return ResponseEntity.ok().body(Map.of("unreadChatMesageCount", unreadCount));
     }
+
+    @GetMapping("/posts/{postId}/chatrooms/{chatroomId}/post")
+    public ResponseEntity<?> getPostSummaryInChatroom(@PathVariable Long postId, @PathVariable Long chatroomId,
+                                                      @AuthenticatedId Long userId) {
+        ChatResponse.PostSummary postSummary = chatFacade.getPostSummaryInChatroom(postId, chatroomId, userId);
+        return ResponseEntity.ok().body(postSummary);
+    }
 }

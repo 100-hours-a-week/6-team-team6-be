@@ -1,5 +1,6 @@
 package ktb.billage.domain.chat.dto;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -67,6 +68,25 @@ public class ChatResponse {
             Long chatroomId,
             Long membershipId,
             boolean isSeller
+    ) {
+    }
+
+    public record PostSummary(
+            Long partnerId,
+            String partnerNickname,
+            Long groupId,
+            String groupName,
+            Long postId,
+            String postTitle,
+            String postFirstImageUrl,
+            BigDecimal rentalFee,
+            String feeUnit,
+            String rentalStatus
+    ) {
+    }
+
+    public record PartnerProfile(
+            Long partnerId
     ) {
     }
 }

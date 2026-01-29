@@ -1,6 +1,7 @@
 package ktb.billage.domain.chat.service;
 
 import ktb.billage.common.cursor.CursorCodec;
+import ktb.billage.common.exception.ChatException;
 import ktb.billage.domain.chat.Chatroom;
 import ktb.billage.domain.chat.ChatroomRepository;
 import ktb.billage.domain.chat.dto.ChatResponse;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static ktb.billage.common.exception.ExceptionCode.CHATROOM_NOT_FOUND;
 
 @Service
 @Transactional(readOnly = true)
@@ -52,6 +55,15 @@ public class ChatroomQueryService {
 
     public List<ChatResponse.ChatroomMembershipDto> findChatroomIdsByMembershipIds(List<Long> membershipIds) {
         return chatroomRepository.findAllByParticipantIds(membershipIds);
+    }
+
+    public void validateChatroom(Long chatroomId) {
+        chatroomRepository.findById(chatroomId)
+                .orElseThrow(() -> new ChatException(CHATROOM_NOT_FOUND));
+    }
+
+    public ChatResponse.PartnerProfile findPartnerProfile(Long chatroomId, Long myMembershipId) {
+        return chatroomRepository.findPartnerProfile(chatroomId, myMembershipId);
     }
 
     private CursorCodec.Cursor decodeCursor(String cursor) {
