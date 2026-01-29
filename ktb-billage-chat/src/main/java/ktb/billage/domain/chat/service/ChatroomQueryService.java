@@ -32,9 +32,30 @@ public class ChatroomQueryService {
                 .orElse(-1L);
     }
 
-    public ChatResponse.ChatroomSummaryCores getChatroomSummariesByPostIdAndCursor(Long postId, String cursor) {
+    public ChatResponse.ChatroomSummaryCores findChatroomSummariesByPostIdAndCursor(Long postId, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
-        List<ChatResponse.ChatroomSummaryCore> cores = loadChatroomCores(postId, decoded);
+        List<ChatResponse.ChatroomSummaryCore> cores = loadChatroomCoresByPostId(postId, decoded);
+
+        boolean hasNext = cores.size() > 20;
+        List<ChatResponse.ChatroomSummaryCore> pageCores = hasNext ? cores.subList(0, 20) : cores;
+
+        String nextCursor;
+        if (hasNext) {
+            ChatResponse.ChatroomSummaryCore last = pageCores.getLast();
+            nextCursor = cursorCodec.encode(last.lastMessageAt(), last.chatroomId());
+        } else {
+            nextCursor = null;
+        }
+
+        return new ChatResponse.ChatroomSummaryCores(
+                pageCores,
+                new ChatResponse.CursorDto(nextCursor, hasNext)
+        );
+    }
+
+    public ChatResponse.ChatroomSummaryCores findChatroomSummariesByMembershipIdsAndCursor(List<Long> membershipIds, String cursor) {
+        CursorCodec.Cursor decoded = decodeCursor(cursor);
+        List<ChatResponse.ChatroomSummaryCore> cores = loadChatroomCoresByMembershipIds(membershipIds, decoded);
 
         boolean hasNext = cores.size() > 20;
         List<ChatResponse.ChatroomSummaryCore> pageCores = hasNext ? cores.subList(0, 20) : cores;
@@ -66,6 +87,11 @@ public class ChatroomQueryService {
         return chatroomRepository.findPartnerProfile(chatroomId, myMembershipId);
     }
 
+    public Chatroom findChatroom(Long chatroomId) {
+        return chatroomRepository.findById(chatroomId)
+                .orElseThrow(() -> new ChatException(CHATROOM_NOT_FOUND));
+    }
+
     private CursorCodec.Cursor decodeCursor(String cursor) {
         if (cursor == null || cursor.isBlank()) {
             return null;
@@ -74,14 +100,28 @@ public class ChatroomQueryService {
         return cursorCodec.decode(cursor);
     }
 
-    private List<ChatResponse.ChatroomSummaryCore> loadChatroomCores(Long postId, CursorCodec.Cursor decoded) {
+    private List<ChatResponse.ChatroomSummaryCore> loadChatroomCoresByPostId(Long postId, CursorCodec.Cursor decoded) {
         PageRequest pageRequest = PageRequest.of(0, 21);
         if (decoded == null) {
             return chatroomRepository.findTop21SummaryCoresByPostId(postId, pageRequest);
         }
 
-        return chatroomRepository.findNextSummaryCorePage(
+        return chatroomRepository.findNextSummaryCorePageByPostId(
                 postId,
+                decoded.time(),
+                decoded.id(),
+                pageRequest
+        );
+    }
+
+    private List<ChatResponse.ChatroomSummaryCore> loadChatroomCoresByMembershipIds(List<Long> membershipIds, CursorCodec.Cursor decoded) {
+        PageRequest pageRequest = PageRequest.of(0, 21);
+        if (decoded == null) {
+            return chatroomRepository.findTop21SummaryCoresByMembershipIds(membershipIds, pageRequest);
+        }
+
+        return chatroomRepository.findNextSummaryCorePageByMembershipIds(
+                membershipIds,
                 decoded.time(),
                 decoded.id(),
                 pageRequest

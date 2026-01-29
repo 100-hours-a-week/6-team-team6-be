@@ -3,6 +3,7 @@ package ktb.billage.domain.chat.service;
 import ktb.billage.common.cursor.CursorCodec;
 import ktb.billage.domain.chat.ChatMessage;
 import ktb.billage.domain.chat.ChatMessageRepository;
+import ktb.billage.domain.chat.Chatroom;
 import ktb.billage.domain.chat.dto.ChatResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -10,11 +11,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class ChatMessageQueryService {
     private final ChatMessageRepository chatMessageRepository;
+    private final ChatroomQueryService chatroomQueryService;
 
     private final CursorCodec cursorCodec;
 
@@ -38,24 +41,54 @@ public class ChatMessageQueryService {
         return new ChatResponse.Messages(chatroomId, messageItems, new ChatResponse.CursorDto(nextCursor, hasNext));
     }
 
-    public List<Long> countUnreadPartnerMessagesByAndBetween(List<ChatResponse.ChatroomSummaryCore> chatroomSummaries, Long myId, boolean isSeller) {
+    public List<Long> countUnreadPartnerMessagesByChatroomSummariesForSeller(List<ChatResponse.ChatroomSummaryCore> chatroomSummaries, Long sellerId) {
         List<Long> unreadMessageCounts = new ArrayList<>();
-        for (ChatResponse.ChatroomSummaryCore chatroomSummary : chatroomSummaries) {
+        for (ChatResponse.ChatroomSummaryCore summary : chatroomSummaries) {
             Long unreadCount;
-            if (chatroomSummary.sellerLastReadMessageId() == null) {
-                unreadCount = chatMessageRepository.countPartnerAllMessages(chatroomSummary.chatroomId(), myId);
 
+            if (summary.sellerLastReadMessageId() == null) {
+                unreadCount = chatMessageRepository.countPartnerAllMessages(summary.chatroomId(), sellerId);
             } else {
-                unreadCount = chatMessageRepository.countPartnerMessagesBetween(chatroomSummary.chatroomId(), myId, chatroomSummary.lastMessageId(),
-                        isSeller ? chatroomSummary.sellerLastReadMessageId() : chatroomSummary.buyerLastReadMessageId());
+                unreadCount = chatMessageRepository.countPartnerMessagesBetween(summary.chatroomId(), sellerId,
+                        summary.lastMessageId(), summary.sellerLastReadMessageId());
             }
+
+            unreadMessageCounts.add(unreadCount);
+        }
+        return unreadMessageCounts;
+    }
+
+    public List<Long> countUnreadPartnerMessagesByChatroomSummariesAndMembershipIdForRole(ChatResponse.ChatroomSummaryCores cores, Set<Long> membershipIds) {
+        List<Long> unreadMessageCounts = new ArrayList<>();
+        for (ChatResponse.ChatroomSummaryCore summary : cores.chatroomSummaryCores()) {
+            Long unreadCount;
+
+            Chatroom chatroom = chatroomQueryService.findChatroom(summary.chatroomId());
+            boolean isBuyer = chatroom.isBuyerContaining(membershipIds);
+
+            if (isBuyer) {
+                if (summary.buyerLastReadMessageId() == null) {
+                    unreadCount = chatMessageRepository.countAllMessagesNotIncludeSenderIds(summary.chatroomId(), membershipIds);
+                } else {
+                    unreadCount = chatMessageRepository.countMessagesNotIncludeSenderIdsBetween(summary.chatroomId(), membershipIds,
+                            summary.lastMessageId(), summary.buyerLastReadMessageId());
+                }
+            } else {
+                if (summary.sellerLastReadMessageId() == null) {
+                    unreadCount = chatMessageRepository.countAllMessagesIncludeSenderIds(summary.chatroomId(), membershipIds);
+                } else {
+                    unreadCount = chatMessageRepository.countMessagesIncludeSenderIdsBetween(summary.chatroomId(), membershipIds,
+                            summary.lastMessageId(), summary.sellerLastReadMessageId());
+                }
+            }
+
             unreadMessageCounts.add(unreadCount);
         }
 
         return unreadMessageCounts;
     }
 
-    public Long findUnreadMessagesCountByChatInfo(List<ChatResponse.ChatroomMembershipDto> chatroomMembershipDtos) {
+    public Long countUnreadMessagesByChatInfo(List<ChatResponse.ChatroomMembershipDto> chatroomMembershipDtos) {
         return chatroomMembershipDtos.stream()
                 .mapToLong(dto ->
                         chatMessageRepository.findUnreadMessageCountByChatroomAndMembership(

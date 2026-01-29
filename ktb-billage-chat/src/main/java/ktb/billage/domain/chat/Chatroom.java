@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -56,5 +57,9 @@ public class Chatroom extends BaseEntity {
         this.buyerLastReadMessageId = null;
         this.buyerLastReadAt = null;
         this.roomStatus = RoomStatus.ACTIVE;
+    }
+
+    public boolean isBuyerContaining(Set<Long> membershipIds) {
+        return membershipIds.contains(buyerId);
     }
 }

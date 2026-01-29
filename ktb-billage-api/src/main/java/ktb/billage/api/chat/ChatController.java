@@ -45,4 +45,12 @@ public class ChatController {
         ChatResponse.PostSummary postSummary = chatFacade.getPostSummaryInChatroom(postId, chatroomId, userId);
         return ResponseEntity.ok().body(postSummary);
     }
+
+    @GetMapping("/users/me/chatrooms")
+    public ResponseEntity<?> getMyParticipatingChatrooms(@AuthenticatedId Long userId,
+                                                                  @RequestParam(required = false) String cursor) {
+
+        ChatResponse.ChatroomSummaries summaries = chatFacade.getMyParticipatingChatrooms(userId, cursor);
+        return ResponseEntity.ok().body(summaries);
+    }
 }

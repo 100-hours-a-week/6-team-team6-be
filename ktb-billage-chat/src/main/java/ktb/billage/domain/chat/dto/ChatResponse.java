@@ -56,6 +56,7 @@ public class ChatResponse {
     public record ChatroomSummaryCore(
             Long chatroomId,
             Long chatPartnerId,
+            Long postId,
             Long lastMessageId,
             Instant lastMessageAt,
             String lastMessage,
