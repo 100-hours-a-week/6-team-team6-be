@@ -28,6 +28,7 @@ public enum ExceptionCode {
 
     // chat
     SELF_CHAT_DENIED("CHAT01", 403),
+    CHATROOM_NOT_FOUND("CHAT02", 404),
 
     // image
     INVALID_IMAGE("IMAGE01", 400),

@@ -7,6 +7,7 @@ import ktb.billage.domain.chat.service.ChatroomQueryService;
 import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.service.MembershipService;
+import ktb.billage.domain.post.dto.PostResponse;
 import ktb.billage.domain.post.service.PostQueryService;
 import ktb.billage.domain.user.dto.UserResponse;
 import ktb.billage.domain.user.service.UserService;
@@ -94,7 +95,37 @@ public class ChatFacade {
 
         Long unreadMessagesCountByMe = chatMessageQueryService.findUnreadMessagesCountByChatInfo(myChatroomMemberships);
         return unreadMessagesCountByMe;
+    }
 
+    public ChatResponse.PostSummary getPostSummaryInChatroom(Long postId, Long chatroomId, Long userId) {
+        postQueryService.validatePost(postId);
+        PostResponse.DetailCore postDetailCore = postQueryService.getPostDetailCore(postId);
+
+        Long sellerMembershipId = postQueryService.findSellerIdByPostId(postId);
+        membershipService.validateMembershipOwner(userId, sellerMembershipId);
+
+        Long groupId = membershipService.findGroupIdByMembershipId(sellerMembershipId);
+        GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
+
+        chatroomQueryService.validateChatroom(chatroomId);
+        ChatResponse.PartnerProfile partnerProfile = chatroomQueryService.findPartnerProfile(chatroomId, sellerMembershipId);
+
+        // TODO. v2 에서는 사용자 닉네임 대신 PartnerProfile에서 한 번에 멤버십 닉네임으로 가져오기.
+        Long partnerUserId = membershipService.findUserIdByMembershipId(partnerProfile.partnerId());
+        UserResponse.UserProfile partnerUserProfile = userService.findUserProfile(partnerUserId);
+
+        return new ChatResponse.PostSummary(
+                partnerProfile.partnerId(),
+                partnerUserProfile.nickname(),
+                groupId,
+                groupProfile.groupName(),
+                postId,
+                postDetailCore.title(),
+                postDetailCore.imageUrls().imageInfos().getFirst().imageUrl(),
+                postDetailCore.rentalFee(),
+                postDetailCore.feeUnit().name(),
+                postDetailCore.rentalStatus().name()
+        );
     }
 
     private List<Long> toUserIds(List<ChatResponse.ChatroomSummaryCore> cores) {
