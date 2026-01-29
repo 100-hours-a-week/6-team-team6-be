@@ -70,4 +70,12 @@ public class PostResponse {
             String imageUrl
     ) {
     }
+
+    public record PostDraft(
+            String title,
+            String content,
+            BigDecimal rentalFee,
+            String feeUnit
+    ) {
+    }
 }

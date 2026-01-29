@@ -37,6 +37,7 @@ public enum ExceptionCode {
     UNSUPPORTED_IMAGE_TYPE("IMAGE02", 415),
     IMAGE_SIZE_LIMIT("IMAGE03", 413),
     IMAGE_NOT_FOUND("IMAGE04", 404),
+    IMAGE_HANDLING_FAILED("IMAGE05", 500),
 
     // common
     INVALID_CURSOR("CURSOR01", 400),
@@ -44,6 +45,7 @@ public enum ExceptionCode {
     // application
     SERVER_ERROR("SERVER01", 500),
     NOT_SUPPORTED_METHOD("SERVER02", 405),
+    TIME_OUT("SERVER03", 504),
 
     PARAMETER_VALIDATION_FAILED("PARAMETER01", 400),
     ;

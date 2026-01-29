@@ -43,4 +43,11 @@ public class PostRequest {
             RentalStatus rentalStatus
     ) {
     }
+
+    public record ImageComponent(
+      byte[] bytes,
+      String contentType,
+      long size
+    ){
+    }
 }

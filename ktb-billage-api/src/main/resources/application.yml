@@ -21,6 +21,7 @@ spring:
       - classpath:application-jwt.yml
       - classpath:application-dbsource.yml
       - classpath:application-s3.yml
+      - classpath:application-ai.yml
 
   jpa:
     open-in-view: false
