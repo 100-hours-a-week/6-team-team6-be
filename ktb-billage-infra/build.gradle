@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation project(':ktb-billage-auth')
     implementation project(':ktb-billage-user')
+    implementation project(':ktb-billage-post')
     implementation project(':ktb-billage-global:ktb-billage-contract')
     implementation project(':ktb-billage-global:ktb-billage-common')
 
@@ -13,6 +14,7 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'io.jsonwebtoken:jjwt-api'
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:auth'

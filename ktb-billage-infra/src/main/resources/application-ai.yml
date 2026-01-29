@@ -1,0 +1,32 @@
+
+spring:
+  config:
+    active:
+      on-profile: prod
+
+ai:
+  base-url: ${PROD_AI_BASE_URL}
+  timeout-seconds: ${PROD_AI_TIMEOUT_SECONDS}
+
+
+---
+
+spring:
+  config:
+    active:
+      on-profile: dev
+
+ai:
+  base-url: ${DEV_AI_BASE_URL}
+  timeout-seconds: ${DEV_AI_TIMEOUT_SECONDS}
+
+---
+
+spring:
+  config:
+    active:
+      on-profile: local
+
+ai:
+  base-url: ${LOCAL_AI_BASE_URL}
+  timeout-seconds: ${LOCAL_AI_TIMEOUT_SECONDS}
