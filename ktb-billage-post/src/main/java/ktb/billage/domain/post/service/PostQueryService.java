@@ -90,7 +90,7 @@ public class PostQueryService {
 
     private List<Post> loadPosts(CursorCodec.Cursor decoded) {
         if (decoded == null) {
-            return postRepository.findTop21ByOrderByUpdatedAtDescIdDesc();
+            return postRepository.findTop21ByDeletedAtIsNullOrderByUpdatedAtDescIdDesc();
         }
 
         return postRepository.findNextPage(decoded.time(), decoded.id(), PageRequest.of(0, 21));
@@ -98,7 +98,7 @@ public class PostQueryService {
 
     private List<Post> loadPostsByKeyword(String keyword, CursorCodec.Cursor decoded) {
         if (decoded == null) {
-            return postRepository.findTop21ByTitleContainingOrderByUpdatedAtDescIdDesc(keyword);
+            return postRepository.findTop21ByDeletedAtIsNullAndTitleContainingOrderByUpdatedAtDescIdDesc(keyword);
         }
 
         return postRepository.findNextPageByKeyword(keyword, decoded.time(), decoded.id(), PageRequest.of(0, 21));

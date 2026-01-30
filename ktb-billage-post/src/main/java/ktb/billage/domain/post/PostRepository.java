@@ -9,13 +9,14 @@ import java.time.Instant;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    List<Post> findTop21ByOrderByUpdatedAtDescIdDesc();
-    List<Post> findTop21ByTitleContainingOrderByUpdatedAtDescIdDesc(String keyword);
+    List<Post> findTop21ByDeletedAtIsNullOrderByUpdatedAtDescIdDesc();
+    List<Post> findTop21ByDeletedAtIsNullAndTitleContainingOrderByUpdatedAtDescIdDesc(String keyword);
 
     @Query("""
             select p from Post p
-            where p.updatedAt < :cursorTime
-               or (p.updatedAt = :cursorTime and p.id < :cursorId)
+            where p.deletedAt is null
+               and (p.updatedAt < :cursorTime
+               or (p.updatedAt = :cursorTime and p.id < :cursorId))
             order by p.updatedAt desc, p.id desc
             """)
     List<Post> findNextPage(@Param("cursorTime") Instant cursorTime,
@@ -24,7 +25,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("""
             select p from Post p
-            where p.title like concat('%', :keyword, '%')
+            where p.deletedAt is null
+              and p.title like concat('%', :keyword, '%')
               and (p.updatedAt < :cursorTime
                or (p.updatedAt = :cursorTime and p.id < :cursorId))
             order by p.updatedAt desc, p.id desc
@@ -39,6 +41,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         from Post p
         join Membership m on p.sellerId = m.id
         where p.id = :postId
+            and p.deletedAt is null
     """)
     Long findGroupIdByPostId(@Param("postId") Long postId);
 }
