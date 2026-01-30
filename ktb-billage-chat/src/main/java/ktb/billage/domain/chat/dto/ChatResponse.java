@@ -9,6 +9,8 @@ public class ChatResponse {
     public record CursorDto(String cursor, Boolean hasNext) {
     }
 
+    public record Id(Long chatroomId) {}
+
     public record Messages(
             Long chatroomId,
             List<MessageItem> messageItems,

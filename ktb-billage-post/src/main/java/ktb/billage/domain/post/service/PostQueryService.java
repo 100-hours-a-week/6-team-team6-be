@@ -55,6 +55,10 @@ public class PostQueryService {
         );
     }
 
+    public Long findGroupIdByPostId(Long postId){
+        return postRepository.findGroupIdByPostId(postId);
+    }
+
     public Long findSellerIdByPostId(Long postId) {
         return findPost(postId).getSellerId();
     }

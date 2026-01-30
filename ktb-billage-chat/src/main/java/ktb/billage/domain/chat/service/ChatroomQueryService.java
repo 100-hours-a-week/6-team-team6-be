@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 import static ktb.billage.common.exception.ExceptionCode.CHATROOM_NOT_FOUND;
+import static ktb.billage.common.exception.ExceptionCode.CHATROOM_NOT_PARTICIPATE;
 
 @Service
 @Transactional(readOnly = true)
@@ -31,6 +31,12 @@ public class ChatroomQueryService {
         return chatroomRepository.findFirstByPostIdAndBuyerId(postId, buyerId)
                 .map(Chatroom::getId)
                 .orElse(null);
+    }
+
+    public void validateParticipating(Long chatroomId, Long membershipId) {
+        if (!chatroomRepository.existsByIdAndBuyerIdOrSellerId(chatroomId, membershipId)) {
+            throw new ChatException(CHATROOM_NOT_PARTICIPATE);
+        }
     }
 
     public ChatResponse.ChatroomSummaryCores findChatroomSummariesByPostIdAndCursor(Long postId, String cursor) {
