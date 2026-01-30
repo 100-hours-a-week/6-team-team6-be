@@ -48,13 +48,13 @@ public class PostCommandService {
     }
 
     public PostResponse.Id update(Long postId, Long membershipId, String title,
-                                  String content, PostRequest.ImageInfos imageInfos, BigDecimal rentalFee, FeeUnit feeUnit) {
+                                  String content, List<PostRequest.ImageInfo> imageInfos, BigDecimal rentalFee, FeeUnit feeUnit) {
 
         Post post = findPost(postId);
         validatePostSeller(post, membershipId);
 
         updateImages(post, imageInfos);
-        post.update(title, content, imageInfos.imageInfos().size(), rentalFee, feeUnit);
+        post.update(title, content, imageInfos.size(), rentalFee, feeUnit);
 
         return new PostResponse.Id(post.getId());
     }
@@ -98,7 +98,7 @@ public class PostCommandService {
         }
     }
 
-    private void updateImages(Post post, PostRequest.ImageInfos imageInfos) {
+    private void updateImages(Post post, List<PostRequest.ImageInfo> imageInfos) {
         List<PostImage> existingImages = loadExistingImages(post);
         Map<Long, PostImage> existingById = mapImagesById(existingImages);
         Set<Long> requestedIds = toSetForRequestedImageIds(imageInfos);
@@ -117,8 +117,8 @@ public class PostCommandService {
                 .collect(Collectors.toMap(PostImage::getId, image -> image, (left, right) -> left, HashMap::new));
     }
 
-    private Set<Long> toSetForRequestedImageIds(PostRequest.ImageInfos imageInfos) {
-        return imageInfos.imageInfos().stream()
+    private Set<Long> toSetForRequestedImageIds(List<PostRequest.ImageInfo> imageInfos) {
+        return imageInfos.stream()
                 .map(PostRequest.ImageInfo::postImageId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -134,10 +134,9 @@ public class PostCommandService {
         }
     }
 
-    private void applySortOrdersToExisting(PostRequest.ImageInfos imageInfos, Map<Long, PostImage> existingById) {
-        List<PostRequest.ImageInfo> infos = imageInfos.imageInfos();
-        for (int i = 0; i < infos.size(); i++) {
-            PostRequest.ImageInfo info = infos.get(i);
+    private void applySortOrdersToExisting(List<PostRequest.ImageInfo> imageInfos, Map<Long, PostImage> existingById) {
+        for (int i = 0; i < imageInfos.size(); i++) {
+            PostRequest.ImageInfo info = imageInfos.get(i);
             if (info.postImageId() == null) {
                 continue;
             }
@@ -149,11 +148,10 @@ public class PostCommandService {
         }
     }
 
-    private List<PostImage> collectNewImagesWithSortOrder(Post post, PostRequest.ImageInfos imageInfos) {
+    private List<PostImage> collectNewImagesWithSortOrder(Post post, List<PostRequest.ImageInfo> imageInfos) {
         List<PostImage> toCreate = new ArrayList<>();
-        List<PostRequest.ImageInfo> infos = imageInfos.imageInfos();
-        for (int i = 0; i < infos.size(); i++) {
-            PostRequest.ImageInfo info = infos.get(i);
+        for (int i = 0; i < imageInfos.size(); i++) {
+            PostRequest.ImageInfo info = imageInfos.get(i);
             if (info.postImageId() != null) {
                 continue;
             }
