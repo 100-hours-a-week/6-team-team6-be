@@ -2,6 +2,6 @@ package ktb.billage.domain.post;
 
 public enum RentalStatus {
     AVAILABLE,
-    RENTED,
+    RENTED_OUT,
     ;
 }
