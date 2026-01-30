@@ -83,12 +83,16 @@ public class PostFacade {
         Long sellerUserId = membershipService.findUserIdByMembershipId(core.sellerId());
         UserResponse.UserProfile sellerProfile = userService.findUserProfile(sellerUserId);
 
-        Long chatroomId = isSeller
-                ? -1L
-                : chatroomQueryService.findChatroomIdByPostIdAndBuyerId(postId, membershipId);
-        Long activeChatroomCount = isSeller
-                ? chatroomQueryService.countChatroomsByPostId(postId)
-                : -1L;
+        Long chatroomId;
+        Long activeChatroomCount;
+
+        if (isSeller) {
+            chatroomId = null;
+            activeChatroomCount = chatroomQueryService.countChatroomsByPostId(postId);
+        } else {
+            chatroomId = chatroomQueryService.findChatroomIdByPostIdAndBuyerId(postId, membershipId);
+            activeChatroomCount = null;
+        }
 
         return new PostResponse.Detail(
                 core.title(),

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static ktb.billage.common.exception.ExceptionCode.CHATROOM_NOT_FOUND;
 
@@ -29,7 +30,7 @@ public class ChatroomQueryService {
     public Long findChatroomIdByPostIdAndBuyerId(Long postId, Long buyerId) {
         return chatroomRepository.findFirstByPostIdAndBuyerId(postId, buyerId)
                 .map(Chatroom::getId)
-                .orElse(-1L);
+                .orElse(null);
     }
 
     public ChatResponse.ChatroomSummaryCores findChatroomSummariesByPostIdAndCursor(Long postId, String cursor) {
