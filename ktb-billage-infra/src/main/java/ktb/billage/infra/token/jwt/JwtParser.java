@@ -40,7 +40,7 @@ public class JwtParser implements TokenParser {
     private Jws<Claims> validate(String token) {
         try {
             return parser.parseSignedClaims(token);
-        } catch (IllegalArgumentException | MalformedJwtException | SignatureException e) { // FIXME. 적절한 예외 응답 추가
+        } catch (IllegalArgumentException | MalformedJwtException | SignatureException e) {
             throw new AuthException(INVALID_TOKEN);
         } catch (ExpiredJwtException e) {
             throw new AuthException(EXPIRED_TOKEN);
