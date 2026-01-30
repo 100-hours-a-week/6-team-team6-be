@@ -18,25 +18,15 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/sjon;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
 
         if (authException instanceof InsufficientAuthenticationException) {
-            response.getWriter().write(
-                    """
-                            {
-                                "%s"
-                            }
-                            """.formatted(AUTH_TOKEN_NOT_FOUND.getCode())
-            );
+            response.getWriter()
+                    .write("{\"code\":\"%s\"}".formatted(AUTH_TOKEN_NOT_FOUND.getCode()));
             return;
         }
 
-        String body = """
-                {
-                    "%s"
-                 }
-                """.formatted(authException.getMessage());
-
-        response.getWriter().write(body);
+        response.getWriter()
+                .write("{\"code\":\"%s\"}".formatted(authException.getMessage()));
     }
 }
