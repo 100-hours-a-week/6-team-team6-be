@@ -16,6 +16,19 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
     Optional<Chatroom> findFirstByPostIdAndBuyerId(Long postId, Long buyerId);
 
     @Query("""
+            select case when count(c) > 0 then true else false end
+            from Chatroom c
+            join Post p on c.postId = p.id
+            where c.id = :chatroomId
+              and c.deletedAt is null
+              and (c.buyerId = :membershipId or p.sellerId = :membershipId)
+    """)
+    boolean existsByIdAndBuyerIdOrSellerId(@Param("chatroomId") Long chatroomId,
+                                           @Param("membershipId") Long membershipId);
+
+    boolean existsByPostIdAndBuyerId(Long postId, Long buyerId);
+
+    @Query("""
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
                 c.id,
                 c.buyerId,

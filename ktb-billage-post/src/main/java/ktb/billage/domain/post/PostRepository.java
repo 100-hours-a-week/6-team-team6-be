@@ -33,4 +33,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                      @Param("cursorTime") Instant cursorTime,
                                      @Param("cursorId") Long cursorId,
                                      Pageable pageable);
+
+    @Query("""
+        select m.groupId
+        from Post p
+        join Membership m on p.sellerId = m.id
+        where p.id = :postId
+    """)
+    Long findGroupIdByPostId(@Param("postId") Long postId);
 }

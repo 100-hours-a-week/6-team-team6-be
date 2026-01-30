@@ -29,6 +29,18 @@ public class ChatFacade {
     private final MembershipService membershipService;
     private final UserService userService;
 
+    public ChatResponse.Id createChatroom(Long postId, Long buyerUserId) {
+        postQueryService.validatePost(postId);
+
+        Long groupId = postQueryService.findGroupIdByPostId(postId);
+        groupService.validateGroup(groupId);
+
+        Long sellerMembershipId = postQueryService.findSellerIdByPostId(postId);
+        Long buyerMembershipId = membershipService.findMembershipId(groupId, buyerUserId);
+
+        return chatroomCommandService.create(postId, sellerMembershipId, buyerMembershipId);
+    }
+
     public ChatResponse.Messages getMessagesByCursor(Long postId, Long chatroomId, Long userId, String cursor) {
         postQueryService.validatePost(postId);
         Long sellerMembershipId = postQueryService.findSellerIdByPostId(postId);
@@ -36,13 +48,11 @@ public class ChatFacade {
         Long groupId = membershipService.findGroupIdByMembershipId(sellerMembershipId);
         groupService.validateGroup(groupId);
 
-        Long buyerMembershipId = membershipService.findMembershipId(groupId, userId);
+        Long requestorMembershipId = membershipService.findMembershipId(groupId, userId);
 
-        if (chatroomId == -1L) {
-            return chatroomCommandService.create(postId, sellerMembershipId, buyerMembershipId);
-        } else {
-            return chatMessageQueryService.getMessagesByCursor(chatroomId, buyerMembershipId, cursor);
-        }
+        chatroomQueryService.validateChatroom(chatroomId);
+        chatroomQueryService.validateParticipating(chatroomId, requestorMembershipId);
+        return chatMessageQueryService.getMessagesByCursor(chatroomId, requestorMembershipId, cursor);
     }
 
     public ChatResponse.ChatroomSummaries getChatroomsByMyPostId(Long postId, Long userId, String cursor) {

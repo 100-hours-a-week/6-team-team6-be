@@ -21,7 +21,7 @@ public class ChatMessageQueryService {
 
     private final CursorCodec cursorCodec;
 
-    public ChatResponse.Messages getMessagesByCursor(Long chatroomId, Long buyerId, String cursor) {
+    public ChatResponse.Messages getMessagesByCursor(Long chatroomId, Long requestorId, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
         List<ChatMessage> messages = loadMessages(chatroomId, decoded);
 
@@ -35,7 +35,7 @@ public class ChatMessageQueryService {
         }
 
         List<ChatResponse.MessageItem> messageItems = pageMessages.stream()
-                .map(message -> toMessageItem(message, buyerId))
+                .map(message -> toMessageItem(message, requestorId))
                 .toList();
 
         return new ChatResponse.Messages(chatroomId, messageItems, new ChatResponse.CursorDto(nextCursor, hasNext));
@@ -119,8 +119,8 @@ public class ChatMessageQueryService {
         );
     }
 
-    private ChatResponse.MessageItem toMessageItem(ChatMessage message, Long buyerId) {
-        String who = message.sentBy(buyerId) ? "me" : "partner";
+    private ChatResponse.MessageItem toMessageItem(ChatMessage message, Long requestorId) {
+        String who = message.sentBy(requestorId) ? "me" : "partner";
 
         return new ChatResponse.MessageItem(
                 message.getId(),
