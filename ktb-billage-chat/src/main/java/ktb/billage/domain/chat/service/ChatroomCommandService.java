@@ -7,9 +7,9 @@ import ktb.billage.domain.chat.dto.ChatResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Objects;
 
+import static ktb.billage.common.exception.ExceptionCode.ALREADY_EXSTING_CHATROOM;
 import static ktb.billage.common.exception.ExceptionCode.SELF_CHAT_DENIED;
 
 
@@ -18,17 +18,25 @@ import static ktb.billage.common.exception.ExceptionCode.SELF_CHAT_DENIED;
 public class ChatroomCommandService {
     private final ChatroomRepository chatroomRepository;
 
-    public ChatResponse.Messages create(Long postId, Long sellerId, Long buyerId) {
+    public ChatResponse.Id create(Long postId, Long sellerId, Long buyerId) {
         validateNotSelfChat(sellerId, buyerId);
+
+        if (isAlreadyExistingChatroom(postId, buyerId)) {
+            throw new ChatException(ALREADY_EXSTING_CHATROOM);
+        }
 
         Chatroom chatroom = chatroomRepository.save(new Chatroom(postId, buyerId));
 
-        return new ChatResponse.Messages(chatroom.getId(), List.of(), new ChatResponse.CursorDto(null, false));
+        return new ChatResponse.Id(chatroom.getId());
     }
 
     private void validateNotSelfChat(Long sellerId, Long buyerId) {
         if (Objects.equals(sellerId, buyerId)) {
             throw new ChatException(SELF_CHAT_DENIED);
         }
+    }
+
+    private boolean isAlreadyExistingChatroom(Long postId, Long buyerId) {
+        return chatroomRepository.existsByPostIdAndBuyerId(postId, buyerId);
     }
 }
