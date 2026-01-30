@@ -6,6 +6,7 @@ import ktb.billage.common.exception.InternalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -25,6 +26,14 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(status)
                 .body(ErrorResponse.from(exception));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    public ErrorResponse handleHttpRequestMethodNotSupportedException(HttpServletRequest request) {
+        log.warn("[Unsupported HTTP method] on : {}, requested method : {}", request.getRequestURI(), request.getMethod());
+
+        return ErrorResponse.method();
     }
 
     @ExceptionHandler({

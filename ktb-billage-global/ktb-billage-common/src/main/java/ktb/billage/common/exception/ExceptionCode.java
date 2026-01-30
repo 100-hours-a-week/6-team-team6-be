@@ -41,6 +41,7 @@ public enum ExceptionCode {
 
     // application
     SERVER_ERROR("SERVER01", 500),
+    NOT_SUPPORTED_METHOD("SERVER02", 405),
 
     PARAMETER_VALIDATION_FAILED("PARAMETER01", 400),
     ;
