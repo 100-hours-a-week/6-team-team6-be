@@ -29,7 +29,7 @@ public class User extends BaseEntity {
     private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[A-Za-z0-9]{8,16}$");
     private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[A-Za-z0-9]{6}$");
 
-    private static final String DEFAULT_AVATAR_URL = "temp.url";
+    private static final String DEFAULT_AVATAR_URL = "images/default-avatar.png";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

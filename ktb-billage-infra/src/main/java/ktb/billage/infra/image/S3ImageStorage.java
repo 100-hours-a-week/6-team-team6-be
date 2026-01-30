@@ -22,7 +22,7 @@ import java.util.UUID;
 @Profile({"dev", "prod"})
 @Component
 public class S3ImageStorage implements ImageStorage {
-    private static final Duration PRESIGNED_URL_TTL = Duration.ofDays(100);
+    private static final Duration PRESIGNED_URL_TTL = Duration.ofDays(7);
 
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
@@ -61,6 +61,14 @@ public class S3ImageStorage implements ImageStorage {
         s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytes));
 
         return getImageUrl(key);
+    }
+
+    @Override
+    public String resolveUrl(String imageKey) {
+        if (imageKey == null || imageKey.isBlank()) {
+            return null;
+        }
+        return getImageUrl(imageKey);
     }
 
     @Override

@@ -30,6 +30,10 @@ public class ImageService {
         return imageStorage.store(imageBytes, contentType, size);
     }
 
+    public String resolveUrl(String imageKey) {
+        return imageStorage.resolveUrl(imageKey);
+    }
+
     public void delete(String imageUrl) {
         imageStorage.remove(imageUrl);
     }

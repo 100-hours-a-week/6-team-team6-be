@@ -22,6 +22,11 @@ public class LocalImageStorage implements ImageStorage {
     }
 
     @Override
+    public String resolveUrl(String imageKey) {
+        return imageKey;
+    }
+
+    @Override
     public void remove(String imageUrl) {
 
     }

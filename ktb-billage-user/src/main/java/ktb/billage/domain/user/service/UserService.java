@@ -7,6 +7,7 @@ import ktb.billage.domain.user.UserRepository;
 import ktb.billage.domain.user.dto.UserResponse;
 import ktb.billage.common.exception.AuthException;
 import ktb.billage.common.exception.UserException;
+import ktb.billage.common.image.ImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import static ktb.billage.common.exception.ExceptionCode.USER_NOT_FOUND;
 public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final NicknameGenerator nicknameGenerator;
+    private final ImageService imageService;
 
     private final UserRepository userRepository;
 
@@ -37,7 +39,8 @@ public class UserService {
 
     public UserResponse.UserProfile findUserProfile(Long userId) {
         User user = findById(userId);
-        return new UserResponse.UserProfile(userId, user.getNickname(), user.getAvatarUrl());
+        String avatarUrl = imageService.resolveUrl(user.getAvatarUrl());
+        return new UserResponse.UserProfile(userId, user.getNickname(), avatarUrl);
     }
 
     @Transactional
@@ -55,12 +58,17 @@ public class UserService {
     public UserResponse.MyProfile getMyProfile(Long userId) {
         User user = findById(userId);
 
-        return new UserResponse.MyProfile(user.getLoginId(), user.getAvatarUrl());
+        String avatarUrl = imageService.resolveUrl(user.getAvatarUrl());
+        return new UserResponse.MyProfile(user.getLoginId(), avatarUrl);
     }
 
     public List<UserResponse.UserProfile> findUserProfiles(List<Long> userIds) {
         return userRepository.findAllById(userIds).stream()
-                .map(user -> new UserResponse.UserProfile(user.getId(), user.getNickname(), user.getAvatarUrl()))
+                .map(user -> new UserResponse.UserProfile(
+                        user.getId(),
+                        user.getNickname(),
+                        imageService.resolveUrl(user.getAvatarUrl())
+                ))
                 .toList();
     }
 
