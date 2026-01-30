@@ -27,14 +27,9 @@ public class PostRequest {
     public record Update(
             @NotBlank @Size(min = 2, max = 50) @NoEmoji String title,
             @NotBlank @Size(min = 1, max = 2000) @NoEmoji String content,
-            ImageInfos imageUrls,
+            @Size(min = 1) List<ImageInfo> imageUrls,
             @NotNull @Min(0) @Max(100_000_000) BigDecimal rentalFee,
             FeeUnit feeUnit
-    ) {
-    }
-
-    public record ImageInfos(
-            @Size(min = 1) List<ImageInfo> imageInfos
     ) {
     }
 
