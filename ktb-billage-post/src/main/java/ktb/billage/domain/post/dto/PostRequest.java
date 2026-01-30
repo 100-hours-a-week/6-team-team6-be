@@ -19,7 +19,7 @@ public class PostRequest {
             @NotBlank @Size(min = 2, max = 50) @NoEmoji String title,
             @NotBlank @Size(min = 1, max = 2000) @NoEmoji String content,
             @Size(min = 1) List<@NotBlank String> imageUrls,
-            @NotNull @Min(1) @Max(100_000_000) BigDecimal rentalFee,
+            @NotNull @Min(0) @Max(100_000_000) BigDecimal rentalFee,
             FeeUnit feeUnit
     ) {
     }
@@ -28,7 +28,7 @@ public class PostRequest {
             @NotBlank @Size(min = 2, max = 50) @NoEmoji String title,
             @NotBlank @Size(min = 1, max = 2000) @NoEmoji String content,
             ImageInfos imageUrls,
-            @NotNull @Min(1) @Max(100_000_000) BigDecimal rentalFee,
+            @NotNull @Min(0) @Max(100_000_000) BigDecimal rentalFee,
             FeeUnit feeUnit
     ) {
     }
