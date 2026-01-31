@@ -179,6 +179,16 @@ public class ChatFacade {
         );
     }
 
+    public Long getPostIdByChatroomId(Long chatroomId, Long userId) {
+        List<Long> membershipIds = membershipService.findMembershipIds(userId);
+
+        chatroomQueryService.validateChatroom(chatroomId);
+        chatroomQueryService.validateParticipating(chatroomId, membershipIds);
+
+        Long postId = chatroomQueryService.findPostIdByChatroomId(chatroomId);
+        return postId;
+    }
+
     private List<Long> toUserIds(List<ChatResponse.ChatroomSummaryCore> cores) {
         return cores.stream()
                 .mapToLong(ChatResponse.ChatroomSummaryCore::chatPartnerId)

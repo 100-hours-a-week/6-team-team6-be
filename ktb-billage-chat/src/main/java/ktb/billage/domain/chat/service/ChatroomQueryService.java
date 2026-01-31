@@ -39,6 +39,16 @@ public class ChatroomQueryService {
         }
     }
 
+    public void validateParticipating(Long chatroomId, List<Long> membershipIds) {
+        if (!chatroomRepository.existsByIdAndBuyerIdsOrSellerIds(chatroomId, membershipIds)) {
+            throw new ChatException(CHATROOM_NOT_PARTICIPATE);
+        }
+    }
+
+    public Long findPostIdByChatroomId(Long chatroomId) {
+        return findChatroom(chatroomId).getPostId();
+    }
+
     public ChatResponse.ChatroomSummaryCores findChatroomSummariesByPostIdAndCursor(Long postId, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
         List<ChatResponse.ChatroomSummaryCore> cores = loadChatroomCoresByPostId(postId, decoded);
