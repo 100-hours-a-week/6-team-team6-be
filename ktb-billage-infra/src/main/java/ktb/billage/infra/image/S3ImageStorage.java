@@ -60,7 +60,7 @@ public class S3ImageStorage implements ImageStorage {
 
         s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytes));
 
-        return getImageUrl(key);
+        return key;
     }
 
     @Override

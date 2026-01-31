@@ -1,5 +1,6 @@
 package ktb.billage.application.chat;
 
+import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.chat.dto.ChatResponse;
 import ktb.billage.domain.chat.service.ChatMessageQueryService;
 import ktb.billage.domain.chat.service.ChatroomCommandService;
@@ -28,6 +29,7 @@ public class ChatFacade {
     private final GroupService groupService;
     private final MembershipService membershipService;
     private final UserService userService;
+    private final ImageService imageService;
 
     public ChatResponse.Id createChatroom(Long postId, Long buyerUserId) {
         postQueryService.validatePost(postId);
@@ -79,11 +81,11 @@ public class ChatFacade {
             summaries.add(new ChatResponse.ChatroomSummary(
                     cores.chatroomSummaryCores().get(i).chatroomId(),
                     cores.chatroomSummaryCores().get(i).chatPartnerId(),
-                    userProfiles.get(i).avatarImageUrl(),
+                    getImagePresignedUrl(userProfiles.get(i).avatarImageUrl()),
                     userProfiles.get(i).nickname(),
                     groupProfile.groupId(),
                     groupProfile.groupName(),
-                    postFirstImageUrl,
+                    getImagePresignedUrl(postFirstImageUrl),
                     cores.chatroomSummaryCores().get(i).lastMessageAt(),
                     cores.chatroomSummaryCores().get(i).lastMessage(),
                     unreadMessageCounts.get(i)
@@ -118,11 +120,11 @@ public class ChatFacade {
             summaries.add(new ChatResponse.ChatroomSummary(
                     core.chatroomId(),
                     core.chatPartnerId(),
-                    userProfile.avatarImageUrl(),
+                    getImagePresignedUrl(userProfile.avatarImageUrl()),
                     userProfile.nickname(),
                     groupId,
                     groupProfile.groupName(),
-                    postFirstImageUrl,
+                    getImagePresignedUrl(postFirstImageUrl),
                     core.lastMessageAt(),
                     core.lastMessage(),
                     unreadCounts.get(i)
@@ -168,7 +170,7 @@ public class ChatFacade {
                 groupProfile.groupName(),
                 postId,
                 postDetailCore.title(),
-                postDetailCore.imageUrls().imageInfos().getFirst().imageUrl(),
+                getImagePresignedUrl(postDetailCore.imageUrls().imageInfos().getFirst().imageUrl()),
                 postDetailCore.rentalFee(),
                 postDetailCore.feeUnit().name(),
                 postDetailCore.rentalStatus().name()
@@ -181,5 +183,9 @@ public class ChatFacade {
                 .map(membershipService::findUserIdByMembershipId)
                 .boxed()
                 .toList();
+    }
+
+    private String getImagePresignedUrl(String key) {
+        return imageService.resolveUrl(key);
     }
 }
