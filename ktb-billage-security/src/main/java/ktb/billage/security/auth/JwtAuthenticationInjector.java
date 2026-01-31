@@ -19,12 +19,13 @@ public class JwtAuthenticationInjector {
 
     public void setAuthentication(String token) {
         String userId;
+        UserDetails userDetails;
         try {
             userId = tokenParser.parseId(token);
+            userDetails = userDetailsService.loadUserByUsername(userId);
         } catch (BaseException ex) {
             throw new JwtAuthenticationException(ex.getCode());
         }
-        UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);

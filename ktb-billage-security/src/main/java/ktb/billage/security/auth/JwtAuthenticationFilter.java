@@ -25,7 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (token == null || token.isBlank()) {
+        if (token == null || token.isBlank()) { // SecurityConfig의 url.authenticated()에서 예외를 던지고 entryPoint가 처리
             filterChain.doFilter(request, response);
             return;
         }
