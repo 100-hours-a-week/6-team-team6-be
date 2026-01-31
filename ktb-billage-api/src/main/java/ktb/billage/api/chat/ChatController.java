@@ -63,4 +63,12 @@ public class ChatController {
         ChatResponse.ChatroomSummaries summaries = chatFacade.getMyParticipatingChatrooms(userId, cursor);
         return ResponseEntity.ok().body(summaries);
     }
+
+    @GetMapping("/chatrooms/{chatroomId}/post")
+    public ResponseEntity<?> getPostIdByChatroomId(@PathVariable Long chatroomId, @AuthenticatedId Long userId) {
+        Long postId = chatFacade.getPostIdByChatroomId(chatroomId, userId);
+
+        return ResponseEntity.ok()
+                .body(Map.of("postId", postId));
+    }
 }
