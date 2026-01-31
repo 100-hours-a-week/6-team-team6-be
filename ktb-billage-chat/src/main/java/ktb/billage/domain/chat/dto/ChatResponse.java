@@ -42,6 +42,7 @@ public class ChatResponse {
             String chatPartnerNickname,
             Long groupId,
             String groupName,
+            Long postId,
             String postFirstImageUrl,
             Instant lastMessageAt,
             String lastMessage,
