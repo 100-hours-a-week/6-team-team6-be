@@ -43,6 +43,18 @@ public class ChatFacade {
         return chatroomCommandService.create(postId, sellerMembershipId, buyerMembershipId);
     }
 
+    public ChatResponse.Id createChatroom(Long postId, Long buyerUserId) {
+        postQueryService.validatePost(postId);
+
+        Long groupId = postQueryService.findGroupIdByPostId(postId);
+        groupService.validateGroup(groupId);
+
+        Long sellerMembershipId = postQueryService.findSellerIdByPostId(postId);
+        Long buyerMembershipId = membershipService.findMembershipId(groupId, buyerUserId);
+
+        return chatroomCommandService.create(postId, sellerMembershipId, buyerMembershipId);
+    }
+
     public ChatResponse.Messages getMessagesByCursor(Long postId, Long chatroomId, Long userId, String cursor) {
         postQueryService.validatePost(postId);
         Long sellerMembershipId = postQueryService.findSellerIdByPostId(postId);
