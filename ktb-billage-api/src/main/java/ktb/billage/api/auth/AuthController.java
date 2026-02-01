@@ -68,7 +68,7 @@ public class AuthController {
                 .secure(cookieSecure)
                 .path("/auth")
                 .sameSite("None")
-                .build(); // TODO. https 적용 후 secure 설정 추가
+                .build();
 
         response.addHeader("Set-Cookie", cookie.toString());
     }
