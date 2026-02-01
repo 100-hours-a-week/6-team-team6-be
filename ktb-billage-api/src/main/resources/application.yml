@@ -26,6 +26,12 @@ spring:
   jpa:
     open-in-view: false
 
+  servlet:
+    multipart:
+      max-file-size: 10MB      # 파일 1개 최대 크기
+      max-request-size: 30MB   # multipart/form-data 요청 전체(여러 파일 + 폼필드 포함) 최대 크기
+
+
 management:
   endpoints:
     web:
