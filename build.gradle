@@ -49,12 +49,8 @@ subprojects {
 
         testAnnotationProcessor platform('org.springframework.boot:spring-boot-dependencies:4.0.1')
         testAnnotationProcessor 'org.projectlombok:lombok'
-    }
 
-    if (project.name != 'ktb-billage-global') {
-        dependencies {
-            implementation 'org.springframework:spring-context'
-        }
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 
     test {
