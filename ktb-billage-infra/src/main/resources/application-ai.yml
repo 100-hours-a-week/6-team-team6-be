@@ -1,7 +1,7 @@
 
 spring:
   config:
-    active:
+    activate:
       on-profile: prod
 
 ai:
@@ -13,7 +13,7 @@ ai:
 
 spring:
   config:
-    active:
+    activate:
       on-profile: dev
 
 ai:
@@ -24,7 +24,7 @@ ai:
 
 spring:
   config:
-    active:
+    activate:
       on-profile: local
 
 ai:
