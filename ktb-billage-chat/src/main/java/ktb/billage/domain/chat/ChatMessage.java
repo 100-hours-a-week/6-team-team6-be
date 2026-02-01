@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -38,5 +39,9 @@ public class ChatMessage extends BaseEntity {
 
     public boolean sentBy(Long senderId) {
         return this.senderId.equals(senderId);
+    }
+
+    public boolean isIn(Long chatroomId) {
+        return Objects.equals(chatroomId, chatroom.getId());
     }
 }

@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Objects;
 
-import static ktb.billage.common.exception.ExceptionCode.ALREADY_EXSTING_CHATROOM;
+import static ktb.billage.common.exception.ExceptionCode.ALREADY_EXISTING_CHATROOM;
 import static ktb.billage.common.exception.ExceptionCode.SELF_CHAT_DENIED;
 
 
@@ -25,7 +25,7 @@ public class ChatroomCommandService {
         validateNotSelfChat(sellerId, buyerId);
 
         if (isAlreadyExistingChatroom(postId, buyerId)) {
-            throw new ChatException(ALREADY_EXSTING_CHATROOM);
+            throw new ChatException(ALREADY_EXISTING_CHATROOM);
         }
 
         Chatroom chatroom = chatroomRepository.save(new Chatroom(postId, buyerId));
@@ -34,14 +34,20 @@ public class ChatroomCommandService {
     }
 
     @Transactional
-    public void markRead(Long chatroomId, boolean isSeller) {
+    public void readAllMessageBy(Long chatroomId, boolean isSeller) {
         Chatroom chatroom = chatroomQueryService.findChatroom(chatroomId);
 
         if (isSeller) {
-            chatroom.readBySeller(Instant.now());
+            chatroom.readAllBySeller(Instant.now());
         } else {
-            chatroom.readByBuyer(Instant.now());
+            chatroom.readAllByBuyer(Instant.now());
         }
+    }
+
+    public void readMessage(Long chatroomId, Long membershipId, String readMessageId, Instant readAt) {
+        Chatroom chatroom = chatroomQueryService.findChatroom(chatroomId);
+
+        chatroom.readBy(membershipId, readMessageId, readAt);
     }
 
     private void validateNotSelfChat(Long sellerId, Long buyerId) {

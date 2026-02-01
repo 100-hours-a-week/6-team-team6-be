@@ -1,6 +1,7 @@
 package ktb.billage.domain.chat.service;
 
 import ktb.billage.common.cursor.CursorCodec;
+import ktb.billage.common.exception.ChatException;
 import ktb.billage.domain.chat.ChatMessage;
 import ktb.billage.domain.chat.ChatMessageRepository;
 import ktb.billage.domain.chat.Chatroom;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static ktb.billage.common.exception.ExceptionCode.CHAT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -96,6 +99,20 @@ public class ChatMessageQueryService {
                         )
                 )
                 .sum();
+    }
+
+    public void validateExistingMessage(Long chatroomId, String readMessageId) {
+        Long messageId = Long.parseLong(readMessageId);
+        ChatMessage message = findMessage(messageId);
+
+        if (!message.isIn(chatroomId)) {
+            throw new ChatException(CHAT_NOT_FOUND);
+        }
+    }
+
+    private ChatMessage findMessage(Long messageId) {
+        return chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new ChatException(CHAT_NOT_FOUND));
     }
 
     private CursorCodec.Cursor decodeCursor(String cursor) {
