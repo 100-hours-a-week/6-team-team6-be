@@ -2,6 +2,7 @@ package ktb.billage.websocket.application;
 
 import ktb.billage.domain.chat.dto.ChatResponse;
 import ktb.billage.domain.chat.service.ChatMessageCommandService;
+import ktb.billage.domain.chat.service.ChatMessageQueryService;
 import ktb.billage.domain.chat.service.ChatroomCommandService;
 import ktb.billage.domain.chat.service.ChatroomQueryService;
 import ktb.billage.domain.membership.service.MembershipService;
@@ -18,6 +19,7 @@ public class ChatWebSocketFacade {
     private final MembershipService membershipService;
     private final ChatroomQueryService chatroomQueryService;
     private final ChatroomCommandService chatroomCommandService;
+    private final ChatMessageQueryService chatMessageQueryService;
     private final ChatMessageCommandService chatMessageCommandService;
 
     public ChatResponse.ChatroomMembershipDto joinChatroom(Long chatroomId, Long userId) {
@@ -26,7 +28,7 @@ public class ChatWebSocketFacade {
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
         ChatResponse.ChatroomMembershipDto participation = chatroomQueryService.findParticipation(chatroomId, membershipIds);
 
-        chatroomCommandService.markRead(participation.chatroomId(), participation.isSeller());
+        chatroomCommandService.readAllMessageBy(participation.chatroomId(), participation.isSeller());
         return participation;
     }
 
@@ -43,5 +45,15 @@ public class ChatWebSocketFacade {
         Long messageId = chatMessageCommandService.sendMessage(chatroomId, membershipId, message, now);
 
         return new ChatSendAckResponse(chatroomId, membershipId, String.valueOf(messageId), message, now);
+    }
+
+    public void readMessage(Long chatroomId, Long userId, Long membershipId, String readMessageId) {
+        membershipService.validateMembershipOwner(userId, membershipId);
+        chatroomQueryService.validateParticipating(chatroomId, membershipId);
+
+        chatMessageQueryService.validateExistingMessage(chatroomId, readMessageId);
+
+        Instant now = Instant.now();
+        chatroomCommandService.readMessage(chatroomId, membershipId, readMessageId, now);
     }
 }

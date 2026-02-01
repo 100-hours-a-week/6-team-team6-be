@@ -64,14 +64,24 @@ public class Chatroom extends BaseEntity {
         return membershipIds.contains(buyerId);
     }
 
-    public void readBySeller(Instant readAt) {
+    public void readAllBySeller(Instant readAt) {
         this.sellerLastReadMessageId = lastMessageId;
         this.sellerLastReadAt = readAt;
     }
 
-    public void readByBuyer(Instant readAt) {
+    public void readAllByBuyer(Instant readAt) {
         this.buyerLastReadMessageId = lastMessageId;
         this.buyerLastReadAt = readAt;
+    }
+
+    public void readBy(Long membershipId, String messageId, Instant readAt) {
+        if (Objects.equals(this.buyerId, membershipId)) {
+            this.buyerLastReadMessageId = Long.parseLong(messageId);
+            this.buyerLastReadAt = readAt;
+        } else {
+            this.sellerLastReadMessageId = Long.parseLong(messageId);
+            this.sellerLastReadAt = readAt;
+        }
     }
 
     public boolean isActive() {
