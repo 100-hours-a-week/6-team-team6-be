@@ -11,6 +11,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,6 +28,13 @@ public class ChatMessage extends BaseEntity {
     private Chatroom chatroom;
 
     private String content;
+
+    public ChatMessage(Long senderId, Chatroom chatroom, String content, Instant sendAt) {
+        this.senderId = senderId;
+        this.chatroom = chatroom;
+        this.content = content;
+        this.createdAt = sendAt;
+    }
 
     public boolean sentBy(Long senderId) {
         return this.senderId.equals(senderId);

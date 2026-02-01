@@ -14,7 +14,7 @@ import java.time.Instant;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
     @CreatedDate
-    private Instant createdAt;
+    protected Instant createdAt;
 
     @LastModifiedDate
     private Instant updatedAt;

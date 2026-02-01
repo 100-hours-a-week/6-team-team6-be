@@ -6,7 +6,9 @@ import ktb.billage.domain.chat.ChatroomRepository;
 import ktb.billage.domain.chat.dto.ChatResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Objects;
 
 import static ktb.billage.common.exception.ExceptionCode.ALREADY_EXSTING_CHATROOM;
@@ -16,6 +18,7 @@ import static ktb.billage.common.exception.ExceptionCode.SELF_CHAT_DENIED;
 @Service
 @RequiredArgsConstructor
 public class ChatroomCommandService {
+    private final ChatroomQueryService chatroomQueryService;
     private final ChatroomRepository chatroomRepository;
 
     public ChatResponse.Id create(Long postId, Long sellerId, Long buyerId) {
@@ -28,6 +31,17 @@ public class ChatroomCommandService {
         Chatroom chatroom = chatroomRepository.save(new Chatroom(postId, buyerId));
 
         return new ChatResponse.Id(chatroom.getId());
+    }
+
+    @Transactional
+    public void markRead(Long chatroomId, boolean isSeller) {
+        Chatroom chatroom = chatroomQueryService.findChatroom(chatroomId);
+
+        if (isSeller) {
+            chatroom.readBySeller(Instant.now());
+        } else {
+            chatroom.readByBuyer(Instant.now());
+        }
     }
 
     private void validateNotSelfChat(Long sellerId, Long buyerId) {
