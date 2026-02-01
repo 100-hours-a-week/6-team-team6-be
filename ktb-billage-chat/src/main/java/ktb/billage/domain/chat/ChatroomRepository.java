@@ -42,7 +42,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
     @Query("""
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
                 c.id,
-                c.buyerId,
+                case when c.buyerId in :membershipIds then p.sellerId else c.buyerId end,
                 c.postId,
                 m.id,
                 m.createdAt,
@@ -51,6 +51,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
                 c.buyerLastReadMessageId
             )
             from Chatroom c
+            join Post p on c.postId = p.id
             join ChatMessage m on m.chatroom.id = c.id
             where c.postId = :postId
               and c.deletedAt is null
@@ -62,7 +63,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
     @Query("""
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
                 c.id,
-                c.buyerId,
+                case when c.buyerId in :membershipIds then p.sellerId else c.buyerId end,
                 c.postId,
                 m.id,
                 m.createdAt,
@@ -71,6 +72,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
                 c.buyerLastReadMessageId
             )
             from Chatroom c
+            join Post p on c.postId = p.id
             join ChatMessage m on m.chatroom.id = c.id
             where c.postId = :postId
               and c.deletedAt is null
@@ -86,7 +88,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
     @Query("""
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
                 c.id,
-                c.buyerId,
+                case when c.buyerId in :membershipIds then p.sellerId else c.buyerId end,
                 c.postId,
                 m.id,
                 m.createdAt,
@@ -107,7 +109,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
     @Query("""
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
                 c.id,
-                c.buyerId,
+                case when c.buyerId in :membershipIds then p.sellerId else c.buyerId end,
                 c.postId,
                 m.id,
                 m.createdAt,
