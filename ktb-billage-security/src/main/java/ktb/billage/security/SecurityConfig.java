@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -56,7 +57,9 @@ public class SecurityConfig {
 
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository)
-                        .requireCsrfProtectionMatcher(csrfProtectionMatcher))
+                        .requireCsrfProtectionMatcher(csrfProtectionMatcher)
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()) // Xor 마스킹된 csrf 기본 처리를 기본 값으로 처리할수 있도록 하는 handler
+                )
 
                 .addFilterAfter(csrfCookieIssuingFilter, CsrfFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
