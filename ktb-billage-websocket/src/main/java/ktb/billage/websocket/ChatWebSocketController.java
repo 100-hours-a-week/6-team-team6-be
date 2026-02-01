@@ -25,7 +25,7 @@ public class ChatWebSocketController {
         Long chatroomId = request.chatroomId();
 
         var participation = chatWebSocketFacade.joinChatroom(chatroomId, userId);
-        ChatJoinAckResponse payload = new ChatJoinAckResponse(chatroomId, userId, participation.membershipId());
+        ChatJoinAckResponse payload = new ChatJoinAckResponse(chatroomId, participation.membershipId());
 
         messagingTemplate.convertAndSend("/topic/chatrooms/" + chatroomId, payload);
     }
