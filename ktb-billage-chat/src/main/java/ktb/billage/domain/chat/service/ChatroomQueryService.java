@@ -95,6 +95,11 @@ public class ChatroomQueryService {
         return chatroomRepository.findAllByParticipatingIds(membershipIds);
     }
 
+    public ChatResponse.ChatroomMembershipDto findParticipation(Long chatroomId, List<Long> membershipIds) {
+        return chatroomRepository.findParticipationByChatroomIdAndMembershipIds(chatroomId, membershipIds)
+                .orElseThrow(() -> new ChatException(CHATROOM_NOT_PARTICIPATE));
+    }
+
     public void validateChatroom(Long chatroomId) {
         chatroomRepository.findById(chatroomId)
                 .orElseThrow(() -> new ChatException(CHATROOM_NOT_FOUND));

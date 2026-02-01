@@ -147,6 +147,23 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
     List<ChatResponse.ChatroomMembershipDto> findAllByParticipatingIds(@Param("membershipIds") List<Long> membershipIds);
 
     @Query("""
+            select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomMembershipDto(
+                c.id,
+                case when c.buyerId in :membershipIds then c.buyerId else p.sellerId end,
+                case when c.buyerId in :membershipIds then false else true end
+            )
+            from Chatroom c
+            join Post p on c.postId = p.id
+            where c.id = :chatroomId
+              and c.deletedAt is null
+              and (c.buyerId in :membershipIds or p.sellerId in :membershipIds)
+    """)
+    Optional<ChatResponse.ChatroomMembershipDto> findParticipationByChatroomIdAndMembershipIds(
+            @Param("chatroomId") Long chatroomId,
+            @Param("membershipIds") List<Long> membershipIds
+    );
+
+    @Query("""
                 select new ktb.billage.domain.chat.dto.ChatResponse$PartnerProfile(
                     m.id
                    )
