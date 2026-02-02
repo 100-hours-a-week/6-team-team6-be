@@ -44,6 +44,7 @@ public class ChatroomCommandService {
         }
     }
 
+    @Transactional
     public void readMessage(Long chatroomId, Long membershipId, String readMessageId, Instant readAt) {
         Chatroom chatroom = chatroomQueryService.findChatroom(chatroomId);
 
