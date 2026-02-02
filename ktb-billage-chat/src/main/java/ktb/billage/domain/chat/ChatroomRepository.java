@@ -122,7 +122,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
             join Post p on c.postId = p.id
             where  c.deletedAt is null
               and c.lastMessageId is not null
-              and (c.buyerId in :membershipId or p.sellerId in :membershipId)
+              and (c.buyerId in :membershipIds or p.sellerId in :membershipIds)
               and (m.createdAt < :time or (m.createdAt = :time and c.id < :id))
             order by m.createdAt desc, c.id desc
             """)
