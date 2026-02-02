@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(BaseException exception) {
-        log.warn("[Base exception] code : {}", exception.getCode());
+        log.warn("[Base exception] code : {}", exception.getCode(), exception);
 
         HttpStatus status = HttpStatus.valueOf(exception.getStatusCode());
 

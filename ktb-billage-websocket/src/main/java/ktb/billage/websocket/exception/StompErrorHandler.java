@@ -2,6 +2,7 @@ package ktb.billage.websocket.exception;
 
 import ktb.billage.common.exception.BaseException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -12,6 +13,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import org.springframework.web.socket.messaging.StompSubProtocolErrorHandler;
 
+@Slf4j
 @RequiredArgsConstructor
 public class StompErrorHandler extends StompSubProtocolErrorHandler {
     private final ObjectMapper objectMapper;
@@ -19,6 +21,7 @@ public class StompErrorHandler extends StompSubProtocolErrorHandler {
     @Override
     public Message<byte[]> handleClientMessageProcessingError(Message<byte[]> clientMessage, Throwable ex) {
         Throwable root = unwrap(ex);
+        log.error("[WS exception] {}", root.getClass().getName(), root);
         if (root instanceof BaseException baseException) {
             return buildErrorMessage(baseException.getCode());
         }
