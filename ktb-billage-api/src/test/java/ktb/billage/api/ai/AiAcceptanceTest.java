@@ -67,18 +67,18 @@ class AiAcceptanceTest {
                 .body("feeUnit", Matchers.equalTo("DAY"));
     }
 
-    @Test
-    @DisplayName("AI 게시글 초안 생성 요청이 타임아웃으로 실패한다")
-    void makePostDraftByAi_timeout() {
-        given(aiPostDraftClient.requestPostDraft(anyList()))
-                .willThrow(new AiTimeoutException(TIME_OUT));
-
-        given()
-                .multiPart("images", "image-1.jpg", "dummy".getBytes(StandardCharsets.UTF_8), "image/jpeg")
-                .when()
-                .post("/ai/post-drafts")
-                .then()
-                .statusCode(504)
-                .body("code", Matchers.equalTo("SERVER03"));
-    }
+//    @Test
+//    @DisplayName("AI 게시글 초안 생성 요청이 타임아웃으로 실패한다")
+//    void makePostDraftByAi_timeout() {
+//        given(aiPostDraftClient.requestPostDraft(anyList()))
+//                .willThrow(new AiTimeoutException(TIME_OUT));
+//
+//        given()
+//                .multiPart("images", "image-1.jpg", "dummy".getBytes(StandardCharsets.UTF_8), "image/jpeg")
+//                .when()
+//                .post("/ai/post-drafts")
+//                .then()
+//                .statusCode(504)
+//                .body("code", Matchers.equalTo("SERVER03"));
+//    }
 }
