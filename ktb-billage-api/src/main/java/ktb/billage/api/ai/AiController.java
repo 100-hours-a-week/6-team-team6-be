@@ -20,7 +20,7 @@ import java.util.List;
 public class AiController {
     private final AiFacade aiFacade;
 
-    @PostMapping(value = "/post-draft", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/post-drafts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostResponse.PostDraft> makePostDraftByAi(
             @RequestPart("images") @NotNull List<@NotNull MultipartFile> images
     ) {

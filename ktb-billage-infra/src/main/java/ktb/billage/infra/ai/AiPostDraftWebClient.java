@@ -28,7 +28,7 @@ import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
 public class AiPostDraftWebClient implements AiPostDraftClient {
     private final WebClient webClient;
 
-    @Value("${ai.post-draft-path:/post-draft}")
+    @Value("${ai.post-draft-path:/ai/generate}")
     private String postDraftPath;
 
     @Override
