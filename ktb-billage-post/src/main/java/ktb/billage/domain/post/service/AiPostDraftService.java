@@ -6,6 +6,7 @@ import ktb.billage.domain.post.dto.PostResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -14,6 +15,12 @@ public class AiPostDraftService {
     private final AiPostDraftClient aiPostDraftClient;
 
     public PostResponse.PostDraft makePostDraft(List<PostRequest.ImageComponent> images) {
-        return aiPostDraftClient.requestPostDraft(images);
+        var response =  aiPostDraftClient.requestPostDraft(images);
+        return new PostResponse.PostDraft(
+                response.title(),
+                response.content(),
+                response.rentalFee() == null ? BigDecimal.valueOf(0) : response.rentalFee(),
+                response.feeUnit() == null ? "HOUR" : response.feeUnit()
+        );
     }
 }

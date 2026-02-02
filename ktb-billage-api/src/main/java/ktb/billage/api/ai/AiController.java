@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -25,10 +24,6 @@ public class AiController {
     public ResponseEntity<PostResponse.PostDraft> makePostDraftByAi(
             @RequestPart("images") @NotNull List<@NotNull MultipartFile> images
     ) {
-//        return ResponseEntity.ok(aiFacade.makePostDraftByAi(images));
-        return ResponseEntity.ok(new PostResponse.PostDraft("드릴 대여",
-                "생활용 드릴입니다.",
-                new BigDecimal("5000"),
-                "DAY"));
+        return ResponseEntity.ok(aiFacade.makePostDraftByAi(images));
     }
 }
