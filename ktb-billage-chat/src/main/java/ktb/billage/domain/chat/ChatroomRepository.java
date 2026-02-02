@@ -52,7 +52,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
             )
             from Chatroom c
             join Post p on c.postId = p.id
-            join ChatMessage m on m.chatroom.id = c.id
+            join ChatMessage m on m.id = c.lastMessageId
             where c.postId = :postId
               and c.deletedAt is null
               and c.lastMessageId is not null
@@ -73,7 +73,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
             )
             from Chatroom c
             join Post p on c.postId = p.id
-            join ChatMessage m on m.chatroom.id = c.id
+            join ChatMessage m on m.id = c.lastMessageId
             where c.postId = :postId
               and c.deletedAt is null
               and c.lastMessageId is not null
@@ -97,7 +97,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
                 c.buyerLastReadMessageId
             )
             from Chatroom c
-            join ChatMessage m on m.chatroom.id = c.id
+            join ChatMessage m on m.id = c.lastMessageId
             join Post p on c.postId = p.id
             where c.deletedAt is null
               and c.lastMessageId is not null
@@ -118,7 +118,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
                 c.buyerLastReadMessageId
             )
             from Chatroom c
-            join ChatMessage m on m.chatroom.id = c.id
+            join ChatMessage m on m.id = c.lastMessageId
             join Post p on c.postId = p.id
             where  c.deletedAt is null
               and c.lastMessageId is not null
