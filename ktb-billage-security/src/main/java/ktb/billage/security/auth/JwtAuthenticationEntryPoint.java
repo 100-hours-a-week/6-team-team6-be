@@ -22,6 +22,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
 
+        log.warn("[AuthEntryPoint] uri={}, method={}", request.getRequestURI(), request.getMethod());
+
         if (authenticationException instanceof InsufficientAuthenticationException) {
             log.warn("[Base exception] code : {}", AUTH_TOKEN_NOT_FOUND.getCode());
 
