@@ -43,6 +43,6 @@ public class PostImage extends BaseEntity {
     }
 
     public void delete(Instant now) {
-        delete(now);
+        super.delete(now);
     }
 }
