@@ -58,7 +58,7 @@ class AiAcceptanceTest {
         given()
                 .multiPart("images", "image-1.jpg", "dummy".getBytes(StandardCharsets.UTF_8), "image/jpeg")
                 .when()
-                .post("/ai/post-draft")
+                .post("/ai/post-drafts")
                 .then()
                 .statusCode(200)
                 .body("title", Matchers.equalTo("드릴 대여"))
@@ -76,7 +76,7 @@ class AiAcceptanceTest {
         given()
                 .multiPart("images", "image-1.jpg", "dummy".getBytes(StandardCharsets.UTF_8), "image/jpeg")
                 .when()
-                .post("/ai/post-draft")
+                .post("/ai/post-drafts")
                 .then()
                 .statusCode(504)
                 .body("code", Matchers.equalTo("SERVER03"));
