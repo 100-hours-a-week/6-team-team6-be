@@ -153,13 +153,16 @@ public class ChatFacade {
         PostResponse.DetailCore postDetailCore = postQueryService.getPostDetailCore(postId);
 
         Long sellerMembershipId = postQueryService.findSellerIdByPostId(postId);
-        membershipService.validateMembershipOwner(userId, sellerMembershipId);
 
         Long groupId = membershipService.findGroupIdByMembershipId(sellerMembershipId);
         GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
 
+        List<Long> membershipIds = membershipService.findMembershipIds(userId);
+
         chatroomQueryService.validateChatroom(chatroomId);
-        ChatResponse.PartnerProfile partnerProfile = chatroomQueryService.findPartnerProfile(chatroomId, sellerMembershipId);
+        ChatResponse.ChatroomMembershipDto participation = chatroomQueryService.findParticipation(chatroomId, membershipIds);
+
+        ChatResponse.PartnerProfile partnerProfile = chatroomQueryService.findPartnerProfile(chatroomId, participation.membershipId());
 
         // TODO. v2 에서는 사용자 닉네임 대신 PartnerProfile에서 한 번에 멤버십 닉네임으로 가져오기.
         Long partnerUserId = membershipService.findUserIdByMembershipId(partnerProfile.partnerId());
