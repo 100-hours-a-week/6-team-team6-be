@@ -4,6 +4,7 @@ import ktb.billage.websocket.exception.StompErrorHandler;
 import ktb.billage.websocket.interceptor.ChatroomSubscriptionInterceptor;
 import ktb.billage.websocket.interceptor.StompAuthChannelInterceptor;
 import ktb.billage.websocket.interceptor.StompLifecycleLoggingInterceptor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -14,8 +15,12 @@ import org.springframework.web.socket.messaging.StompSubProtocolErrorHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.server.HandshakeInterceptor;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.Map;
+
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSocketMessageBroker
@@ -31,7 +36,25 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) { // 웹소켓 연결을 위한 엔드포인트 billages.com/ws
         registry.addEndpoint("/ws")
-            .setAllowedOriginPatterns(allowedOrigins);
+            .setAllowedOriginPatterns(allowedOrigins)
+            .addInterceptors(new HandshakeInterceptor() {
+                @Override
+                public boolean beforeHandshake(org.springframework.http.server.ServerHttpRequest request,
+                                               org.springframework.http.server.ServerHttpResponse response,
+                                               org.springframework.web.socket.WebSocketHandler wsHandler,
+                                               Map<String, Object> attributes) {
+                    log.info("[WS HANDSHAKE] uri={}, headers={}", request.getURI(), request.getHeaders());
+                    return true;
+                }
+
+                @Override
+                public void afterHandshake(org.springframework.http.server.ServerHttpRequest request,
+                                           org.springframework.http.server.ServerHttpResponse response,
+                                           org.springframework.web.socket.WebSocketHandler wsHandler,
+                                           Exception exception) {
+                    // no-op
+                }
+            });
     }
 
     @Override
