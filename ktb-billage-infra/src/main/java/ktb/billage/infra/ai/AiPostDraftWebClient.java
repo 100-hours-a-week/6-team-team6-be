@@ -6,6 +6,7 @@ import ktb.billage.domain.post.ai.AiPostDraftClient;
 import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -21,8 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import static ktb.billage.common.exception.ExceptionCode.SERVER_ERROR;
 import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AiPostDraftWebClient implements AiPostDraftClient {
@@ -60,7 +63,11 @@ public class AiPostDraftWebClient implements AiPostDraftClient {
                     .bodyToMono(PostResponse.PostDraft.class)
                     .block();
         } catch (TimeoutException timeoutException) {
+            log.error("[AI Server Exception] Time out");
             throw new AiTimeoutException(TIME_OUT);
+        } catch (Exception e) {
+            log.error("[AI Server Exception] Not Handle Error");
+            throw new AiTimeoutException(SERVER_ERROR);
         }
     }
 
