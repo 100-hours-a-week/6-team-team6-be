@@ -3,6 +3,7 @@ package ktb.billage.websocket.config;
 import ktb.billage.websocket.exception.StompErrorHandler;
 import ktb.billage.websocket.interceptor.ChatroomSubscriptionInterceptor;
 import ktb.billage.websocket.interceptor.StompAuthChannelInterceptor;
+import ktb.billage.websocket.interceptor.StompLifecycleLoggingInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final ObjectMapper objectMapper;
     private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
     private final ChatroomSubscriptionInterceptor chatroomSubscriptionInterceptor;
+    private final StompLifecycleLoggingInterceptor stompLifecycleLoggingInterceptor;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) { // 웹소켓 연결을 위한 엔드포인트 billages.com/ws
@@ -40,7 +42,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(stompAuthChannelInterceptor, chatroomSubscriptionInterceptor);
+        registration.interceptors(stompLifecycleLoggingInterceptor, stompAuthChannelInterceptor, chatroomSubscriptionInterceptor);
+    }
+
+    @Override
+    public void configureClientOutboundChannel(ChannelRegistration registration) {
+        registration.interceptors(stompLifecycleLoggingInterceptor);
     }
 
     @Bean(name = "stompSubProtocolErrorHandler")
