@@ -56,7 +56,7 @@ class AiAcceptanceTest {
         given(aiPostDraftClient.requestPostDraft(anyList())).willReturn(draft);
 
         given()
-                .multiPart("images", "image-1.jpg", "dummy".getBytes(StandardCharsets.UTF_8), "image/jpeg")
+                .multiPart("image", "image-1.jpg", "dummy".getBytes(StandardCharsets.UTF_8), "image/jpeg")
                 .when()
                 .post("/ai/post-drafts")
                 .then()

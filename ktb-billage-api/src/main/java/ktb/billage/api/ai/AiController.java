@@ -22,8 +22,8 @@ public class AiController {
 
     @PostMapping(value = "/post-drafts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostResponse.PostDraft> makePostDraftByAi(
-            @RequestPart("images") @NotNull List<@NotNull MultipartFile> images
+            @RequestPart("image") @NotNull List<@NotNull MultipartFile> image
     ) {
-        return ResponseEntity.ok(aiFacade.makePostDraftByAi(images));
+        return ResponseEntity.ok(aiFacade.makePostDraftByAi(image));
     }
 }
