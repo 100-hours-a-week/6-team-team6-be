@@ -43,7 +43,7 @@ public class PostController {
     public ResponseEntity<PostResponse.ChangedStatus> changeRentalStatus(@PathVariable Long groupId, @PathVariable Long postId,
                                                                          @RequestBody PostRequest.Change request, @AuthenticatedId Long userId) {
         return ResponseEntity.ok()
-                .body(postFacade.changeRentalStatus(groupId, postId, userId, request.rentalStatus()));
+                .body(postFacade.changeRentalStatus(groupId, postId, userId, request.status()));
     }
 
     @DeleteMapping("/groups/{groupId}/posts/{postId}")
