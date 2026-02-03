@@ -87,6 +87,7 @@ public class PostFacade {
         return new PostResponse.Summaries(resolvedSummaries, summaries.nextCursor(), summaries.hasNextPage());
     }
 
+    @Transactional(readOnly = true)
     public PostResponse.Summaries getPostsByKeywordAndCursor(Long groupId, Long userId, String keyword, String cursor) {
         groupService.validateGroup(groupId);
         membershipService.validateMembership(groupId, userId);

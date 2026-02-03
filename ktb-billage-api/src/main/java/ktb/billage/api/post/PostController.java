@@ -54,11 +54,11 @@ public class PostController {
 
     @GetMapping("/groups/{groupId}/posts")
     public ResponseEntity<PostResponse.Summaries> getPostsByKeywordAndCursor(@PathVariable Long groupId, @AuthenticatedId Long userId,
-                                                                             @RequestParam(required = false) String keyword, @RequestParam(required = false) String cursor) {
+                                                                             @RequestParam(required = false) String query, @RequestParam(required = false) String cursor) {
         return ResponseEntity.ok()
                 .body(
-                        keyword == null ? postFacade.getPostsByCursor(groupId, userId, cursor)
-                        : postFacade.getPostsByKeywordAndCursor(groupId, userId, keyword, cursor)
+                        query == null ? postFacade.getPostsByCursor(groupId, userId, cursor)
+                        : postFacade.getPostsByKeywordAndCursor(groupId, userId, query, cursor)
                 );
     }
 
