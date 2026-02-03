@@ -94,6 +94,31 @@ jobs:
             ./deploy_dev.sh
           EOF
 
+
+      - name: Health Check
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              ${{ secrets.EC2_USER }}@${{ steps.get-ip.outputs.server_ip }} << 'EOF'
+
+            MAX_RETRIES=12
+            RETRY_INTERVAL=3
+
+            for i in $(seq 1 $MAX_RETRIES); do
+              echo "Health check attempt $i/$MAX_RETRIES..."
+
+              if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
+                echo "Health check passed!"
+                exit 0
+              fi
+
+              sleep $RETRY_INTERVAL
+            done
+
+            echo "Health check failed!"
+            exit 1
+          EOF
+          
+
       - name: Notify Dev Deploy success
         if: success()
         run: |
