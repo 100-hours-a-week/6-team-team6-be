@@ -13,6 +13,7 @@ import ktb.billage.domain.user.dto.UserResponse;
 import ktb.billage.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +26,7 @@ public class PostFacade {
     private final ChatroomQueryService chatroomQueryService;
     private final UserService userService;
 
+    @Transactional
     public PostResponse.Id create(Long groupId, Long userId, PostRequest.Create request) {
         groupService.validateGroup(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
@@ -38,6 +40,7 @@ public class PostFacade {
         );
     }
 
+    @Transactional
     public PostResponse.Id update(Long groupId, Long postId, Long userId, PostRequest.Update request) {
         groupService.validateGroup(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
@@ -52,12 +55,14 @@ public class PostFacade {
         );
     }
 
+    @Transactional
     public PostResponse.ChangedStatus changeRentalStatus(Long groupId, Long postId, Long userId, RentalStatus rentalStatus) {
         groupService.validateGroup(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
         return postCommandService.changeRentalStatus(postId, membershipId, rentalStatus);
     }
 
+    @Transactional
     public void delete(Long groupId, Long postId, Long userId) {
         groupService.validateGroup(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
