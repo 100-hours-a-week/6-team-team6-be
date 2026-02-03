@@ -101,7 +101,7 @@ public class ChatFacade {
         );
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ChatResponse.ChatroomSummaries getMyParticipatingChatrooms(Long userId, String cursor) {
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
 

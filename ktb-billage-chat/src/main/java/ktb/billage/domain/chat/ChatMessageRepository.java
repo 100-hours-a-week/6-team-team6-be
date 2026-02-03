@@ -57,7 +57,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     @Query("""
         select count(m)
         from ChatMessage m
-        where m.deletedAt is null
+        where m.chatroom.id = :chatroomId
+          and m.deletedAt is null
           and m.senderId = :partnerId
     """)
     Long countAllPartnerMessagesCount(@Param("chatroomId") Long chatroomId, @Param("partnerId") Long partnerId);
