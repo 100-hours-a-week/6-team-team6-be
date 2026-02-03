@@ -68,21 +68,15 @@ public class ChatMessageQueryService {
 
             Chatroom chatroom = chatroomQueryService.findChatroom(summary.chatroomId());
             boolean isBuyer = chatroom.isBuyerContaining(membershipIds);
+            Long partnerId = summary.chatPartnerId();
 
-            if (isBuyer) {
-                if (summary.buyerLastReadMessageId() == null) {
-                    unreadCount = chatMessageRepository.countAllMessagesNotIncludeSenderIds(summary.chatroomId(), membershipIds);
-                } else {
-                    unreadCount = chatMessageRepository.countMessagesNotIncludeSenderIdsBetween(summary.chatroomId(), membershipIds,
-                            summary.lastMessageId(), summary.buyerLastReadMessageId());
-                }
+            Long lastReadMessageId = isBuyer ? summary.buyerLastReadMessageId() : summary.sellerLastReadMessageId();
+
+            if (lastReadMessageId == null) {
+                unreadCount = chatMessageRepository.countAllPartnerMessagesCount(summary.chatroomId(), partnerId);
             } else {
-                if (summary.sellerLastReadMessageId() == null) {
-                    unreadCount = chatMessageRepository.countAllMessagesIncludeSenderIds(summary.chatroomId(), membershipIds);
-                } else {
-                    unreadCount = chatMessageRepository.countMessagesIncludeSenderIdsBetween(summary.chatroomId(), membershipIds,
-                            summary.lastMessageId(), summary.sellerLastReadMessageId());
-                }
+                unreadCount = chatMessageRepository.countUnreadPartnerMessagesBetween(summary.chatroomId(), partnerId,
+                        summary.lastMessageId(), lastReadMessageId);
             }
 
             unreadMessageCounts.add(unreadCount);

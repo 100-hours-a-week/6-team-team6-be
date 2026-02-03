@@ -17,6 +17,7 @@ dependencies {
     implementation project(':ktb-billage-security')
     implementation project(':ktb-billage-infra')
 
+    implementation 'org.springframework:spring-tx'
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

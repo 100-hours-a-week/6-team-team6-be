@@ -46,46 +46,35 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
                                      @Param("lastReadMessageId") Long lastReadMessageId);
 
     @Query("""
-        select count(m) from ChatMessage m
-        where m.chatroom.id = :chatroomId
-            and m.deletedAt is null
-            and m.senderId not in :memberIds
+        select count(m)
+        from ChatMessage m
+        join m.chatroom r
+        where m.deletedAt is null
+            and r.buyerId not in :memberIds
     """)
     Long countAllMessagesNotIncludeSenderIds(@Param("chatroomId") Long chatroomId, @Param("memberIds") Set<Long> memberIds);
 
     @Query("""
-        select count(m) from ChatMessage m
+        select count(m)
+        from ChatMessage m
+        where m.deletedAt is null
+          and m.senderId = :partnerId
+    """)
+    Long countAllPartnerMessagesCount(@Param("chatroomId") Long chatroomId, @Param("partnerId") Long partnerId);
+
+    @Query("""
+        select count(m)
+        from ChatMessage m
         where m.chatroom.id = :chatroomId
           and m.deletedAt is null
-          and m.senderId not in :memberIds
+          and m.senderId = :partnerId
           and m.id > :lastReadMessageId
           and m.id <= :lastMessageId
     """)
-    Long countMessagesNotIncludeSenderIdsBetween(@Param("chatroomId") Long chatroomId,
-                                                 @Param("memberIds") Set<Long> memberIds,
-                                                 @Param("lastMessageId") Long lastMessageId,
-                                                 @Param("lastReadMessageId") Long lastReadMessageId);
-
-    @Query("""
-        select count(m) from ChatMessage m
-        where m.chatroom.id = :chatroomId
-            and m.deletedAt is null
-            and m.senderId in :memberIds
-    """)
-    Long countAllMessagesIncludeSenderIds(@Param("chatroomId") Long chatroomId, @Param("memberIds") Set<Long> memberIds);
-
-    @Query("""
-        select count(m) from ChatMessage m
-        where m.chatroom.id = :chatroomId
-          and m.deletedAt is null
-          and m.senderId in :memberIds
-          and m.id > :lastReadMessageId
-          and m.id <= :lastMessageId
-    """)
-    Long countMessagesIncludeSenderIdsBetween(@Param("chatroomId") Long chatroomId,
-                                                 @Param("memberIds") Set<Long> memberIds,
-                                                 @Param("lastMessageId") Long lastMessageId,
-                                                 @Param("lastReadMessageId") Long lastReadMessageId);
+    Long countUnreadPartnerMessagesBetween(@Param("chatroomId") Long chatroomId,
+                                           @Param("partnerId") Long partnerId,
+                                           @Param("lastMessageId") Long lastMessageId,
+                                           @Param("lastReadMessageId") Long lastReadMessageId);
 
     @Query("""
         select count(msg.id)

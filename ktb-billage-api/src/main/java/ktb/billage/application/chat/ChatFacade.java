@@ -14,6 +14,7 @@ import ktb.billage.domain.user.dto.UserResponse;
 import ktb.billage.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,6 +100,7 @@ public class ChatFacade {
         );
     }
 
+    @Transactional
     public ChatResponse.ChatroomSummaries getMyParticipatingChatrooms(Long userId, String cursor) {
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
 
