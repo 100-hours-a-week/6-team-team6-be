@@ -1,0 +1,13 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':ktb-billage-global:ktb-billage-common')
+    implementation project(':ktb-billage-global:ktb-billage-contract')
+    implementation project(':ktb-billage-chat')
+    implementation project(':ktb-billage-group')
+
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'tools.jackson.core:jackson-databind'
+}

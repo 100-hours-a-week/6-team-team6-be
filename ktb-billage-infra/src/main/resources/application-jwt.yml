@@ -1,0 +1,4 @@
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  access-duration: ${ACCESS_DURATION}
+  refresh-duration: ${REFRESH_DURATION}

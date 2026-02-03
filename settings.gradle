@@ -1,1 +1,16 @@
 rootProject.name = 'billage'
+
+include 'ktb-billage-api'
+
+include 'ktb-billage-user'
+include 'ktb-billage-auth'
+include 'ktb-billage-post'
+include 'ktb-billage-chat'
+include 'ktb-billage-group'
+include 'ktb-billage-websocket'
+
+include 'ktb-billage-global'
+include 'ktb-billage-global:ktb-billage-common'
+include 'ktb-billage-global:ktb-billage-contract'
+include 'ktb-billage-security'
+include 'ktb-billage-infra'
