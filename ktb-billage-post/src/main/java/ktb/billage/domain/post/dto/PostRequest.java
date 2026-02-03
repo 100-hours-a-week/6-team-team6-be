@@ -40,7 +40,7 @@ public class PostRequest {
     }
 
     public record Change(
-            RentalStatus rentalStatus
+            RentalStatus status
     ) {
     }
 
