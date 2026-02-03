@@ -42,7 +42,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
     @Query("""
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
                 c.id,
-                case when c.buyerId in :membershipIds then p.sellerId else c.buyerId end,
+                c.buyerId,
                 c.postId,
                 m.id,
                 m.createdAt,
@@ -58,12 +58,12 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
               and c.lastMessageId is not null
             order by m.createdAt desc, c.id desc
             """)
-    List<ChatResponse.ChatroomSummaryCore> findTop21SummaryCoresByPostId(@Param("postId") Long postId, Pageable pageable);
+    List<ChatResponse.ChatroomSummaryCore> findTop21SummaryCoresByMyPostId(@Param("postId") Long postId, Pageable pageable);
 
     @Query("""
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(
                 c.id,
-                case when c.buyerId in :membershipIds then p.sellerId else c.buyerId end,
+                c.buyerId,
                 c.postId,
                 m.id,
                 m.createdAt,
@@ -80,10 +80,10 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
               and (m.createdAt < :time or (m.createdAt = :time and c.id < :id))
             order by m.createdAt desc, c.id desc
             """)
-    List<ChatResponse.ChatroomSummaryCore> findNextSummaryCorePageByPostId(@Param("postId") Long postId,
-                                                                           @Param("time") Instant time,
-                                                                           @Param("id") Long id,
-                                                                           Pageable pageable);
+    List<ChatResponse.ChatroomSummaryCore> findNextSummaryCorePageByMyPostId(@Param("postId") Long postId,
+                                                                             @Param("time") Instant time,
+                                                                             @Param("id") Long id,
+                                                                             Pageable pageable);
 
     @Query("""
             select new ktb.billage.domain.chat.dto.ChatResponse$ChatroomSummaryCore(

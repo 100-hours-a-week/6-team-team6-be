@@ -49,9 +49,9 @@ public class ChatroomQueryService {
         return findChatroom(chatroomId).getPostId();
     }
 
-    public ChatResponse.ChatroomSummaryCores findChatroomSummariesByPostIdAndCursor(Long postId, String cursor) {
+    public ChatResponse.ChatroomSummaryCores findChatroomSummariesByMyPostIdAndCursor(Long postId, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
-        List<ChatResponse.ChatroomSummaryCore> cores = loadChatroomCoresByPostId(postId, decoded);
+        List<ChatResponse.ChatroomSummaryCore> cores = loadChatroomCoresByMyPostId(postId, decoded);
 
         boolean hasNext = cores.size() > 20;
         List<ChatResponse.ChatroomSummaryCore> pageCores = hasNext ? cores.subList(0, 20) : cores;
@@ -122,13 +122,13 @@ public class ChatroomQueryService {
         return cursorCodec.decode(cursor);
     }
 
-    private List<ChatResponse.ChatroomSummaryCore> loadChatroomCoresByPostId(Long postId, CursorCodec.Cursor decoded) {
+    private List<ChatResponse.ChatroomSummaryCore> loadChatroomCoresByMyPostId(Long postId, CursorCodec.Cursor decoded) {
         PageRequest pageRequest = PageRequest.of(0, 21);
         if (decoded == null) {
-            return chatroomRepository.findTop21SummaryCoresByPostId(postId, pageRequest);
+            return chatroomRepository.findTop21SummaryCoresByMyPostId(postId, pageRequest);
         }
 
-        return chatroomRepository.findNextSummaryCorePageByPostId(
+        return chatroomRepository.findNextSummaryCorePageByMyPostId(
                 postId,
                 decoded.time(),
                 decoded.id(),

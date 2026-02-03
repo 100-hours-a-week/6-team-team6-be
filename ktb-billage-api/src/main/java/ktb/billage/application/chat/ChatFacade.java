@@ -58,6 +58,7 @@ public class ChatFacade {
         return chatMessageQueryService.getMessagesByCursor(chatroomId, requestorMembershipId, cursor);
     }
 
+    @Transactional
     public ChatResponse.ChatroomSummaries getChatroomsByMyPostId(Long postId, Long userId, String cursor) {
 
         postQueryService.validatePost(postId);
@@ -69,7 +70,7 @@ public class ChatFacade {
         Long groupId = membershipService.findGroupIdByMembershipId(sellerMembershipId);
         groupService.validateGroup(groupId);
 
-        ChatResponse.ChatroomSummaryCores cores = chatroomQueryService.findChatroomSummariesByPostIdAndCursor(postId, cursor);
+        ChatResponse.ChatroomSummaryCores cores = chatroomQueryService.findChatroomSummariesByMyPostIdAndCursor(postId, cursor);
         List<Long> unreadMessageCounts = chatMessageQueryService.countUnreadPartnerMessagesByChatroomSummariesForSeller(cores.chatroomSummaryCores(), sellerMembershipId);
 
         GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
