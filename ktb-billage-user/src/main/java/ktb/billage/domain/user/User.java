@@ -48,8 +48,6 @@ public class User extends BaseEntity {
     private String avatarUrl;
 
     public User(String loginId, String encodedPassword, String nickname) {
-        validateLoginId(loginId);
-        validateNickname(nickname);
         this.loginId = loginId;
         this.password = encodedPassword; // TODO. 비밀번호 값에 대한 도메인 검증 방식 고민 필요
         this.nickname = nickname;
@@ -59,26 +57,6 @@ public class User extends BaseEntity {
     public void verifyPassword(PasswordEncoder passwordEncoder, String rawPassword) {
         if (!passwordEncoder.matches(rawPassword, this.password)) {
             throw new AuthException(AUTHENTICATION_FAILED);
-        }
-    }
-
-    private void validateLoginId(String loginId) {
-        if (loginId == null || loginId.isBlank()) {
-            throw new UserException(INVALID_LOGIN_ID);
-        }
-
-        if (!LOGIN_ID_PATTERN.matcher(loginId).matches()) {
-            throw new UserException(INVALID_LOGIN_ID);
-        }
-    }
-
-    private void validateNickname(String nickname) throws InternalException {
-        if (nickname == null || nickname.isBlank()) {
-            throw new InternalException(INVALID_NICKNAME); // 닉네임 생성은 서버 내부 로직이기에 InternalExcpetion으로 던짐
-        }
-
-        if (!NICKNAME_PATTERN.matcher(nickname).matches()) {
-            throw new InternalException(INVALID_NICKNAME);
         }
     }
 }
