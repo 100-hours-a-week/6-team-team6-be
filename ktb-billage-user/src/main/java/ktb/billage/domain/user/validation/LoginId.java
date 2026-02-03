@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = {})
 @NotBlank
-@Size(min = 8, max = 16)
+@Size(min = 5, max = 20)
 @Pattern(regexp = "^[A-Za-z0-9]+$")
 public @interface LoginId {
     String message() default "";
