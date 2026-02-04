@@ -83,11 +83,12 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
         join msg.chatroom room
         where room.id = :chatroomId
             and room.deletedAt is null
+            and msg.deletedAt is null
             and msg.senderId != :membershipId
             and room.lastMessageId >= msg.id
             and (
-                   (:isSeller = true and room.sellerLastReadMessageId < msg.id)
-                or (:isSeller = false and room.buyerLastReadMessageId < msg.id)
+                   (:isSeller = true and coalesce(room.sellerLastReadMessageId, 0) < msg.id)
+                or (:isSeller = false and coalesce(room.buyerLastReadMessageId, 0) < msg.id)
             )
     """)
     Long findUnreadMessageCountByChatroomAndMembership(@Param("chatroomId") Long chatroomId,
