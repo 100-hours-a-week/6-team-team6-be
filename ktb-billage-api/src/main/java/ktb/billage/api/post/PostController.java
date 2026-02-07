@@ -1,6 +1,7 @@
 package ktb.billage.api.post;
 
 import jakarta.validation.Valid;
+import ktb.billage.apidoc.PostApiDoc;
 import ktb.billage.application.post.PostFacade;
 import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
@@ -21,7 +22,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequiredArgsConstructor
-public class PostController {
+public class PostController implements PostApiDoc {
     private final PostFacade postFacade;
 
     @PostMapping("/groups/{groupId}/posts")
