@@ -6,6 +6,9 @@ app:
   cookie:
     secure: false
 
+springdoc:
+  override-with-generic-response: false
+
 server:
   port: 8080
 
@@ -43,10 +46,33 @@ management:
 spring:
   config:
     activate:
-      on-profile: dev,prod
+      on-profile: prod
 app:
   cookie:
     secure: true
+
+springdoc:
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    org.springframework.web.socket.config.WebSocketMessageBrokerStats: WARN
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+app:
+  cookie:
+    secure: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web.socket.config.WebSocketMessageBrokerStats: WARN
 
 ---
 spring:
