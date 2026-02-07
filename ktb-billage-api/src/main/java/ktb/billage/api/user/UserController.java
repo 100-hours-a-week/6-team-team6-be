@@ -1,7 +1,7 @@
 package ktb.billage.api.user;
 
 import jakarta.validation.Valid;
-import ktb.billage.domain.group.service.GroupService;
+import ktb.billage.apidoc.UserApiDoc;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.user.dto.UserRequest;
 import ktb.billage.domain.user.dto.UserResponse;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
-public class UserController {
+public class UserController implements UserApiDoc {
     private final UserService userService;
     private final MembershipService membershipService;
 
