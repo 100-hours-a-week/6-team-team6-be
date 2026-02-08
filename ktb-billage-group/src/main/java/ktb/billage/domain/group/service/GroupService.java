@@ -14,6 +14,11 @@ import static ktb.billage.common.exception.ExceptionCode.GROUP_NOT_FOUND;
 public class GroupService {
     private final GroupRepository groupRepository;
 
+    public Long create(String groupName, String groupCoverImageUrl) {
+        Group group = groupRepository.save(new Group(groupName, groupCoverImageUrl));
+        return group.getId();
+    }
+
     public void validateGroup(Long groupId) {
         if (!groupRepository.existsById(groupId)) {
             throw new GroupException(GROUP_NOT_FOUND);

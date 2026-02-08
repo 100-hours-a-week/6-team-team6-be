@@ -21,6 +21,7 @@ public enum ExceptionCode {
     // group
     GROUP_NOT_FOUND("GROUP01", 404),
     NOT_GROUP_MEMBER("GROUP02", 403),
+    ALREADY_GROUP_MEMBER("GROUP03", 409),
 
     // post
     POST_NOT_FOUND("POST01", 404),

@@ -25,9 +25,7 @@ public class UserController implements UserApiDoc {
     @PostMapping
     public ResponseEntity<UserResponse.Id> join(@Valid @RequestBody UserRequest.Join request) {
 
-        // v2에서 그룹 가입 삭제해야함
         UserResponse.Id newId = userService.join(request.loginId(), request.password());
-        membershipService.join(newId.userId());
         return ResponseEntity.ok().body(newId);
     }
 
