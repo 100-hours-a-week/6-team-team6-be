@@ -6,6 +6,7 @@ import ktb.billage.domain.group.dto.GroupRequest;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,5 +35,11 @@ public class GroupController implements GroupApiDoc {
 
         return ResponseEntity.status(CREATED)
                 .body(Map.of("invitationToken", invitationToken));
+    }
+
+    @PostMapping("/invitations/{invitationToken}")
+    public ResponseEntity<?> checkInvitation(@PathVariable String invitationToken, @AuthenticatedId Long userId) {
+        var groupProfile = groupFacade.checkInvitation(invitationToken, userId);
+        return ResponseEntity.ok().body(groupProfile);
     }
 }

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import static ktb.billage.common.exception.ExceptionCode.GROUP_NOT_FOUND;
+import static ktb.billage.common.exception.ExceptionCode.INVALID_INVITATION;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +42,14 @@ public class GroupService {
 
     public GroupResponse.GroupProfile findGroupProfile(Long groupId) {
         Group group = findGroup(groupId);
-        return new GroupResponse.GroupProfile(groupId, group.getName());
+        return new GroupResponse.GroupProfile(groupId, group.getName(), group.getGroupCoverImageUrl());
+    }
+
+    public Long findGroupIdByInvitationToken(String token) {
+        Invitation invitation = invitationRepository.findByToken(token)
+                .orElseThrow(() -> new GroupException(INVALID_INVITATION));
+
+        return invitation.getGroup().getId();
     }
 
     private Group findGroup(Long groupId) {
