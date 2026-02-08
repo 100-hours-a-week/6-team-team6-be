@@ -2,9 +2,9 @@ package ktb.billage.api.auth;
 
 import jakarta.servlet.http.HttpServletResponse;
 import ktb.billage.apidoc.AuthApiDoc;
+import ktb.billage.contract.token.Tokens;
 import ktb.billage.domain.auth.dto.AuthRequest;
 import ktb.billage.domain.auth.service.AuthService;
-import ktb.billage.domain.token.Tokens;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
