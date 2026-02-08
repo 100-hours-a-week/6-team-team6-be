@@ -1,0 +1,273 @@
+package ktb.billage.apidoc;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import ktb.billage.domain.group.dto.GroupRequest;
+import ktb.billage.domain.group.dto.GroupResponse;
+import ktb.billage.web.common.annotation.AuthenticatedId;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.Map;
+
+@Tag(name = "그룹 API")
+public interface GroupApiDoc {
+
+    @Operation(
+            summary = "그룹 생성",
+            description = "그룹을 생성합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "201",
+                description = "그룹 생성 성공",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                        examples = @ExampleObject(
+                                value = """
+                                        {
+                                            "groupId" : 1
+                                        }
+                                        """
+                        ))
+        ),
+        @ApiResponse(
+                responseCode = "400",
+                description = "요청 값 검증 실패",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                        examples = @ExampleObject(
+                                value = """
+                                        {
+                                            "code" : "PARAMETER01"
+                                        }
+                                        """
+                        ))
+        ),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 토큰 없음",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "만료된 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN04"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    ResponseEntity<?> createGroup(@RequestBody GroupRequest.Create request,
+                                  @AuthenticatedId Long userId);
+
+    @Operation(
+            summary = "그룹 초대장 생성",
+            description = "그룹 초대 토큰을 생성합니다. 이미 존재하면 기존 토큰을 반환합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "그룹 초대장 생성 성공",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "invitationToken" : "token-value"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "그룹 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "그룹 멤버가 아님",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "만료된 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN04"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    ResponseEntity<?> createInvitation(@PathVariable Long groupId,
+                                       @AuthenticatedId Long userId);
+
+    @Operation(
+            summary = "그룹 초대장 확인",
+            description = "초대 토큰을 확인하고 그룹 정보를 조회합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "초대장 확인 성공",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = GroupResponse.GroupProfile.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "유효하지 않은 초대장",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP06"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "그룹 멤버가 아님",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "그룹 인원 초과",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP04"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "사용자 그룹 가입 제한 초과",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP05"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "만료된 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN04"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    ResponseEntity<?> checkInvitation(@PathVariable String invitationToken,
+                                      @AuthenticatedId Long userId);
+}

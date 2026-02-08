@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'org.flywaydb.flyway' version '11.14.1'
 }
 
 dependencies {
@@ -14,6 +15,7 @@ dependencies {
 
     api 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
     implementation 'org.springframework:spring-webflux'
     implementation 'io.projectreactor.netty:reactor-netty'
     implementation 'io.jsonwebtoken:jjwt-api'
@@ -29,4 +31,24 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     testRuntimeOnly 'com.mysql:mysql-connector-j'
+}
+
+flyway {
+    locations = ['filesystem:src/main/resources/db/migration']
+    baselineOnMigrate = true
+    baselineVersion = '1'
+
+    def dbUrl = System.getenv('LOCAL_DB_URL')
+    def dbUser = System.getenv('LOCAL_DB_USERNAME')
+    def dbPassword = System.getenv('LOCAL_DB_PASSWORD')
+
+    if (dbUrl != null) {
+        url = dbUrl
+    }
+    if (dbUser != null) {
+        user = dbUser
+    }
+    if (dbPassword != null) {
+        password = dbPassword
+    }
 }

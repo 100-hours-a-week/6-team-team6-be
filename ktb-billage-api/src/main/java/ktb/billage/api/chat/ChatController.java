@@ -1,5 +1,6 @@
 package ktb.billage.api.chat;
 
+import ktb.billage.apidoc.ChatApiDoc;
 import ktb.billage.application.chat.ChatFacade;
 import ktb.billage.domain.chat.dto.ChatResponse;
 import ktb.billage.web.common.annotation.AuthenticatedId;
@@ -17,7 +18,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequiredArgsConstructor
-public class ChatController {
+public class ChatController implements ChatApiDoc {
     private final ChatFacade chatFacade;
 
     @PostMapping("/posts/{postId}/chatrooms")
