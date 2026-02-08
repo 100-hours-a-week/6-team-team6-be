@@ -21,4 +21,12 @@ public class Group {
 
     @Column(name = "group_name")
     private String name;
+
+    @Column
+    private String groupCoverImageUrl; // FIXME. s3 key 값을 저장 중 네이밍 변경 필요
+
+    public Group(String name, String groupCoverImageUrl) {
+        this.name = name;
+        this.groupCoverImageUrl = groupCoverImageUrl;
+    }
 }

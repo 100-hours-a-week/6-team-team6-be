@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static ktb.billage.common.exception.ExceptionCode.ALREADY_GROUP_MEMBER;
 import static ktb.billage.common.exception.ExceptionCode.NOT_GROUP_MEMBER;
 
 @Service
@@ -15,15 +16,27 @@ import static ktb.billage.common.exception.ExceptionCode.NOT_GROUP_MEMBER;
 public class MembershipService {
     private final MembershipRepository membershipRepository;
 
+    public void join(Long groupId, Long userId) {
+        validateNotMember(groupId, userId);
+
+        membershipRepository.save(new Membership(groupId, userId));
+    }
+
     public Long findMembershipId(Long groupId, Long userId) {
-        return membershipRepository.findByGroupIdAndUserId(groupId, userId)
+        return membershipRepository.findByGroupIdAndUserIdAndDeletedAtIsNull(groupId, userId)
                 .map(Membership::getId)
                 .orElseThrow(() ->  new GroupException(NOT_GROUP_MEMBER));
     }
 
     public void validateMembership(Long groupId, Long userId) {
-        if (!membershipRepository.existsByGroupIdAndUserId(groupId, userId)) {
+        if (!membershipRepository.existsByGroupIdAndUserIdAndDeletedAtIsNull(groupId, userId)) {
             throw new GroupException(NOT_GROUP_MEMBER);
+        }
+    }
+
+    public void validateNotMember(Long groupId, Long userId) {
+        if (membershipRepository.existsByGroupIdAndUserIdAndDeletedAtIsNull(groupId, userId)) {
+            throw new GroupException(ALREADY_GROUP_MEMBER);
         }
     }
 
@@ -48,11 +61,7 @@ public class MembershipService {
     }
 
     private Membership findMembership(Long membershipId) {
-        return membershipRepository.findById(membershipId)
+        return membershipRepository.findByIdAndDeletedAtIsNull(membershipId)
                 .orElseThrow(() -> new GroupException(NOT_GROUP_MEMBER));
-    }
-
-    public void join(Long userId) {
-        membershipRepository.save(new Membership(1L, userId));
     }
 }
