@@ -21,6 +21,14 @@ public class GroupFacade {
         return groupId;
     }
 
+    @Transactional
+    public String createInvitation(Long groupId, Long userId) {
+        groupService.validateGroup(groupId);
+        membershipService.validateMembership(groupId, userId);
+
+        return groupService.findOrCreateInvitationToken(groupId);
+    }
+
     public Long requireMembershipIdForAccess(Long groupId, Long userId) {
         groupService.validateGroup(groupId);
 
