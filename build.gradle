@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'java-test-fixtures'
     id 'org.springframework.boot' version '4.0.1' apply false
     id 'io.spring.dependency-management' version '1.1.7' apply false
     id 'checkstyle'
@@ -12,6 +13,7 @@ description = 'billage'
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'java-test-fixtures'
     apply plugin: 'io.spring.dependency-management'
 
     java {
@@ -50,7 +52,14 @@ subprojects {
         testAnnotationProcessor platform('org.springframework.boot:spring-boot-dependencies:4.0.1')
         testAnnotationProcessor 'org.projectlombok:lombok'
 
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+        testImplementation 'com.h2database:h2'
+
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+        testFixturesImplementation platform('org.springframework.boot:spring-boot-dependencies:4.0.1')
+
     }
 
     test {
