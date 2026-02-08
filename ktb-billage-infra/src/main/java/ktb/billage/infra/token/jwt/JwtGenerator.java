@@ -2,7 +2,7 @@ package ktb.billage.infra.token.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import ktb.billage.contract.token.TokenGenerator;
+import ktb.billage.domain.token.TokenGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
