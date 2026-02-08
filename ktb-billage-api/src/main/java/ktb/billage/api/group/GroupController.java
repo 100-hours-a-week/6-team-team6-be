@@ -27,4 +27,12 @@ public class GroupController implements GroupApiDoc {
         return ResponseEntity.status(CREATED)
                 .body(Map.of("groupId", newGroupId));
     }
+
+    @PostMapping("/groups/{groupId}/invitations")
+    public ResponseEntity<?> createInvitation(@PathVariable Long groupId, @AuthenticatedId Long userId) {
+        String invitationToken = groupFacade.createInvitation(groupId, userId);
+
+        return ResponseEntity.status(CREATED)
+                .body(Map.of("invitationToken", invitationToken));
+    }
 }
