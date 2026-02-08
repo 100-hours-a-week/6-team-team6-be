@@ -9,11 +9,16 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import static ktb.billage.common.exception.ExceptionCode.ALREADY_GROUP_MEMBER;
+import static ktb.billage.common.exception.ExceptionCode.GROUP_CAPACITY_EXCEEDED;
+import static ktb.billage.common.exception.ExceptionCode.USER_GROUP_LIMIT_EXCEEDED;
 import static ktb.billage.common.exception.ExceptionCode.NOT_GROUP_MEMBER;
 
 @Service
 @RequiredArgsConstructor
 public class MembershipService {
+    private static final long MAX_GROUP_MEMBER_COUNT = 3000;
+    private static final long MAX_GROUPS_PER_USER = 30;
+
     private final MembershipRepository membershipRepository;
 
     public void join(Long groupId, Long userId) {
@@ -58,6 +63,20 @@ public class MembershipService {
          return membershipRepository.findAllByUserIdAndDeletedAtIsNull(userId).stream()
                  .map(Membership::getId)
                  .toList();
+    }
+
+    public void validateGroupCapacity(Long groupId) {
+        long count = membershipRepository.countByGroupIdAndDeletedAtIsNull(groupId);
+        if (count >= MAX_GROUP_MEMBER_COUNT) {
+            throw new GroupException(GROUP_CAPACITY_EXCEEDED);
+        }
+    }
+
+    public void validateUserGroupLimit(Long userId) {
+        long count = membershipRepository.countByUserIdAndDeletedAtIsNull(userId);
+        if (count >= MAX_GROUPS_PER_USER) {
+            throw new GroupException(USER_GROUP_LIMIT_EXCEEDED);
+        }
     }
 
     private Membership findMembership(Long membershipId) {

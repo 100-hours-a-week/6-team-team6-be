@@ -1,5 +1,6 @@
 package ktb.billage.application.group;
 
+import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.service.MembershipService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,17 @@ public class GroupFacade {
         membershipService.validateMembership(groupId, userId);
 
         return groupService.findOrCreateInvitationToken(groupId);
+    }
+
+    @Transactional
+    public GroupResponse.GroupProfile checkInvitation(String invitationToken, Long userId) {
+        Long groupId = groupService.findGroupIdByInvitationToken(invitationToken);
+
+        membershipService.validateMembership(groupId, userId);
+        membershipService.validateUserGroupLimit(userId);
+        membershipService.validateGroupCapacity(groupId);
+
+        return groupService.findGroupProfile(groupId);
     }
 
     public Long requireMembershipIdForAccess(Long groupId, Long userId) {

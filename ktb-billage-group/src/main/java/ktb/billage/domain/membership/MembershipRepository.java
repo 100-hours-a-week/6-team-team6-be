@@ -13,4 +13,8 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     Optional<Membership> findByIdAndDeletedAtIsNull(Long membershipId);
 
     List<Membership> findAllByUserIdAndDeletedAtIsNull(Long userId);
+
+    long countByGroupIdAndDeletedAtIsNull(Long groupId);
+
+    long countByUserIdAndDeletedAtIsNull(Long userId);
 }
