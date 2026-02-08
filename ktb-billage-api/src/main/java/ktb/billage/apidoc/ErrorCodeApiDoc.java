@@ -70,7 +70,11 @@ public interface ErrorCodeApiDoc {
                                     value = """
                                             {
                                                 "GROUP01": "그룹을 찾을 수 없음",
-                                                "GROUP02": "그룹 멤버가 아니거나 소유자가 아님"
+                                                "GROUP02": "그룹 멤버가 아니거나 소유자가 아님",
+                                                "GROUP03": "이미 그룹 멤버임",
+                                                "GROUP04": "그룹 최대 인원 초과",
+                                                "GROUP05": "사용자 그룹 가입 제한 초과",
+                                                "GROUP06": "유효하지 않은 초대장"
                                             }
                                             """
                             ))
