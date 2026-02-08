@@ -18,7 +18,7 @@ public class PostRequest {
     public record Create(
             @NotBlank @Size(min = 2, max = 50) @NoEmoji String title,
             @NotBlank @Size(min = 1, max = 2000) @NoEmoji String content,
-            @Size(min = 1) List<@NotBlank String> imageUrls,
+            @Size(min = 1) List<@NotBlank String> imageUrls, // FIXME. s3 key 값으로 받아오는 중. 네이밍 변경 필요
             @NotNull @Min(0) @Max(100_000_000) BigDecimal rentalFee,
             FeeUnit feeUnit
     ) {
