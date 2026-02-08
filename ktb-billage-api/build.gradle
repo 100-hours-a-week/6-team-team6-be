@@ -22,10 +22,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 
     testImplementation project(':ktb-billage-infra')
+    testImplementation testFixtures(project(':ktb-billage-global:ktb-billage-common'))
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.rest-assured:rest-assured:6.0.0'
     testImplementation 'io.rest-assured:spring-mock-mvc:6.0.0'
 }

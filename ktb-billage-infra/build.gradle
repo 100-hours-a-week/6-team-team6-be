@@ -12,13 +12,15 @@ dependencies {
     implementation(platform("io.jsonwebtoken:jjwt-bom:0.13.0"))
     implementation platform('software.amazon.awssdk:bom:2.25.61')
 
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework:spring-webflux'
     implementation 'io.projectreactor.netty:reactor-netty'
     implementation 'io.jsonwebtoken:jjwt-api'
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:auth'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
 
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 

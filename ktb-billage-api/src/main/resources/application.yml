@@ -22,6 +22,7 @@ spring:
       - classpath:application-dbsource.yml
       - classpath:application-s3.yml
       - classpath:application-ai.yml
+      - classpath:application-flyway.yml
 
   jpa:
     open-in-view: false
@@ -55,3 +56,9 @@ spring:
 app:
   cookie:
     secure: false
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web.socket.config.WebSocketMessageBrokerStats: WARN
+    org.springframework.boot.context.config: TRACE

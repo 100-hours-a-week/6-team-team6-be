@@ -1,0 +1,32 @@
+spring:
+  flyway:
+    locations: classpath:db/migration
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local,dev
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+
+
+
+logging:
+  level:
+    org.flywaydb: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  flyway:
+    enabled: false
+
+logging:
+  level:
+    org.flywaydb: WARN
