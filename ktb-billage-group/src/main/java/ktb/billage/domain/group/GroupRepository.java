@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.LockModeType;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 public interface GroupRepository extends JpaRepository<Group, Long> {
@@ -28,4 +29,13 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     """)
     int softDeleteByGroupId(@Param("groupId") Long groupId,
                             @Param("deletedAt") Instant deletedAt);
+
+    @Query("""
+        select g
+        from Group g
+        join Membership m on m.groupId = g.id
+        where m.userId = :userId
+          and m.deletedAt is null
+    """)
+    List<Group> findAllByUserId(@Param("userId") Long userId);
 }

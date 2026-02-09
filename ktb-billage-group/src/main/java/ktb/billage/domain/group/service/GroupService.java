@@ -9,6 +9,8 @@ import ktb.billage.domain.group.dto.GroupResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static ktb.billage.common.exception.ExceptionCode.GROUP_NOT_FOUND;
 import static ktb.billage.common.exception.ExceptionCode.INVALID_INVITATION;
 
@@ -62,6 +64,19 @@ public class GroupService {
                 .orElseThrow(() -> new GroupException(INVALID_INVITATION));
 
         return invitation.getGroup().getId();
+    }
+
+    public GroupResponse.GroupSummaries findGroupSummariesByUserId(Long userId) {
+        List<Group> groups = groupRepository.findAllByUserId(userId);
+        return new GroupResponse.GroupSummaries(
+                groups.size(),
+                groups.stream()
+                        .map(group -> new GroupResponse.GroupSummary(
+                                group.getId(),
+                                group.getName(),
+                                group.getGroupCoverImageUrl()
+                        )).toList()
+        );
     }
 
     private Group findGroup(Long groupId) {
