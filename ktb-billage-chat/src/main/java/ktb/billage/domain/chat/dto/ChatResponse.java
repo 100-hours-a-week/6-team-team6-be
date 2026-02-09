@@ -90,7 +90,8 @@ public class ChatResponse {
     }
 
     public record PartnerProfile(
-            Long partnerId
+            Long partnerId,
+            String nickname
     ) {
     }
 }

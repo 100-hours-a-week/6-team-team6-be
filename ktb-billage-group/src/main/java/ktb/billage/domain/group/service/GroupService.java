@@ -26,9 +26,14 @@ public class GroupService {
     }
 
     public void validateGroup(Long groupId) {
-        if (!groupRepository.existsById(groupId)) {
+        if (!groupRepository.existsByIdAndDeletedAtIsNull(groupId)) {
             throw new GroupException(GROUP_NOT_FOUND);
         }
+    }
+
+    public void lockGroup(Long groupId) {
+        groupRepository.findById(groupId)
+                .orElseThrow(() -> new GroupException(GROUP_NOT_FOUND));
     }
 
     public String findOrCreateInvitationToken(Long groupId) {
@@ -45,6 +50,13 @@ public class GroupService {
         return new GroupResponse.GroupProfile(groupId, group.getName(), group.getGroupCoverImageUrl());
     }
 
+    public void softDeleteByGroupId(Long groupId) {
+        int updated = groupRepository.softDeleteByGroupId(groupId, java.time.Instant.now());
+        if (updated == 0) {
+            throw new GroupException(GROUP_NOT_FOUND);
+        }
+    }
+
     public Long findGroupIdByInvitationToken(String token) {
         Invitation invitation = invitationRepository.findByToken(token)
                 .orElseThrow(() -> new GroupException(INVALID_INVITATION));
@@ -53,7 +65,7 @@ public class GroupService {
     }
 
     private Group findGroup(Long groupId) {
-        return groupRepository.findById(groupId)
+        return groupRepository.findByIdAndDeletedAtIsNull(groupId)
                 .orElseThrow(() -> new GroupException(GROUP_NOT_FOUND));
     }
 }

@@ -6,6 +6,7 @@ import ktb.billage.domain.group.dto.GroupRequest;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,5 +42,19 @@ public class GroupController implements GroupApiDoc {
     public ResponseEntity<?> checkInvitation(@PathVariable String invitationToken, @AuthenticatedId Long userId) {
         var groupProfile = groupFacade.checkInvitation(invitationToken, userId);
         return ResponseEntity.ok().body(groupProfile);
+    }
+
+    @PostMapping("/invitations/{invitationToken}/memberships")
+    public ResponseEntity<?> joinGroup(@PathVariable String invitationToken, @AuthenticatedId Long userId,
+                                       @RequestBody GroupRequest.Join request) {
+        Long membershipId = groupFacade.joinGroup(invitationToken, userId, request.nickname());
+        return ResponseEntity.status(CREATED)
+                .body(Map.of("membershipId", membershipId));
+    }
+
+    @DeleteMapping("/groups/{groupId}")
+    public ResponseEntity<Void> leaveGroup(@PathVariable Long groupId, @AuthenticatedId Long userId) {
+        groupFacade.leaveGroup(groupId, userId);
+        return ResponseEntity.noContent().build();
     }
 }

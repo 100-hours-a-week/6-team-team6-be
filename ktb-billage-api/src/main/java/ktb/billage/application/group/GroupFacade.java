@@ -1,8 +1,12 @@
 package ktb.billage.application.group;
 
 import ktb.billage.domain.group.dto.GroupResponse;
+import ktb.billage.domain.chat.service.ChatroomCommandService;
 import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.service.MembershipService;
+import ktb.billage.domain.post.service.PostCommandService;
+import ktb.billage.domain.user.User;
+import ktb.billage.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,12 +16,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class GroupFacade {
     private final MembershipService membershipService;
     private final GroupService groupService;
+    private final UserService userService;
+    private final PostCommandService postCommandService;
+    private final ChatroomCommandService chatroomCommandService;
 
     @Transactional
     public Long createGroup(Long userId, String groupName, String groupCoverImageUrl) {
+        User user = userService.findById(userId);
         Long groupId = groupService.create(groupName, groupCoverImageUrl);
 
-        membershipService.join(groupId, userId);
+        membershipService.join(groupId, userId, user.getLoginId());
 
         return groupId;
     }
@@ -39,6 +47,37 @@ public class GroupFacade {
         membershipService.validateGroupCapacity(groupId);
 
         return groupService.findGroupProfile(groupId);
+    }
+
+    @Transactional
+    public Long joinGroup(String invitationToken, Long userId, String nickname) {
+        Long groupId = groupService.findGroupIdByInvitationToken(invitationToken);
+
+        membershipService.validateMembership(groupId, userId);
+        membershipService.validateUserGroupLimit(userId);
+        membershipService.validateGroupCapacity(groupId);
+
+        return membershipService.join(groupId, userId, nickname);
+    }
+
+    @Transactional
+    public void leaveGroup(Long groupId, Long userId) {
+        groupService.validateGroup(groupId);
+
+        Long membershipId = membershipService.findMembershipId(groupId, userId);
+
+        groupService.lockGroup(groupId);
+        boolean isLastMember = membershipService.isLastMemberWithLock(groupId);
+
+        membershipService.leave(membershipId);
+
+        postCommandService.softDeleteBySellerId(membershipId);
+        chatroomCommandService.freezeByMembershipId(membershipId);
+
+        if (isLastMember) {
+            groupService.softDeleteByGroupId(groupId);
+            chatroomCommandService.softDeleteByGroupId(groupId);
+        }
     }
 
     public Long requireMembershipIdForAccess(Long groupId, Long userId) {

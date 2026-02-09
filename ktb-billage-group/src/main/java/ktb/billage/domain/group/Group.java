@@ -6,15 +6,18 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import ktb.billage.common.entity.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.Instant;
 
 @Entity
 @Getter
 @Table(name = "billage_group")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Group {
+public class Group extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,5 +31,9 @@ public class Group {
     public Group(String name, String groupCoverImageUrl) {
         this.name = name;
         this.groupCoverImageUrl = groupCoverImageUrl;
+    }
+
+    public void delete(Instant now) {
+        super.delete(now);
     }
 }

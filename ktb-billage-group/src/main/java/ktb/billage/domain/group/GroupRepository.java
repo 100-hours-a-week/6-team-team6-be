@@ -1,8 +1,31 @@
 package ktb.billage.domain.group;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import jakarta.persistence.LockModeType;
+import java.time.Instant;
+import java.util.Optional;
 
 public interface GroupRepository extends JpaRepository<Group, Long> {
 
-    boolean existsById(Long groupId);
+    boolean existsByIdAndDeletedAtIsNull(Long groupId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<Group> findById(Long groupId);
+
+    Optional<Group> findByIdAndDeletedAtIsNull(Long groupId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update Group g
+           set g.deletedAt = :deletedAt
+         where g.id = :groupId
+           and g.deletedAt is null
+    """)
+    int softDeleteByGroupId(@Param("groupId") Long groupId,
+                            @Param("deletedAt") Instant deletedAt);
 }

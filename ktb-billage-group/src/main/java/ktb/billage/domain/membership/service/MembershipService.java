@@ -3,9 +3,11 @@ package ktb.billage.domain.membership.service;
 import ktb.billage.common.exception.GroupException;
 import ktb.billage.domain.membership.Membership;
 import ktb.billage.domain.membership.MembershipRepository;
+import ktb.billage.domain.membership.dto.MembershipProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 import static ktb.billage.common.exception.ExceptionCode.ALREADY_GROUP_MEMBER;
@@ -21,10 +23,11 @@ public class MembershipService {
 
     private final MembershipRepository membershipRepository;
 
-    public void join(Long groupId, Long userId) {
+    public Long join(Long groupId, Long userId, String nickname) {
         validateNotMember(groupId, userId);
 
-        membershipRepository.save(new Membership(groupId, userId));
+        Membership membership = membershipRepository.save(new Membership(groupId, userId, nickname));
+        return membership.getId();
     }
 
     public Long findMembershipId(Long groupId, Long userId) {
@@ -77,6 +80,27 @@ public class MembershipService {
         if (count >= MAX_GROUPS_PER_USER) {
             throw new GroupException(USER_GROUP_LIMIT_EXCEEDED);
         }
+    }
+
+    public boolean isLastMemberWithLock(Long groupId) {
+        long count = membershipRepository.findIdsByGroupIdForUpdate(groupId).size();
+        return count == 1;
+    }
+
+    public void leave(Long membershipId) {
+        Membership membership = membershipRepository.findByIdAndDeletedAtIsNull(membershipId)
+                .orElseThrow(() -> new GroupException(NOT_GROUP_MEMBER));
+
+        membership.delete(Instant.now());
+    }
+
+    public List<MembershipProfile> findMembershipProfiles(List<Long> membershipIds) {
+        return membershipRepository.findAllById(membershipIds).stream()
+                .map(membership -> new MembershipProfile(
+                        membership.getId(),
+                        membership.getNickname()
+                ))
+                .toList();
     }
 
     private Membership findMembership(Long membershipId) {

@@ -15,20 +15,13 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.regex.Pattern;
-
 import static ktb.billage.common.exception.ExceptionCode.AUTHENTICATION_FAILED;
-import static ktb.billage.common.exception.ExceptionCode.INVALID_LOGIN_ID;
-import static ktb.billage.common.exception.ExceptionCode.INVALID_NICKNAME;
 
 @Entity
 @Getter
 @Table(name = "users")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
-    private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[A-Za-z0-9]{8,16}$");
-    private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[A-Za-z0-9]{6}$");
-
     private static final String DEFAULT_AVATAR_URL = "images/default-avatar.png";
 
     @Id
@@ -41,16 +34,12 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
-    private String nickname;
-
     @Column(name = "avatar_url", nullable = false)
     private String avatarUrl;
 
-    public User(String loginId, String encodedPassword, String nickname) {
+    public User(String loginId, String encodedPassword) {
         this.loginId = loginId;
-        this.password = encodedPassword; // TODO. 비밀번호 값에 대한 도메인 검증 방식 고민 필요
-        this.nickname = nickname;
+        this.password = encodedPassword;
         this.avatarUrl = DEFAULT_AVATAR_URL;
     }
 
