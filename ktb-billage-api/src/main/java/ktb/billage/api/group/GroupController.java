@@ -63,4 +63,9 @@ public class GroupController implements GroupApiDoc {
     public ResponseEntity<?> getMyGroups(@AuthenticatedId Long userId) {
         return ResponseEntity.ok(groupFacade.getMyGroups(userId));
     }
+
+    @GetMapping("/groups/{groupId}")
+    public ResponseEntity<?> getGroupProfile(@PathVariable Long groupId, @AuthenticatedId Long userId) {
+        return ResponseEntity.ok(groupFacade.getGroupProfile(groupId, userId));
+    }
 }

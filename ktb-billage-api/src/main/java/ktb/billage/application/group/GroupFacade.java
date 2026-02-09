@@ -86,4 +86,10 @@ public class GroupFacade {
     public GroupResponse.GroupSummaries getMyGroups(Long userId) {
         return groupService.findGroupSummariesByUserId(userId);
     }
+
+    public GroupResponse.GroupProfile getGroupProfile(Long groupId, Long userId) {
+        membershipService.validateMembership(groupId, userId);
+
+        return groupService.findGroupProfile(groupId);
+    }
 }
