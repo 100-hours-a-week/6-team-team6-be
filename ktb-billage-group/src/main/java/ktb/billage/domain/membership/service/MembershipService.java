@@ -31,9 +31,7 @@ public class MembershipService {
     }
 
     public Long findMembershipId(Long groupId, Long userId) {
-        return membershipRepository.findByGroupIdAndUserIdAndDeletedAtIsNull(groupId, userId)
-                .map(Membership::getId)
-                .orElseThrow(() ->  new GroupException(NOT_GROUP_MEMBER));
+        return findMembership(groupId, userId).getId();
     }
 
     public void validateMembership(Long groupId, Long userId) {
@@ -103,8 +101,18 @@ public class MembershipService {
                 .toList();
     }
 
+    public MembershipProfile findMembershipProfile(Long membershipId) {
+        Membership membership = findMembership(membershipId);
+        return new MembershipProfile(membership.getId(), membership.getNickname());
+    }
+
     private Membership findMembership(Long membershipId) {
         return membershipRepository.findByIdAndDeletedAtIsNull(membershipId)
+                .orElseThrow(() -> new GroupException(NOT_GROUP_MEMBER));
+    }
+
+    private Membership findMembership(Long groupId, Long userId) {
+        return membershipRepository.findByGroupIdAndUserIdAndDeletedAtIsNull(groupId, userId)
                 .orElseThrow(() -> new GroupException(NOT_GROUP_MEMBER));
     }
 }

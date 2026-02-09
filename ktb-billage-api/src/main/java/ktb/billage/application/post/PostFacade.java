@@ -1,6 +1,7 @@
 package ktb.billage.application.post;
 
 import ktb.billage.common.image.ImageService;
+import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.post.RentalStatus;
 import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
@@ -112,8 +113,10 @@ public class PostFacade {
         PostResponse.DetailCore core = postQueryService.getPostDetailCore(postId);
         boolean isSeller = core.sellerId().equals(membershipId);
 
+        MembershipProfile sellerMembershipProfile = membershipService.findMembershipProfile(core.sellerId());
+
         Long sellerUserId = membershipService.findUserIdByMembershipId(core.sellerId());
-        UserResponse.UserProfile sellerProfile = userService.findUserProfile(sellerUserId);
+        UserResponse.UserProfile sellerUserProfile = userService.findUserProfile(sellerUserId);
 
         Long chatroomId;
         Long activeChatroomCount;
@@ -140,8 +143,8 @@ public class PostFacade {
                 core.content(),
                 resolvedImageUrls,
                 core.sellerId(),
-                sellerProfile.nickname(),
-                sellerProfile.avatarImageUrl(),
+                sellerMembershipProfile.nickname(),
+                sellerUserProfile.avatarImageUrl(),
                 core.rentalFee(),
                 core.feeUnit(),
                 core.rentalStatus(),
