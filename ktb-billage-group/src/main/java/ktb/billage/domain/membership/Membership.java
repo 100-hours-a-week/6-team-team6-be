@@ -10,6 +10,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Getter
 @Entity
 @Table(name = "membership")
@@ -23,12 +25,19 @@ public class Membership extends BaseEntity {
 
     private Long userId;
 
-    public Membership(Long groupId, Long userId) {
+    private String nickname;
+
+    public Membership(Long groupId, Long userId, String nickname) {
         this.groupId = groupId;
         this.userId = userId;
+        this.nickname = nickname;
     }
 
     public boolean isOwnedBy(Long userId) {
         return this.userId.equals(userId);
+    }
+
+    public void delete(Instant now) {
+        super.delete(now);
     }
 }

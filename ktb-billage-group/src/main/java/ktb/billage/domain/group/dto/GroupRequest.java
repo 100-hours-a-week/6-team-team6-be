@@ -9,4 +9,9 @@ public class GroupRequest {
             @Size(min = 2, max = 30) @NotBlank String groupName,
             String groupCoverImageUrl) {
     }
+
+    public record Join(
+            @Size(min = 2, max = 30) @NotBlank String nickname
+    ) {
+    }
 }

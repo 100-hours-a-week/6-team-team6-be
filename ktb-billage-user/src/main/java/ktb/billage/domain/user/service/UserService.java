@@ -22,7 +22,6 @@ import static ktb.billage.common.exception.ExceptionCode.USER_NOT_FOUND;
 @RequiredArgsConstructor
 public class UserService {
     private final PasswordEncoder passwordEncoder;
-    private final NicknameGenerator nicknameGenerator;
     private final ImageService imageService;
 
     private final UserRepository userRepository;
@@ -40,7 +39,7 @@ public class UserService {
     public UserResponse.UserProfile findUserProfile(Long userId) {
         User user = findById(userId);
         String avatarUrl = imageService.resolveUrl(user.getAvatarUrl());
-        return new UserResponse.UserProfile(userId, user.getNickname(), avatarUrl);
+        return new UserResponse.UserProfile(userId, avatarUrl);
     }
 
     @Transactional
@@ -48,9 +47,8 @@ public class UserService {
         validateDuplicateLoginId(loginId);
 
         String encodedPassword = passwordEncoder.encode(password);
-        String nickname = nicknameGenerator.generate();
 
-        User user = userRepository.save(new User(loginId, encodedPassword, nickname));
+        User user = userRepository.save(new User(loginId, encodedPassword));
         return new UserResponse.Id(user.getId());
     }
 
@@ -66,7 +64,6 @@ public class UserService {
         return userRepository.findAllById(userIds).stream()
                 .map(user -> new UserResponse.UserProfile(
                         user.getId(),
-                        user.getNickname(),
                         imageService.resolveUrl(user.getAvatarUrl())
                 ))
                 .toList();

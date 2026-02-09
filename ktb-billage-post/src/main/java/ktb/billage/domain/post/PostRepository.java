@@ -2,6 +2,7 @@ package ktb.billage.domain.post;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -44,4 +45,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             and p.deletedAt is null
     """)
     Long findGroupIdByPostId(@Param("postId") Long postId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update Post p
+           set p.deletedAt = :deletedAt
+         where p.sellerId = :membershipId
+           and p.deletedAt is null
+    """)
+    int softDeleteBySellerId(@Param("membershipId") Long membershipId,
+                             @Param("deletedAt") Instant deletedAt);
 }

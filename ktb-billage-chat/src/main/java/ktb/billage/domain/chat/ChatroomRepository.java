@@ -1,6 +1,7 @@
 package ktb.billage.domain.chat;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.domain.Pageable;
@@ -165,7 +166,8 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 
     @Query("""
                 select new ktb.billage.domain.chat.dto.ChatResponse$PartnerProfile(
-                    m.id
+                    m.id,
+                    m.nickname
                    )
             from Chatroom c
             join Post p on c.postId = p.id
@@ -174,4 +176,35 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
                 and c.deletedAt is null
             """)
     ChatResponse.PartnerProfile findPartnerProfile(@Param("chatroomId") Long chatroomId, @Param("myId") Long myId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update Chatroom c
+           set c.roomStatus = ktb.billage.domain.chat.RoomStatus.FROZEN
+         where c.deletedAt is null
+           and (
+                c.buyerId = :membershipId
+                or exists (
+                    select 1
+                    from Post p
+                    where p.id = c.postId
+                      and p.sellerId = :membershipId
+                )
+           )
+    """)
+    int freezeByMembershipId(@Param("membershipId") Long membershipId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update Chatroom c
+           set c.deletedAt = :deletedAt
+         where c.deletedAt is null
+           and c.buyerId in (
+                select m.id
+                from Membership m
+                where m.groupId = :groupId
+           )
+    """)
+    int softDeleteByGroupId(@Param("groupId") Long groupId,
+                            @Param("deletedAt") java.time.Instant deletedAt);
 }
