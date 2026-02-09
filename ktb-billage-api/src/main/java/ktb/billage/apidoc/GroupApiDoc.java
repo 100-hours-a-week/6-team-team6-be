@@ -507,4 +507,80 @@ public interface GroupApiDoc {
     })
     @GetMapping("/users/me/groups")
     ResponseEntity<?> getMyGroups(@AuthenticatedId Long userId);
+
+    @Operation(
+            summary = "그룹 프로필 조회",
+            description = "그룹 프로필 정보를 조회합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 프로필 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GroupResponse.GroupProfile.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "그룹 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "그룹 멤버가 아님",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "만료된 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN04"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    @GetMapping("/groups/{groupId}")
+    ResponseEntity<?> getGroupProfile(@PathVariable Long groupId, @AuthenticatedId Long userId);
 }
