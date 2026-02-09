@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class GroupFacade {
@@ -80,23 +82,8 @@ public class GroupFacade {
         }
     }
 
-    public Long requireMembershipIdForAccess(Long groupId, Long userId) {
-        groupService.validateGroup(groupId);
-
-        return membershipService.findMembershipId(groupId, userId);
-    }
-
-    public void validateMembership(Long groupId, Long userId) {
-        groupService.validateGroup(groupId);
-
-        membershipService.validateMembership(groupId, userId);
-    }
-
-    public Long findUserIdByMembershipId(Long membershipId) {
-        return membershipService.findUserIdByMembershipId(membershipId);
-    }
-
-    public Long findGroupId(Long membershipId) {
-        return membershipService.findGroupIdByMembershipId(membershipId);
+    @Transactional(readOnly = true)
+    public GroupResponse.GroupSummaries getMyGroups(Long userId) {
+        return groupService.findGroupSummariesByUserId(userId);
     }
 }
