@@ -3,6 +3,7 @@ package ktb.billage.application.group;
 import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.chat.service.ChatroomCommandService;
 import ktb.billage.domain.group.service.GroupService;
+import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.post.service.PostCommandService;
 import ktb.billage.domain.user.User;
@@ -87,9 +88,16 @@ public class GroupFacade {
         return groupService.findGroupSummariesByUserId(userId);
     }
 
+    @Transactional(readOnly = true)
     public GroupResponse.GroupProfile getGroupProfile(Long groupId, Long userId) {
         membershipService.validateMembership(groupId, userId);
 
         return groupService.findGroupProfile(groupId);
+    }
+
+    @Transactional(readOnly = true)
+    public MembershipProfile getMyMembershipProfile(Long groupId, Long userId) {
+        groupService.validateGroup(groupId);
+        return membershipService.findMembershipProfile(groupId, userId);
     }
 }

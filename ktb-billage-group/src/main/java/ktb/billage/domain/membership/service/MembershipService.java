@@ -106,6 +106,10 @@ public class MembershipService {
         return new MembershipProfile(membership.getId(), membership.getNickname());
     }
 
+    public MembershipProfile findMembershipProfile(Long groupId, Long userId) {
+        Membership membership = findMembership(groupId, userId);
+        return new MembershipProfile(membership.getId(), membership.getNickname());
+    }
     private Membership findMembership(Long membershipId) {
         return membershipRepository.findByIdAndDeletedAtIsNull(membershipId)
                 .orElseThrow(() -> new GroupException(NOT_GROUP_MEMBER));
