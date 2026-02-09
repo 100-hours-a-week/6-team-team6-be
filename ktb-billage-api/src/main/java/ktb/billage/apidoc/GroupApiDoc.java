@@ -10,10 +10,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import ktb.billage.domain.group.dto.GroupRequest;
 import ktb.billage.domain.group.dto.GroupResponse;
+import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -583,4 +585,164 @@ public interface GroupApiDoc {
     })
     @GetMapping("/groups/{groupId}")
     ResponseEntity<?> getGroupProfile(@PathVariable Long groupId, @AuthenticatedId Long userId);
+
+    @Operation(
+            summary = "내 멤버십 프로필 조회",
+            description = "그룹 내 내 멤버십 프로필을 조회합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "내 멤버십 프로필 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = MembershipProfile.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "그룹 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "그룹 멤버가 아님",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "만료된 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN04"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    @GetMapping("/groups/{groupId}/membership/me")
+    ResponseEntity<?> getMyMembershipProfile(@PathVariable Long groupId, @AuthenticatedId Long userId);
+
+    @Operation(
+            summary = "그룹 내 닉네임 변경",
+            description = "그룹 내 내 닉네임을 변경합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "닉네임 변경 성공",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "nickname" : "newNickname"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "그룹 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "그룹 멤버가 아님",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "만료된 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN04"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    @PatchMapping("/groups/{groupId}/membership/me")
+    ResponseEntity<?> changeNicknameInGroup(@PathVariable Long groupId,
+                                            @AuthenticatedId Long userId,
+                                            @RequestBody GroupRequest.ChangeNickname request);
 }
