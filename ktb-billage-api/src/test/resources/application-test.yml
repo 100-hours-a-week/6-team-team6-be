@@ -11,6 +11,9 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         ddl-auto: update
 
+  flyway:
+    enabled: false
+
 jwt:
   secret-key: secretsecretsecretsecretsecretsecretsecretsecretsecretsecret
   access-duration: 180000
