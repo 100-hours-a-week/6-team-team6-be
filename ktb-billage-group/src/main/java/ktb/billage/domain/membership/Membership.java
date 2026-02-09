@@ -40,4 +40,8 @@ public class Membership extends BaseEntity {
     public void delete(Instant now) {
         super.delete(now);
     }
+
+    public void changeNickname(String newNickname) {
+        this.nickname = newNickname;
+    }
 }
