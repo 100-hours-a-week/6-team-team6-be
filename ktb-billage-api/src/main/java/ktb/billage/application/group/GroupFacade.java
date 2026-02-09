@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class GroupFacade {
@@ -99,5 +97,10 @@ public class GroupFacade {
     public MembershipProfile getMyMembershipProfile(Long groupId, Long userId) {
         groupService.validateGroup(groupId);
         return membershipService.findMembershipProfile(groupId, userId);
+    }
+
+    @Transactional
+    public String changeNickname(Long groupId, Long userId, String newNickname) {
+        return membershipService.changeNickname(groupId, userId, newNickname);
     }
 }

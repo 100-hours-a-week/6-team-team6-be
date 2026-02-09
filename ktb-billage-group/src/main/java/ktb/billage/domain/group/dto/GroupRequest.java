@@ -14,4 +14,9 @@ public class GroupRequest {
             @Size(min = 2, max = 30) @NotBlank String nickname
     ) {
     }
+
+    public record ChangeNickname(
+            @Size(min = 2, max = 30) @NotBlank String nickname
+    ) {
+    }
 }

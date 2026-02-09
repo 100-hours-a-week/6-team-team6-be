@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -72,5 +73,12 @@ public class GroupController implements GroupApiDoc {
     @GetMapping("/groups/{groupId}/membership/me")
     public ResponseEntity<?> getMyMembershipProfile(@PathVariable Long groupId, @AuthenticatedId Long userId) {
         return ResponseEntity.ok(groupFacade.getMyMembershipProfile(groupId, userId));
+    }
+
+    @PatchMapping("/groups/{groupId}/membership/me")
+    public ResponseEntity<?> changeNicknameInGroup(@PathVariable Long groupId, @AuthenticatedId Long userId,
+                                                   @RequestBody GroupRequest.ChangeNickname request) {
+        String newNickname = groupFacade.changeNickname(groupId, userId, request.nickname());
+        return ResponseEntity.ok(Map.of("nickname", newNickname));
     }
 }

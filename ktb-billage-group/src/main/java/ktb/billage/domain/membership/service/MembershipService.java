@@ -110,6 +110,13 @@ public class MembershipService {
         Membership membership = findMembership(groupId, userId);
         return new MembershipProfile(membership.getId(), membership.getNickname());
     }
+
+    public String changeNickname(Long groupId, Long userId, String newNickname) {
+        Membership membership = findMembership(groupId, userId);
+        membership.changeNickname(newNickname);
+        return newNickname;
+    }
+
     private Membership findMembership(Long membershipId) {
         return membershipRepository.findByIdAndDeletedAtIsNull(membershipId)
                 .orElseThrow(() -> new GroupException(NOT_GROUP_MEMBER));
