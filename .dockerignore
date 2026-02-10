@@ -1,0 +1,63 @@
+# ===== Git =====
+.git
+.gitignore
+.gitattributes
+
+# ===== IDE =====
+.idea
+*.iml
+.vscode
+.eclipse
+*.swp
+*.swo
+
+# ===== Gradle Build Outputs =====
+**/build/
+**/out/
+.gradle/
+
+# ===== Test & Coverage Reports =====
+**/test-results/
+**/jacoco/
+**/coverage/
+
+# ===== Logs =====
+**/*.log
+logs/
+
+# ===== Docker =====
+Dockerfile*
+docker-compose*.yml
+.docker/
+
+# ===== CI/CD =====
+.github/
+Jenkinsfile
+
+# ===== Documentation =====
+README.md
+CHANGELOG.md
+docs/
+*.md
+
+# ===== Environment & Secrets =====
+.env
+.env.*
+*.pem
+*.key
+secrets/
+credentials/
+
+# ===== OS Files =====
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# ===== Checkstyle & Lint Config =====
+config/checkstyle/
+
+# ===== Misc =====
+*.bak
+*.backup
+bin/
