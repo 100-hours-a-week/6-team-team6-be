@@ -75,7 +75,8 @@ public class PostResponse {
             String title,
             String content,
             BigDecimal rentalFee,
-            String feeUnit
+            String feeUnit,
+            Boolean isRentable
     ) {
     }
 }

@@ -20,7 +20,8 @@ public class AiPostDraftService {
                 response.title(),
                 response.content(),
                 response.rentalFee() == null ? BigDecimal.valueOf(0) : response.rentalFee(),
-                response.feeUnit() == null ? "HOUR" : response.feeUnit()
+                response.feeUnit() == null ? "HOUR" : response.feeUnit(),
+                response.isRentable()
         );
     }
 }
