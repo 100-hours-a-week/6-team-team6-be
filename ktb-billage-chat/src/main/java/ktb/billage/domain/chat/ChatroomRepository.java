@@ -12,7 +12,7 @@ import java.util.Optional;
 import ktb.billage.domain.chat.dto.ChatResponse;
 
 public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
-    long countByPostId(Long postId);
+    long countByPostIdAndLastMessageIdIsNotNullAndDeletedAtIsNull(Long postId);
 
     Optional<Chatroom> findFirstByPostIdAndBuyerId(Long postId, Long buyerId);
 
