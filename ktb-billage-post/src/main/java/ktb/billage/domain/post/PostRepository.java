@@ -55,4 +55,28 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     """)
     int softDeleteBySellerId(@Param("membershipId") Long membershipId,
                              @Param("deletedAt") Instant deletedAt);
+
+    @Query("""
+        select p
+        from Post p
+        where p.deletedAt is null
+          and p.sellerId IN :membershipIds
+          order by p.updatedAt desc, p.id desc
+    """)
+    List<Post> findTop21ByDeletedAtIsNullAndSellerIdInMembershipIdsOrderByUpdatedAtDescIdDesc(@Param("membershipIds") List<Long> membershipIds,
+                                                                                              Pageable pageable);
+
+    @Query("""
+        select p
+        from Post p
+        where p.deletedAt is null
+          and p.sellerId IN :membershipIds
+          and (p.updatedAt < :cursorTime
+               or (p.updatedAt = :cursorTime and p.id < :cursorId))
+        order by p.updatedAt desc, p.id desc
+    """)
+    List<Post> findNextMyPosts(@Param("membershipIds") List<Long> membershipIds,
+                               @Param("cursorTime") Instant cursorTime,
+                               @Param("cursorId") Long cursorId,
+                               Pageable pageable);
 }

@@ -68,4 +68,10 @@ public class PostController implements PostApiDoc {
         return ResponseEntity.ok()
                 .body(postFacade.getPostDetail(groupId, postId, userId));
     }
+
+    @GetMapping("/users/me/posts")
+    public ResponseEntity<?> getMyPostsByCursor(@AuthenticatedId Long userId, @RequestParam(required = false) String cursor) {
+        return ResponseEntity.ok()
+                .body(postFacade.getMyPostsByCursor(userId, cursor));
+    }
 }

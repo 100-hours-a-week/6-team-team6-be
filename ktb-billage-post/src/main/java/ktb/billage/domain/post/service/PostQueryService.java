@@ -69,6 +69,12 @@ public class PostQueryService {
         }
     }
 
+    public PostResponse.Summaries getMyPostsByCursor(List<Long> membershipIds, String cursor) {
+        CursorCodec.Cursor decoded = decodeCursor(cursor);
+        List<Post> myPosts = loadMyPosts(membershipIds, decoded);
+        return buildSummaries(myPosts);
+    }
+
     public String findPostFirstImageUrl(Long postId) {
         return postImageRepository.findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(postId)
                 .orElseThrow(() -> new PostException(IMAGE_NOT_FOUND))
@@ -86,6 +92,14 @@ public class PostQueryService {
         }
 
         return cursorCodec.decode(cursor);
+    }
+
+    private List<Post> loadMyPosts(List<Long> membershipIds, CursorCodec.Cursor cursor) {
+        if (cursor == null) {
+            return postRepository.findTop21ByDeletedAtIsNullAndSellerIdInMembershipIdsOrderByUpdatedAtDescIdDesc(membershipIds, PageRequest.of(0, 21));
+        }
+
+        return postRepository.findNextMyPosts(membershipIds, cursor.time(), cursor.id(), PageRequest.of(0, 21));
     }
 
     private List<Post> loadPosts(CursorCodec.Cursor decoded) {

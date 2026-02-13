@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PostFacade {
@@ -153,6 +155,12 @@ public class PostFacade {
                 chatroomId,
                 activeChatroomCount
         );
+    }
+
+    public PostResponse.Summaries getMyPostsByCursor(Long userId, String cursor) {
+        List<Long> membershipIds = membershipService.findMembershipIds(userId);
+
+        return postQueryService.getMyPostsByCursor(membershipIds, cursor);
     }
 
     private String getImagePresignedUrl(String imageKey) {
