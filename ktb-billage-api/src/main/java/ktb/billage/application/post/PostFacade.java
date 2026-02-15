@@ -84,7 +84,8 @@ public class PostFacade {
                         getImagePresignedUrl(summary.postFirstImageUrl()),
                         summary.rentalFee(),
                         summary.feeUnit(),
-                        summary.rentalStatus()
+                        summary.rentalStatus(),
+                        summary.updatedAt()
                 ))
                 .toList();
         return new PostResponse.Summaries(resolvedSummaries, summaries.nextCursor(), summaries.hasNextPage());
@@ -103,7 +104,8 @@ public class PostFacade {
                         getImagePresignedUrl(summary.postFirstImageUrl()),
                         summary.rentalFee(),
                         summary.feeUnit(),
-                        summary.rentalStatus()
+                        summary.rentalStatus(),
+                        summary.updatedAt()
                 ))
                 .toList();
         return new PostResponse.Summaries(resolvedSummaries, summaries.nextCursor(), summaries.hasNextPage());
