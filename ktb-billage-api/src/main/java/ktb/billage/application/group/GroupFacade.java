@@ -24,6 +24,8 @@ public class GroupFacade {
     @Transactional
     public Long createGroup(Long userId, String groupName, String groupCoverImageUrl) {
         User user = userService.findById(userId);
+        membershipService.validateUserGroupLimit(userId);
+
         Long groupId = groupService.create(groupName, groupCoverImageUrl);
 
         membershipService.join(groupId, userId, user.getLoginId());
@@ -43,7 +45,7 @@ public class GroupFacade {
     public GroupResponse.GroupProfile checkInvitation(String invitationToken, Long userId) {
         Long groupId = groupService.findGroupIdByInvitationToken(invitationToken);
 
-        membershipService.validateMembership(groupId, userId);
+        membershipService.validateNotMember(groupId, userId);
         membershipService.validateUserGroupLimit(userId);
         membershipService.validateGroupCapacity(groupId);
 
@@ -54,7 +56,7 @@ public class GroupFacade {
     public Long joinGroup(String invitationToken, Long userId, String nickname) {
         Long groupId = groupService.findGroupIdByInvitationToken(invitationToken);
 
-        membershipService.validateMembership(groupId, userId);
+        membershipService.validateNotMember(groupId, userId);
         membershipService.validateUserGroupLimit(userId);
         membershipService.validateGroupCapacity(groupId);
 
