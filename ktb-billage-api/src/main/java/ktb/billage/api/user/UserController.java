@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.springframework.http.HttpStatus.CREATED;
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -26,7 +28,7 @@ public class UserController implements UserApiDoc {
     public ResponseEntity<UserResponse.Id> join(@Valid @RequestBody UserRequest.Join request) {
 
         UserResponse.Id newId = userService.join(request.loginId(), request.password());
-        return ResponseEntity.ok().body(newId);
+        return ResponseEntity.status(CREATED).body(newId);
     }
 
     @GetMapping("/me")
