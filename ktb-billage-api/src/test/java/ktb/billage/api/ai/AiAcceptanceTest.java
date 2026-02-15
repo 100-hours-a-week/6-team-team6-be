@@ -9,7 +9,6 @@ import ktb.billage.domain.user.User;
 import ktb.billage.fixture.Fixtures;
 import ktb.billage.support.AcceptanceTest;
 import ktb.billage.support.AcceptanceTestSupport;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
