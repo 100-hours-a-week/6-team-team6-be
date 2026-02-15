@@ -8,8 +8,11 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+    Optional<Post> findByIdAndDeletedAtIsNull(Long postId);
+
     List<Post> findTop21ByDeletedAtIsNullOrderByUpdatedAtDescIdDesc();
     List<Post> findTop21ByDeletedAtIsNullAndTitleContainingOrderByUpdatedAtDescIdDesc(String keyword);
 

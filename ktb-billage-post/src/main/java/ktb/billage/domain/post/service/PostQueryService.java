@@ -82,7 +82,7 @@ public class PostQueryService {
     }
 
     private Post findPost(Long postId) {
-        return postRepository.findById(postId)
+        return postRepository.findByIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new PostException(POST_NOT_FOUND));
     }
 
@@ -129,7 +129,7 @@ public class PostQueryService {
         String nextCursor = null;
         if (hasNextPage) {
             Post last = pagePosts.getLast();
-            nextCursor = cursorCodec.encode(last.getCreatedAt(), last.getId());
+            nextCursor = cursorCodec.encode(last.getUpdatedAt(), last.getId());
         }
 
         return new PostResponse.Summaries(summaries, nextCursor, hasNextPage);
@@ -147,7 +147,8 @@ public class PostQueryService {
                 firstImage.getImageUrl(),
                 post.getRentalFee(),
                 post.getFeeUnit(),
-                post.getRentalStatus()
+                post.getRentalStatus(),
+                post.getUpdatedAt()
         );
     }
 }
