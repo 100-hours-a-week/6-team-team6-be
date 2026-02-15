@@ -1,6 +1,6 @@
 cors:
   allowed:
-    origin: ${CORS_ALLOWED_ORIGIN}
+    origin: ${CORS_ALLOWED_ORIGIN:*}
 
 app:
   cookie:
