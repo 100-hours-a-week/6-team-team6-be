@@ -9,8 +9,6 @@ import jakarta.persistence.Table;
 import ktb.billage.contract.user.PasswordEncoder;
 import ktb.billage.common.entity.BaseEntity;
 import ktb.billage.common.exception.AuthException;
-import ktb.billage.common.exception.InternalException;
-import ktb.billage.common.exception.UserException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,6 +41,7 @@ public class User extends BaseEntity {
     public User(String loginId, String encodedPassword) {
         this.loginId = loginId;
         this.password = encodedPassword;
+        this.nickname = loginId;
         this.avatarUrl = DEFAULT_AVATAR_URL;
     }
 

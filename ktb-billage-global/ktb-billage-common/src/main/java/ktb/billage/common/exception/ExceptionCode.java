@@ -26,7 +26,6 @@ public enum ExceptionCode {
     USER_GROUP_LIMIT_EXCEEDED("GROUP05", 409),
     INVALID_INVITATION("GROUP06", 404),
 
-
     // post
     POST_NOT_FOUND("POST01", 404),
     POST_IS_NOT_OWNED_BY_USER("POST02", 403),

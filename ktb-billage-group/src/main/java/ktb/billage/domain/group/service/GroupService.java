@@ -1,6 +1,7 @@
 package ktb.billage.domain.group.service;
 
 import ktb.billage.common.exception.GroupException;
+import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.group.Group;
 import ktb.billage.domain.group.GroupRepository;
 import ktb.billage.domain.group.Invitation;
@@ -17,6 +18,8 @@ import static ktb.billage.common.exception.ExceptionCode.INVALID_INVITATION;
 @Service
 @RequiredArgsConstructor
 public class GroupService {
+    private final ImageService imageService;
+
     private final GroupRepository groupRepository;
     private final InvitationRepository invitationRepository;
 
@@ -74,7 +77,7 @@ public class GroupService {
                         .map(group -> new GroupResponse.GroupSummary(
                                 group.getId(),
                                 group.getName(),
-                                group.getGroupCoverImageUrl()
+                                imageService.resolveUrl(group.getGroupCoverImageUrl())
                         )).toList()
         );
     }

@@ -27,7 +27,8 @@ public class PostResponse {
             String postFirstImageUrl,
             BigDecimal rentalFee,
             FeeUnit feeUnit,
-            RentalStatus rentalStatus
+            RentalStatus rentalStatus,
+            Instant updatedAt
     ) {
     }
 

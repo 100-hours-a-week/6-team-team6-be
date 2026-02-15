@@ -31,30 +31,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final ObjectMapper objectMapper;
     private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
     private final ChatroomSubscriptionInterceptor chatroomSubscriptionInterceptor;
-    private final StompLifecycleLoggingInterceptor stompLifecycleLoggingInterceptor;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) { // 웹소켓 연결을 위한 엔드포인트 billages.com/ws
         registry.addEndpoint("/ws")
-            .setAllowedOriginPatterns(allowedOrigins)
-            .addInterceptors(new HandshakeInterceptor() {
-                @Override
-                public boolean beforeHandshake(org.springframework.http.server.ServerHttpRequest request,
-                                               org.springframework.http.server.ServerHttpResponse response,
-                                               org.springframework.web.socket.WebSocketHandler wsHandler,
-                                               Map<String, Object> attributes) {
-                    log.info("[WS HANDSHAKE] uri={}, headers={}", request.getURI(), request.getHeaders());
-                    return true;
-                }
-
-                @Override
-                public void afterHandshake(org.springframework.http.server.ServerHttpRequest request,
-                                           org.springframework.http.server.ServerHttpResponse response,
-                                           org.springframework.web.socket.WebSocketHandler wsHandler,
-                                           Exception exception) {
-                    // no-op
-                }
-            });
+            .setAllowedOriginPatterns(allowedOrigins);
     }
 
     @Override
@@ -65,12 +46,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(stompLifecycleLoggingInterceptor, stompAuthChannelInterceptor, chatroomSubscriptionInterceptor);
-    }
-
-    @Override
-    public void configureClientOutboundChannel(ChannelRegistration registration) {
-        registration.interceptors(stompLifecycleLoggingInterceptor);
+        registration.interceptors(stompAuthChannelInterceptor, chatroomSubscriptionInterceptor);
     }
 
     @Bean(name = "stompSubProtocolErrorHandler")

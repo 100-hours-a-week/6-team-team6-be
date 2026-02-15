@@ -1,4 +1,4 @@
-package ktb.billage.domain.token;
+package ktb.billage.contract.token;
 
 public interface TokenGenerator {
     String generateAccessToken(Long userId);
