@@ -38,10 +38,10 @@ public class User extends BaseEntity {
     @Column(name = "avatar_url", nullable = false)
     private String avatarUrl;
 
-    public User(String loginId, String encodedPassword, String nickname) {
+    public User(String loginId, String encodedPassword) {
         this.loginId = loginId;
         this.password = encodedPassword;
-        this.nickname = nickname;
+        this.nickname = loginId;
         this.avatarUrl = DEFAULT_AVATAR_URL;
     }
 
