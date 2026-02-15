@@ -1,18 +1,4 @@
 spring:
-  config:
-    import: []
-  datasource: # TODO. test 용 db 설정 필요
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/billage
-    username: root
-    password: root
-
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-        ddl-auto: update
-
   flyway:
     enabled: true
 
