@@ -3,7 +3,6 @@ package ktb.billage.websocket.config;
 import ktb.billage.websocket.exception.StompErrorHandler;
 import ktb.billage.websocket.interceptor.ChatroomSubscriptionInterceptor;
 import ktb.billage.websocket.interceptor.StompAuthChannelInterceptor;
-import ktb.billage.websocket.interceptor.StompLifecycleLoggingInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,10 +14,12 @@ import org.springframework.web.socket.messaging.StompSubProtocolErrorHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.server.HandshakeInterceptor;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.Map;
+import static ktb.billage.websocket.config.WebSocketDestinations.APP_PREFIX;
+import static ktb.billage.websocket.config.WebSocketDestinations.QUEUE_PREFIX;
+import static ktb.billage.websocket.config.WebSocketDestinations.TOPIC_PREFIX;
+import static ktb.billage.websocket.config.WebSocketDestinations.USER_PREFIX;
 
 @Slf4j
 @Configuration
@@ -40,8 +41,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic"); // 서버에서 브로드캐스팅을 위한 토픽 프리픽스
-        registry.setApplicationDestinationPrefixes("/app"); // 클라이언트에서 웹소켓 요청을 위한 프리픽스
+        registry.enableSimpleBroker(TOPIC_PREFIX, QUEUE_PREFIX); // 서버에서 브로드캐스팅/유저 큐를 위한 프리픽스
+        registry.setApplicationDestinationPrefixes(APP_PREFIX); // 클라이언트에서 웹소켓 요청을 위한 프리픽스
+        registry.setUserDestinationPrefix(USER_PREFIX); // 1:1 user destination 프리픽스
     }
 
     @Override
