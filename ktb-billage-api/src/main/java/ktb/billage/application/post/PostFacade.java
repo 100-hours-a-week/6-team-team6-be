@@ -159,7 +159,7 @@ public class PostFacade {
         );
     }
 
-    public PostResponse.Summaries getMyPostsByCursor(Long userId, String cursor) {
+    public PostResponse.MySummaries getMyPostsByCursor(Long userId, String cursor) {
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
 
         return postQueryService.getMyPostsByCursor(membershipIds, cursor);

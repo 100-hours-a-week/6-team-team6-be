@@ -32,6 +32,23 @@ public class PostResponse {
     ) {
     }
 
+    public record MySummaries(
+            List<MySummary> summaries,
+            String nextCursor,
+            Boolean hasNextPage
+    ) {
+    }
+
+    public record MySummary(
+            Long postId,
+            String postTitle,
+            Long postImageId,
+            String postFirstImageUrl,
+            Instant updatedAt,
+            Long groupId
+    ) {
+    }
+
     public record Detail(
         String title,
         String content,

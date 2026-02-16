@@ -29,7 +29,7 @@ public class PostImage extends BaseEntity {
     @Column(name = "image_url")
     private String imageUrl;  // FIXME. s3 key 값을 저장 중. 네이밍 변경 필요
 
-    @Column(name = "sort_order")
+    @Column(name = "sort_order") // 순서는 1부터 시작
     private Integer sortOrder;
 
     public PostImage(Post post, String imageUrl, Integer sortOrder) {

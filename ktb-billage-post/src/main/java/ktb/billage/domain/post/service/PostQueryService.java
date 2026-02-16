@@ -69,10 +69,10 @@ public class PostQueryService {
         }
     }
 
-    public PostResponse.Summaries getMyPostsByCursor(List<Long> membershipIds, String cursor) {
+    public PostResponse.MySummaries getMyPostsByCursor(List<Long> membershipIds, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
-        List<Post> myPosts = loadMyPosts(membershipIds, decoded);
-        return buildSummaries(myPosts);
+        List<PostResponse.MySummary> myPosts = loadMyPosts(membershipIds, decoded);
+        return buildMySummaries(myPosts);
     }
 
     public String findPostFirstImageUrl(Long postId) {
@@ -94,9 +94,9 @@ public class PostQueryService {
         return cursorCodec.decode(cursor);
     }
 
-    private List<Post> loadMyPosts(List<Long> membershipIds, CursorCodec.Cursor cursor) {
+    private List<PostResponse.MySummary> loadMyPosts(List<Long> membershipIds, CursorCodec.Cursor cursor) {
         if (cursor == null) {
-            return postRepository.findTop21ByDeletedAtIsNullAndSellerIdInMembershipIdsOrderByUpdatedAtDescIdDesc(membershipIds, PageRequest.of(0, 21));
+            return postRepository.findTop21ByMyPosts(membershipIds, PageRequest.of(0, 21));
         }
 
         return postRepository.findNextMyPosts(membershipIds, cursor.time(), cursor.id(), PageRequest.of(0, 21));
@@ -133,6 +133,19 @@ public class PostQueryService {
         }
 
         return new PostResponse.Summaries(summaries, nextCursor, hasNextPage);
+    }
+
+    private PostResponse.MySummaries buildMySummaries(List<PostResponse.MySummary> posts) {
+        boolean hasNextPage = posts.size() > 20;
+        List<PostResponse.MySummary> pagePosts = hasNextPage ? posts.subList(0, 20) : posts;
+
+        String nextCursor = null;
+        if (hasNextPage) {
+            PostResponse.MySummary last = pagePosts.getLast();
+            nextCursor = cursorCodec.encode(last.updatedAt(), last.postId());
+        }
+
+        return new PostResponse.MySummaries(pagePosts, nextCursor, hasNextPage);
     }
 
     private PostResponse.Summary toSummary(Post post) { // FIXME. 이미지 N + 1 문제 야기
