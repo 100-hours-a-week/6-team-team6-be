@@ -526,6 +526,81 @@ public interface PostApiDoc {
                                                                       @RequestParam(required = false) String cursor);
 
     @Operation(
+            summary = "내 게시글 목록 조회",
+            description = "내가 작성한 게시글 목록을 커서로 조회합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "내 게시글 목록 조회 성공",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PostResponse.MySummaries.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 커서",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "CURSOR01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "게시글 이미지 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "IMAGE04"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "만료된 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN04"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    ResponseEntity<?> getMyPostsByCursor(@AuthenticatedId Long userId,
+                                         @RequestParam(required = false) String cursor);
+
+    @Operation(
             summary = "게시글 상세 조회",
             description = "게시글 상세 정보를 조회합니다.",
             security = { @SecurityRequirement(name = "Bearer Auth") }
