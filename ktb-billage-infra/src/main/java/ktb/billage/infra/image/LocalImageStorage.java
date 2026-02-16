@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Profile({"local", "test"})
+@Profile({"local", "test", "acceptance"})
 @Component
 public class LocalImageStorage implements ImageStorage {
     private final Map<String, LocalImage> imageDatabase = new ConcurrentHashMap<>();

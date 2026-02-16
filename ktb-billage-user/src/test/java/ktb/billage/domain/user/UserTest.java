@@ -16,7 +16,7 @@ class UserTest {
     class 비밀번호_일치_검증_테스트 {
         @Test
         void 일치_성공_예외_던지지_않음() {
-            User user = new User("test1234", "encoded", "nick12");
+            User user = new User("test1234", "encoded");
 
             PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
             when(passwordEncoder.matches("raw", "encoded")).thenReturn(true);
@@ -27,7 +27,7 @@ class UserTest {
 
         @Test
         void 일치_실패_401_예외_던짐() {
-            User user = new User("test1234", "encoded", "nick12");
+            User user = new User("test1234", "encoded");
 
             PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
             when(passwordEncoder.matches("raw", "encoded")).thenReturn(false);

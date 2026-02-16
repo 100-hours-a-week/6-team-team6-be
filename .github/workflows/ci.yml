@@ -70,9 +70,7 @@ jobs:
 
       - name: Unit Test
         env: ## 유닛테스트에서 추후에는 db 접속 필요없게 디벨롭하기
-          LOCAL_DB_URL: jdbc:mysql://localhost:3306/testdb
-          LOCAL_DB_USERNAME: root
-          LOCAL_DB_PASSWORD: test
+          SPRING_PROFILES_ACTIVE: "test"
           CORS_ALLOWED_ORIGIN: "http://localhost:3000"
           JWT_SECRET_KEY: "test-secret-key-for-ci-pipeline-do-not-use-in-production"
           ACCESS_DURATION: "3600000"
