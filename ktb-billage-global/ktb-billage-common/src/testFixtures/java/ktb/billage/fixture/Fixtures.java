@@ -148,7 +148,7 @@ public class Fixtures {
 
     public Post 게시글_생성(Membership membership, int value) {
         Post post = postRepository.save(PostFixture.one(membership));
-        postImageRepository.save(new PostImage(post, "img-" + value, 0));
+        postImageRepository.save(new PostImage(post, "img-" + value, 1));
         게시글_수정시간_설정(post, value);
         return post;
     }
