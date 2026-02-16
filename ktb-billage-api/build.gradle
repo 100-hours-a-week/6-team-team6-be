@@ -29,6 +29,6 @@ dependencies {
     testImplementation testFixtures(project(':ktb-billage-global:ktb-billage-common'))
     testImplementation project(':ktb-billage-infra')
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.rest-assured:rest-assured:6.0.0'
     testImplementation 'io.rest-assured:spring-mock-mvc:6.0.0'
 }
