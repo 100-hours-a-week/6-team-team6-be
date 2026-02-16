@@ -10,4 +10,5 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'tools.jackson.core:jackson-databind'
+    implementation 'org.springframework:spring-tx'
 }
