@@ -9,4 +9,7 @@ public class UserRequest {
             @LoginId String loginId,
             @Password String password) {
     }
+
+    public record WebPushEnabled(boolean enabled) {
+    }
 }
