@@ -148,4 +148,56 @@ class UserAcceptanceTest extends AcceptanceTestSupport {
                     .body("code", equalTo("AUTH02"));
         }
     }
+
+    @Nested
+    class 웹푸시_알림_변경_테스트 {
+
+        @Test
+        void 웹푸시_알림_변경() {
+            User user = fixtures.유저_생성();
+            String accessToken = fixtures.토큰_생성(user);
+
+            // true 로 변경 확인
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .contentType("application/json")
+                    .body("""
+                            {
+                              "enabled" : true
+                            }
+                            """)
+                    .when()
+                    .put("/users/me/web-push")
+                    .then()
+                    .statusCode(204);
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/users/me")
+                    .then()
+                    .body("webPushEnabled", equalTo(true));
+
+            // false로 변경 후 한 번 더 확인
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .contentType("application/json")
+                    .body("""
+                            {
+                               "enabled" : false
+                            }
+                            """)
+                    .when()
+                    .put("/users/me/web-push")
+                    .then()
+                    .statusCode(204);
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/users/me")
+                    .then()
+                    .body("webPushEnabled", equalTo(false));
+        }
+    }
 }
