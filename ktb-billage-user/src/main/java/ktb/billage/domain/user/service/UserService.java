@@ -57,9 +57,10 @@ public class UserService {
         User user = findById(userId);
 
         String avatarUrl = imageService.resolveUrl(user.getAvatarUrl());
-        return new UserResponse.MyProfile(user.getLoginId(), avatarUrl);
+        return new UserResponse.MyProfile(user.getLoginId(), avatarUrl, user.getWebPushEnabled());
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponse.UserProfile> findUserProfiles(List<Long> userIds) {
         return userRepository.findAllById(userIds).stream()
                 .map(user -> new UserResponse.UserProfile(
@@ -67,6 +68,12 @@ public class UserService {
                         imageService.resolveUrl(user.getAvatarUrl())
                 ))
                 .toList();
+    }
+
+    @Transactional
+    public void changeWebPushSetting(Long userId, boolean enabled) {
+        User user = findById(userId);
+        user.changeWebPushSetting(enabled);
     }
 
     private void validateDuplicateLoginId(String loginId) {

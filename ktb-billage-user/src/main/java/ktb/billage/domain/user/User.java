@@ -38,16 +38,24 @@ public class User extends BaseEntity {
     @Column(name = "avatar_url", nullable = false)
     private String avatarUrl;
 
+    @Column(name = "web_push_enabled", nullable = false)
+    private Boolean webPushEnabled;
+
     public User(String loginId, String encodedPassword) {
         this.loginId = loginId;
         this.password = encodedPassword;
         this.nickname = loginId;
         this.avatarUrl = DEFAULT_AVATAR_URL;
+        this.webPushEnabled = false;
     }
 
     public void verifyPassword(PasswordEncoder passwordEncoder, String rawPassword) {
         if (!passwordEncoder.matches(rawPassword, this.password)) {
             throw new AuthException(AUTHENTICATION_FAILED);
         }
+    }
+
+    public void changeWebPushSetting(boolean enabled) {
+        this.webPushEnabled = enabled;
     }
 }

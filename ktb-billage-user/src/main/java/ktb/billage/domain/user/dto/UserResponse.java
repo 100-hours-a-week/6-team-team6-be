@@ -5,7 +5,11 @@ public class UserResponse {
     public record Id(Long userId) {
     }
 
-    public record MyProfile(String loginId, String avatarImageUrl) {
+    public record MyProfile(
+            String loginId,
+            String avatarImageUrl,
+            Boolean webPushEnabled
+    ) {
     }
 
     public record UserProfile(Long userId, String avatarImageUrl) {
