@@ -115,4 +115,65 @@ public interface UserApiDoc {
             )
     })
     ResponseEntity<UserResponse.MyProfile> getMyProfile(@AuthenticatedId Long userId);
+
+    @Operation(
+            summary = "웹 푸시 알림 설정 변경",
+            description = "내 웹 푸시 알림 허용 여부를 변경합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "웹 푸시 알림 설정 변경 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "사용자 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "USER01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "만료된 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN04"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    ResponseEntity<Void> updateWebPushSetting(@RequestBody UserRequest.WebPushEnabled request, @AuthenticatedId Long userId);
 }
