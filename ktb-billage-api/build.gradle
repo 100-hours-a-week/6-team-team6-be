@@ -31,4 +31,5 @@ dependencies {
 
     testImplementation 'io.rest-assured:rest-assured:6.0.0'
     testImplementation 'io.rest-assured:spring-mock-mvc:6.0.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-websocket'
 }

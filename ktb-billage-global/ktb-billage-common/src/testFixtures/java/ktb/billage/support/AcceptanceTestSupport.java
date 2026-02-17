@@ -14,7 +14,7 @@ public abstract class AcceptanceTestSupport extends TestContainerSupport {
     protected static final String BEARER_PREFIX = "Bearer ";
 
     @LocalServerPort
-    private int port;
+    protected int port;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
