@@ -1,6 +1,8 @@
 package ktb.billage.fixture;
 
 import ktb.billage.contract.token.TokenGenerator;
+import ktb.billage.domain.chat.Chatroom;
+import ktb.billage.domain.chat.ChatroomRepository;
 import ktb.billage.domain.group.Group;
 import ktb.billage.domain.group.GroupRepository;
 import ktb.billage.domain.membership.Membership;
@@ -40,6 +42,9 @@ public class Fixtures {
 
     @Autowired
     private PostImageRepository postImageRepository;
+
+    @Autowired
+    private ChatroomRepository chatroomRepository;
 
     @Autowired
     private TokenGenerator tokenGenerator;
@@ -190,5 +195,9 @@ public class Fixtures {
         Instant adjusted = BASE_TIME.plusSeconds(value * 1000L);
 
         jdbcTemplate.update("UPDATE post SET updated_at = ? WHERE id = ?", adjusted, post.getId());
+    }
+
+    public Chatroom 채팅방_생성(Post post, Membership buyerMembership) {
+        return chatroomRepository.save(new Chatroom(post.getId(), buyerMembership.getId()));
     }
 }
