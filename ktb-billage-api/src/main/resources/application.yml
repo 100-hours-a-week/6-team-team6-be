@@ -26,6 +26,7 @@ spring:
       - classpath:application-s3.yml
       - classpath:application-ai.yml
       - classpath:application-flyway.yml
+      - classpath:application-firebase.yml
 
   jpa:
     open-in-view: false
