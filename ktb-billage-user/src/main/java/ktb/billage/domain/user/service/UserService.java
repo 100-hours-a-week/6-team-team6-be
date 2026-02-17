@@ -3,6 +3,8 @@ package ktb.billage.domain.user.service;
 import ktb.billage.contract.user.NicknameGenerator;
 import ktb.billage.contract.user.PasswordEncoder;
 import ktb.billage.domain.user.User;
+import ktb.billage.domain.user.UserPushToken;
+import ktb.billage.domain.user.UserPushTokenRepository;
 import ktb.billage.domain.user.UserRepository;
 import ktb.billage.domain.user.dto.UserResponse;
 import ktb.billage.common.exception.AuthException;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.Instant;
 
 import static ktb.billage.common.exception.ExceptionCode.AUTHENTICATION_FAILED;
 import static ktb.billage.common.exception.ExceptionCode.DUPLICATE_LOGIN_ID;
@@ -25,6 +28,7 @@ public class UserService {
     private final ImageService imageService;
 
     private final UserRepository userRepository;
+    private final UserPushTokenRepository userPushTokenRepository;
 
     public User findByLoginId(String loginId) {
         return userRepository.findByLoginId(loginId)
@@ -74,6 +78,18 @@ public class UserService {
     public void changeWebPushSetting(Long userId, boolean enabled) {
         User user = findById(userId);
         user.changeWebPushSetting(enabled);
+    }
+
+    @Transactional
+    public void upsertPushToken(Long userId, UserPushToken.PushPlatform platform, String deviceId, String token) {
+        User user = findById(userId);
+        Instant now = Instant.now();
+
+        userPushTokenRepository.findByUserIdAndPlatformAndDeviceId(userId, platform, deviceId)
+                .ifPresentOrElse(
+                        pushToken -> pushToken.updateToken(token, now),
+                        () -> userPushTokenRepository.save(new UserPushToken(user, platform, deviceId, token, now))
+                );
     }
 
     private void validateDuplicateLoginId(String loginId) {

@@ -2,7 +2,6 @@ package ktb.billage.api.user;
 
 import jakarta.validation.Valid;
 import ktb.billage.apidoc.UserApiDoc;
-import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.user.dto.UserRequest;
 import ktb.billage.domain.user.dto.UserResponse;
 import ktb.billage.domain.user.service.UserService;
@@ -39,6 +38,12 @@ public class UserController implements UserApiDoc {
     @PutMapping("/me/web-push")
     public ResponseEntity<Void> updateWebPushSetting(@RequestBody UserRequest.WebPushEnabled request, @AuthenticatedId Long userId) {
         userService.changeWebPushSetting(userId, request.enabled());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/me/push-token")
+    public ResponseEntity<Void> updatePushToken(@Valid @RequestBody UserRequest.PushToken request, @AuthenticatedId Long userId) {
+        userService.upsertPushToken(userId, request.platform(), request.deviceId(), request.newToken());
         return ResponseEntity.noContent().build();
     }
 }
