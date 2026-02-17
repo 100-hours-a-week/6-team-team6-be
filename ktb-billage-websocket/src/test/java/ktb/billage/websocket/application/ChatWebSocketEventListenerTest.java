@@ -1,7 +1,7 @@
 package ktb.billage.websocket.application;
 
 import ktb.billage.websocket.application.event.ChatInboxSendEvent;
-import ktb.billage.websocket.application.port.ChatInboxNotifier;
+import ktb.billage.websocket.application.port.ChatWebSocketNotifier;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,12 +14,12 @@ import java.time.Instant;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class ChatInboxEventListenerTest {
+class ChatWebSocketEventListenerTest {
     @Mock
-    private ChatInboxNotifier chatInboxNotifier;
+    private ChatWebSocketNotifier chatWebSocketNotifier;
 
     @InjectMocks
-    private ChatInboxEventListener chatInboxEventListener;
+    private ChatWebSocketEventListener chatWebSocketEventListener;
 
     @Test
     void handle_ShouldForwardEventToNotifier() {
@@ -32,8 +32,8 @@ class ChatInboxEventListenerTest {
         );
         ChatInboxSendEvent event = new ChatInboxSendEvent(20L, ack);
 
-        chatInboxEventListener.handle(event);
+        chatWebSocketEventListener.handle(event);
 
-        verify(chatInboxNotifier).sendToUserInbox(20L, ack);
+        verify(chatWebSocketNotifier).sendToUserInbox(20L, ack);
     }
 }

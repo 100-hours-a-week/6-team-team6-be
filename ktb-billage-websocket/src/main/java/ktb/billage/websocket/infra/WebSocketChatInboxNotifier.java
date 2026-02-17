@@ -1,6 +1,6 @@
 package ktb.billage.websocket.infra;
 
-import ktb.billage.websocket.application.port.ChatInboxNotifier;
+import ktb.billage.websocket.application.port.ChatWebSocketNotifier;
 import ktb.billage.websocket.config.WebSocketDestinations;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class WebSocketChatInboxNotifier implements ChatInboxNotifier {
+public class WebSocketChatInboxNotifier implements ChatWebSocketNotifier {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override
