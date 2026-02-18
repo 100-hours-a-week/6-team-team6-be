@@ -16,6 +16,7 @@ import ktb.billage.websocket.application.port.ChatPushNotifier;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.List;
 
 @Slf4j
 @Component
+@ConditionalOnBean(FirebaseMessaging.class)
 @RequiredArgsConstructor
 public class FcmChatPushNotifier implements ChatPushNotifier {
     private final UserPushTokenService userPushTokenService;
