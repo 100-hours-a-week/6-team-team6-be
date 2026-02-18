@@ -14,29 +14,53 @@ import java.util.Optional;
 public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<Post> findByIdAndDeletedAtIsNull(Long postId);
 
-    List<Post> findTop21ByDeletedAtIsNullOrderByUpdatedAtDescIdDesc();
-    List<Post> findTop21ByDeletedAtIsNullAndTitleContainingOrderByUpdatedAtDescIdDesc(String keyword);
+    @Query("""
+            select p from Post p
+            join Membership m on m.id = p.sellerId
+            where m.groupId = :groupId
+              and p.deletedAt is null
+              order by p.updatedAt desc, p.id desc
+            """)
+    List<Post> findTop21ByGroupIdOrderByUpdatedAtDescIdDesc(@Param("groupId") Long groupId, Pageable pageable);
 
     @Query("""
             select p from Post p
-            where p.deletedAt is null
+            join Membership m on m.id = p.sellerId
+            where m.groupId = :groupId
+              and p.deletedAt is null
+              and p.title like concat('%', :keyword, '%')
+              order by p.updatedAt desc, p.id desc
+            """)
+    List<Post> findTop21ByGroupIdAndContainingKeywordOrderByUpdatedAtDescIdDesc(@Param("groupId") Long groupId,
+                                                                                @Param("keyword") String keyword,
+                                                                                Pageable pageable);
+
+    @Query("""
+            select p from Post p
+            join Membership m on m.id = p.sellerId
+            where m.groupId = :groupId
+               and p.deletedAt is null
                and (p.updatedAt < :cursorTime
                or (p.updatedAt = :cursorTime and p.id < :cursorId))
             order by p.updatedAt desc, p.id desc
             """)
-    List<Post> findNextPage(@Param("cursorTime") Instant cursorTime,
+    List<Post> findNextPage(@Param("groupId") Long groupId,
+                            @Param("cursorTime") Instant cursorTime,
                             @Param("cursorId") Long cursorId,
                             Pageable pageable);
 
     @Query("""
             select p from Post p
-            where p.deletedAt is null
+            join Membership m on m.id = p.sellerId
+            where m.groupId = :groupId
+              and p.deletedAt is null
               and p.title like concat('%', :keyword, '%')
               and (p.updatedAt < :cursorTime
                or (p.updatedAt = :cursorTime and p.id < :cursorId))
             order by p.updatedAt desc, p.id desc
             """)
-    List<Post> findNextPageByKeyword(@Param("keyword") String keyword,
+    List<Post> findNextPageByKeyword(@Param("groupId") Long groupId,
+                                     @Param("keyword") String keyword,
                                      @Param("cursorTime") Instant cursorTime,
                                      @Param("cursorId") Long cursorId,
                                      Pageable pageable);

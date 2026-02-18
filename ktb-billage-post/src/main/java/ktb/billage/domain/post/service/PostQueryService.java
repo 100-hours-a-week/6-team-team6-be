@@ -28,15 +28,15 @@ public class PostQueryService {
     private final CursorCodec cursorCodec;
     private final PostQueryRepository postQueryRepository;
 
-    public PostResponse.Summaries getPostsByCursor(String cursor) {
+    public PostResponse.Summaries getPostsByCursor(Long groupId, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
-        List<Post> posts = loadPosts(decoded);
+        List<Post> posts = loadPosts(groupId, decoded);
         return buildSummaries(posts);
     }
 
-    public PostResponse.Summaries getPostsByKeywordAndCursor(String keyword, String cursor) {
+    public PostResponse.Summaries getPostsByKeywordAndCursor(Long groupId, String keyword, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
-        List<Post> posts = loadPostsByKeyword(keyword, decoded);
+        List<Post> posts = loadPostsByKeyword(groupId, keyword, decoded);
         return buildSummaries(posts);
     }
 
@@ -102,20 +102,20 @@ public class PostQueryService {
         return postRepository.findNextMyPosts(membershipIds, cursor.time(), cursor.id(), PageRequest.of(0, 21));
     }
 
-    private List<Post> loadPosts(CursorCodec.Cursor decoded) {
+    private List<Post> loadPosts(Long groupId, CursorCodec.Cursor decoded) {
         if (decoded == null) {
-            return postRepository.findTop21ByDeletedAtIsNullOrderByUpdatedAtDescIdDesc();
+            return postRepository.findTop21ByGroupIdOrderByUpdatedAtDescIdDesc(groupId, PageRequest.of(0, 21));
         }
 
-        return postRepository.findNextPage(decoded.time(), decoded.id(), PageRequest.of(0, 21));
+        return postRepository.findNextPage(groupId, decoded.time(), decoded.id(), PageRequest.of(0, 21));
     }
 
-    private List<Post> loadPostsByKeyword(String keyword, CursorCodec.Cursor decoded) {
+    private List<Post> loadPostsByKeyword(Long groupId, String keyword, CursorCodec.Cursor decoded) {
         if (decoded == null) {
-            return postRepository.findTop21ByDeletedAtIsNullAndTitleContainingOrderByUpdatedAtDescIdDesc(keyword);
+            return postRepository.findTop21ByGroupIdAndContainingKeywordOrderByUpdatedAtDescIdDesc(groupId, keyword, PageRequest.of(0, 21));
         }
 
-        return postRepository.findNextPageByKeyword(keyword, decoded.time(), decoded.id(), PageRequest.of(0, 21));
+        return postRepository.findNextPageByKeyword(groupId, keyword, decoded.time(), decoded.id(), PageRequest.of(0, 21));
     }
 
     private PostResponse.Summaries buildSummaries(List<Post> posts) {

@@ -75,7 +75,7 @@ public class PostFacade {
     public PostResponse.Summaries getPostsByCursor(Long groupId, Long userId, String cursor) {
         groupService.validateGroup(groupId);
         membershipService.validateMembership(groupId, userId);
-        PostResponse.Summaries summaries = postQueryService.getPostsByCursor(cursor);
+        PostResponse.Summaries summaries = postQueryService.getPostsByCursor(groupId, cursor);
         var resolvedSummaries = summaries.summaries().stream()
                 .map(summary -> new PostResponse.Summary(
                         summary.postId(),
@@ -95,7 +95,7 @@ public class PostFacade {
     public PostResponse.Summaries getPostsByKeywordAndCursor(Long groupId, Long userId, String keyword, String cursor) {
         groupService.validateGroup(groupId);
         membershipService.validateMembership(groupId, userId);
-        PostResponse.Summaries summaries = postQueryService.getPostsByKeywordAndCursor(keyword, cursor);
+        PostResponse.Summaries summaries = postQueryService.getPostsByKeywordAndCursor(groupId, keyword, cursor);
         var resolvedSummaries = summaries.summaries().stream()
                 .map(summary -> new PostResponse.Summary(
                         summary.postId(),
