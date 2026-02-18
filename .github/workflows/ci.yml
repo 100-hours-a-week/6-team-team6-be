@@ -75,6 +75,8 @@ jobs:
           JWT_SECRET_KEY: "test-secret-key-for-ci-pipeline-do-not-use-in-production"
           ACCESS_DURATION: "3600000"
           REFRESH_DURATION: "604800000"
+          FCM_PROJECT_ID: "test-project-id"
+          FCM_JSON: "{}"
         run: ./gradlew test --no-daemon
 
       - name: Upload Test Results
@@ -140,6 +142,8 @@ jobs:
           JWT_SECRET_KEY: "test-secret-key-for-ci-pipeline-do-not-use-in-production"
           ACCESS_DURATION: "3600000"
           REFRESH_DURATION: "604800000"
+          FCM_PROJECT_ID: "test-project-id"
+          FCM_JSON: "{}"
         run: ./gradlew integrationTest --no-daemon
 
       - name: Upload Integration Test Results
