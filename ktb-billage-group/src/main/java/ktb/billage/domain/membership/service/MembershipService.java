@@ -8,7 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static ktb.billage.common.exception.ExceptionCode.ALREADY_GROUP_MEMBER;
 import static ktb.billage.common.exception.ExceptionCode.GROUP_CAPACITY_EXCEEDED;
@@ -92,13 +96,18 @@ public class MembershipService {
         membership.delete(Instant.now());
     }
 
-    public List<MembershipProfile> findMembershipProfiles(List<Long> membershipIds) {
+    public Map<Long, MembershipProfile> findMembershipProfiles(List<Long> membershipIds) {
         return membershipRepository.findAllById(membershipIds).stream()
                 .map(membership -> new MembershipProfile(
                         membership.getId(),
                         membership.getNickname()
                 ))
-                .toList();
+                .collect(Collectors.toMap(
+                        MembershipProfile::membershipId,
+                        Function.identity(),
+                        (existing, ignored) -> existing,
+                        LinkedHashMap::new
+                ));
     }
 
     public MembershipProfile findMembershipProfile(Long membershipId) {

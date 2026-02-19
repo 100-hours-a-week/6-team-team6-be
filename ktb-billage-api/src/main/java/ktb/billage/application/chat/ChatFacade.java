@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -77,21 +78,23 @@ public class ChatFacade {
         GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
 
         List<UserResponse.UserProfile> userProfiles = userService.findUserProfiles(toUserIds(cores.chatroomSummaryCores()));
-        List<MembershipProfile> membershipProfiles = membershipService.findMembershipProfiles(toMembershipIds(cores.chatroomSummaryCores()));
+        Map<Long, MembershipProfile> membershipProfilesMap = membershipService.findMembershipProfiles(toMembershipIds(cores.chatroomSummaryCores()));
 
         List<ChatResponse.ChatroomSummary> summaries = new ArrayList<>();
         for (int i = 0; i < cores.chatroomSummaryCores().size(); i++) {
+            ChatResponse.ChatroomSummaryCore summaryCore = cores.chatroomSummaryCores().get(i);
+
             summaries.add(new ChatResponse.ChatroomSummary(
-                    cores.chatroomSummaryCores().get(i).chatroomId(),
-                    membershipProfiles.get(i).membershipId(),
+                    summaryCore.chatroomId(),
+                    membershipProfilesMap.get(summaryCore.chatPartnerId()).membershipId(),
                     getImagePresignedUrl(userProfiles.get(i).avatarImageUrl()),
-                    membershipProfiles.get(i).nickname(),
+                    membershipProfilesMap.get(summaryCore.chatPartnerId()).nickname(),
                     groupProfile.groupId(),
                     groupProfile.groupName(),
                     postId,
                     getImagePresignedUrl(postFirstImageUrl),
-                    cores.chatroomSummaryCores().get(i).lastMessageAt(),
-                    cores.chatroomSummaryCores().get(i).lastMessage(),
+                    summaryCore.lastMessageAt(),
+                    summaryCore.lastMessage(),
                     unreadMessageCounts.get(i)
             ));
         }
@@ -109,7 +112,7 @@ public class ChatFacade {
         ChatResponse.ChatroomSummaryCores cores = chatroomQueryService.findChatroomSummariesByMembershipIdsAndCursor(membershipIds, cursor);
         List<Long> unreadCounts = chatMessageQueryService.countUnreadPartnerMessagesByChatroomSummariesAndMembershipIdForRole(cores, Set.copyOf(membershipIds));
 
-        List<MembershipProfile> membershipProfiles = membershipService.findMembershipProfiles(toMembershipIds(cores.chatroomSummaryCores()));
+        Map<Long, MembershipProfile> membershipProfilesMap = membershipService.findMembershipProfiles(toMembershipIds(cores.chatroomSummaryCores()));
 
         List<ChatResponse.ChatroomSummary> summaries = new ArrayList<>();
         List<ChatResponse.ChatroomSummaryCore> summaryCores = cores.chatroomSummaryCores();
@@ -126,9 +129,9 @@ public class ChatFacade {
 
             summaries.add(new ChatResponse.ChatroomSummary(
                     core.chatroomId(),
-                    membershipProfiles.get(i).membershipId(),
+                    membershipProfilesMap.get(core.chatPartnerId()).membershipId(),
                     getImagePresignedUrl(userProfile.avatarImageUrl()),
-                    membershipProfiles.get(i).nickname(),
+                    membershipProfilesMap.get(core.chatPartnerId()).nickname(),
                     groupId,
                     groupProfile.groupName(),
                     core.postId(),
