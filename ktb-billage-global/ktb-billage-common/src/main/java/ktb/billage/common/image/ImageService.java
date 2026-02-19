@@ -14,6 +14,7 @@ import static ktb.billage.common.exception.ExceptionCode.UNSUPPORTED_IMAGE_TYPE;
 @Service
 public class ImageService {
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of("image/png", "image/jpeg");
+    private static final String GROUP_DEFAULT_COVER_RPEFIX = "/group-cover-images";
 
     private final ImageStorage imageStorage;
     private final DataSize maxImageSize;
@@ -37,6 +38,10 @@ public class ImageService {
     }
 
     public String resolveUrl(String imageKey) {
+        if (imageKey.startsWith(GROUP_DEFAULT_COVER_RPEFIX)) {
+            return imageKey;
+        }
+
         return imageStorage.resolveUrl(imageKey);
     }
 

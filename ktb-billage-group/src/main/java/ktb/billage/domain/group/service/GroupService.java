@@ -52,7 +52,9 @@ public class GroupService {
 
     public GroupResponse.GroupProfile findGroupProfile(Long groupId) {
         Group group = findGroup(groupId);
-        return new GroupResponse.GroupProfile(groupId, group.getName(), group.getGroupCoverImageUrl());
+
+        String coverImage = imageService.resolveUrl(group.getGroupCoverImageUrl());
+        return new GroupResponse.GroupProfile(groupId, group.getName(), coverImage);
     }
 
     public void softDeleteByGroupId(Long groupId) {
