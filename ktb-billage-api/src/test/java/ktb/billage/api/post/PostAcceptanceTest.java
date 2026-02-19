@@ -286,6 +286,10 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
             User another = fixtures.또_다른_유저_생성();
             Membership anotherMembership = fixtures.그룹_가입(group, another);
 
+            Group anotherGroup = fixtures.그룹_생성("another");
+            Membership myOtherGroupMembership = fixtures.그룹_가입(anotherGroup, user);
+            List<Post> otherGroupPosts = fixtures.여러_게시글_생성(myOtherGroupMembership, 10);
+
             List<Post> myPosts = fixtures.여러_게시글_생성(myMembership, 10);
             fixtures.게시글_일부_삭제(myPosts, i -> i % 5 == 0);
 
@@ -306,6 +310,12 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
 
             int postCount = response.jsonPath().getList("summaries").size();
             assertThat(postCount).isEqualTo(16);
+
+            List<Long> responsePostIds = response.jsonPath().getList("summaries.postId", Long.class);
+            List<Long> otherGroupPostIds = otherGroupPosts.stream()
+                    .map(Post::getId)
+                    .toList();
+            assertThat(responsePostIds).doesNotContainAnyElementsOf(otherGroupPostIds);
 
             Instant firstUpdatedPostAt = response.jsonPath().getList("summaries", PostResponse.Summary.class).getLast().updatedAt();
             Instant lastUpdatedPostAt = response.jsonPath().getList("summaries", PostResponse.Summary.class).getFirst().updatedAt();
