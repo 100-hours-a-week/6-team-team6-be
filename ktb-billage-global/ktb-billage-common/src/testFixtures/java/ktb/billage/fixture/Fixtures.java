@@ -79,6 +79,10 @@ public class Fixtures {
         return groupRepository.save(GroupFixture.one(groupName));
     }
 
+    public Group 그룹_기본_커버_생성(String groupCoverImage) {
+        return groupRepository.save(GroupFixture.defaultCover(groupCoverImage));
+    }
+
     public Membership 그룹_가입(Group group, User user) {
         return membershipRepository.save(MembershipFixture.one(group, user));
     }

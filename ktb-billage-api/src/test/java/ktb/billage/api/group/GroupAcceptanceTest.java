@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -526,6 +527,23 @@ public class GroupAcceptanceTest extends AcceptanceTestSupport {
                     .statusCode(200)
                     .body("groupId", equalTo(group.getId().intValue()))
                     .body("groupName", equalTo(group.getName()));
+        }
+
+        @Test
+        void 성공_그룹_기본_커버_이미지_시_image_요청_값_그대로_리턴() {
+            String coverImageName = "/somethingDefault.png";
+            Group group = fixtures.그룹_기본_커버_생성(coverImageName);
+            fixtures.그룹_가입(group, user);
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}", group.getId())
+                    .then()
+                    .statusCode(200)
+                    .body("groupId", equalTo(group.getId().intValue()))
+                    .body("groupName", equalTo(group.getName()))
+                    .body("groupCoverImageUrl", containsString(coverImageName));
         }
 
         @Test
