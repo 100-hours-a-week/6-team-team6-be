@@ -97,8 +97,7 @@ public class MembershipService {
     }
 
     public Map<Long, MembershipProfile> findMembershipProfiles(List<Long> membershipIds) {
-        return membershipRepository.findAllById(membershipIds).stream()
-                .filter(membership -> membership.getDeletedAt() == null)
+        return membershipRepository.findAllByIdInAndDeletedAtIsNull(membershipIds).stream()
                 .map(membership -> new MembershipProfile(
                         membership.getId(),
                         membership.getGroupId(),
