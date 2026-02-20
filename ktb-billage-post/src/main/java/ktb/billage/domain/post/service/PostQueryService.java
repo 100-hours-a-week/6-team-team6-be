@@ -111,11 +111,28 @@ public class PostQueryService {
     }
 
     private List<Post> loadPostsByKeyword(Long groupId, String keyword, CursorCodec.Cursor decoded) {
+        String fullTextKeyword = toBooleanModeKeyword(keyword);
         if (decoded == null) {
-            return postRepository.findTop21ByGroupIdAndContainingKeywordOrderByUpdatedAtDescIdDesc(groupId, keyword, PageRequest.of(0, 21));
+            return postRepository.findTop21ByGroupIdAndContainingKeywordOrderByUpdatedAtDescIdDesc(
+                    groupId,
+                    fullTextKeyword,
+                    PageRequest.of(0, 21)
+            );
         }
 
-        return postRepository.findNextPageByKeyword(groupId, keyword, decoded.time(), decoded.id(), PageRequest.of(0, 21));
+        return postRepository.findNextPageByKeyword(
+                groupId,
+                fullTextKeyword,
+                decoded.time(),
+                decoded.id(),
+                PageRequest.of(0, 21)
+        );
+    }
+
+    private String toBooleanModeKeyword(String keyword) {
+        String normalized = keyword.trim().replaceAll("\\s+", " ");
+
+        return "+\"" + normalized.replace("\"", "\\\"") + "\"";
     }
 
     private PostResponse.Summaries buildSummaries(List<Post> posts) {

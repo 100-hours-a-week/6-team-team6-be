@@ -58,7 +58,7 @@ public class PostController implements PostApiDoc {
                                                                              @RequestParam(required = false) String query, @RequestParam(required = false) String cursor) {
         return ResponseEntity.ok()
                 .body(
-                        query == null ? postFacade.getPostsByCursor(groupId, userId, cursor)
+                        (query == null || query.isBlank()) ? postFacade.getPostsByCursor(groupId, userId, cursor)
                         : postFacade.getPostsByKeywordAndCursor(groupId, userId, query, cursor)
                 );
     }
