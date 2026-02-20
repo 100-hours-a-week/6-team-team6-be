@@ -113,19 +113,32 @@ public class ChatFacade {
         List<Long> unreadCounts = chatMessageQueryService.countUnreadPartnerMessagesByChatroomSummariesAndMembershipIdForRole(cores, Set.copyOf(membershipIds));
 
         Map<Long, MembershipProfile> membershipProfilesMap = membershipService.findMembershipProfiles(toMembershipIds(cores.chatroomSummaryCores()));
+        Map<Long, GroupResponse.GroupProfile> groupProfilesMap = groupService.findGroupProfiles(
+                membershipProfilesMap.values().stream()
+                        .map(MembershipProfile::groupId)
+                        .toList()
+        );
+        Map<Long, UserResponse.UserProfile> userProfilesMap = userService.findUserProfilesMap(
+                membershipProfilesMap.values().stream()
+                        .map(MembershipProfile::userId)
+                        .toList()
+        );
+        Map<Long, String> postFirstImageUrlsMap = postQueryService.findPostFirstImageUrls(
+                cores.chatroomSummaryCores().stream()
+                        .map(ChatResponse.ChatroomSummaryCore::postId)
+                        .toList()
+        );
 
         List<ChatResponse.ChatroomSummary> summaries = new ArrayList<>();
         List<ChatResponse.ChatroomSummaryCore> summaryCores = cores.chatroomSummaryCores();
         for (int i = 0; i < summaryCores.size(); i++) {
             ChatResponse.ChatroomSummaryCore core = summaryCores.get(i);
-            String postFirstImageUrl = postQueryService.findPostFirstImageUrl(core.postId());
 
-            Long groupId = membershipService.findGroupIdByMembershipId(core.chatPartnerId());
-            groupService.validateGroup(groupId);
-            GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
-
-            Long partnerUserId = membershipService.findUserIdByMembershipId(core.chatPartnerId());
-            UserResponse.UserProfile userProfile = userService.findUserProfile(partnerUserId);
+            MembershipProfile membershipProfile = membershipProfilesMap.get(core.chatPartnerId());
+            Long groupId = membershipProfile.groupId();
+            GroupResponse.GroupProfile groupProfile = groupProfilesMap.get(groupId);
+            UserResponse.UserProfile userProfile = userProfilesMap.get(membershipProfile.userId());
+            String postFirstImageUrl = postFirstImageUrlsMap.get(core.postId());
 
             summaries.add(new ChatResponse.ChatroomSummary(
                     core.chatroomId(),

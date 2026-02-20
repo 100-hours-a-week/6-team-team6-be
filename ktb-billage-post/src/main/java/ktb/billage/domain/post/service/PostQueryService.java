@@ -13,7 +13,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static ktb.billage.common.exception.ExceptionCode.IMAGE_NOT_FOUND;
 import static ktb.billage.common.exception.ExceptionCode.POST_NOT_FOUND;
@@ -79,6 +81,14 @@ public class PostQueryService {
         return postImageRepository.findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(postId)
                 .orElseThrow(() -> new PostException(IMAGE_NOT_FOUND))
                 .getImageUrl();
+    }
+
+    public Map<Long, String> findPostFirstImageUrls(List<Long> postIds) {
+        Map<Long, String> firstImageUrls = new LinkedHashMap<>();
+        for (PostImage postImage : postImageRepository.findAllFirstImagesByPostIds(postIds)) {
+            firstImageUrls.put(postImage.getPost().getId(), postImage.getImageUrl());
+        }
+        return firstImageUrls;
     }
 
     private Post findPost(Long postId) {

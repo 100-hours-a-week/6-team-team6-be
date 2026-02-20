@@ -10,7 +10,11 @@ import ktb.billage.domain.group.dto.GroupResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static ktb.billage.common.exception.ExceptionCode.GROUP_NOT_FOUND;
 import static ktb.billage.common.exception.ExceptionCode.INVALID_INVITATION;
@@ -55,6 +59,21 @@ public class GroupService {
 
         String coverImage = imageService.resolveUrl(group.getGroupCoverImageUrl());
         return new GroupResponse.GroupProfile(groupId, group.getName(), coverImage);
+    }
+
+    public Map<Long, GroupResponse.GroupProfile> findGroupProfiles(List<Long> groupIds) {
+        return groupRepository.findAllByIdInAndDeletedAtIsNull(groupIds).stream()
+                .map(group -> new GroupResponse.GroupProfile(
+                        group.getId(),
+                        group.getName(),
+                        imageService.resolveUrl(group.getGroupCoverImageUrl())
+                ))
+                .collect(Collectors.toMap(
+                        GroupResponse.GroupProfile::groupId,
+                        Function.identity(),
+                        (existing, ignored) -> existing,
+                        LinkedHashMap::new
+                ));
     }
 
     public void softDeleteByGroupId(Long groupId) {

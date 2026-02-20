@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.time.Instant;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static ktb.billage.common.exception.ExceptionCode.AUTHENTICATION_FAILED;
 import static ktb.billage.common.exception.ExceptionCode.DUPLICATE_LOGIN_ID;
@@ -66,12 +69,22 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserResponse.UserProfile> findUserProfiles(List<Long> userIds) {
-        return userRepository.findAllById(userIds).stream()
+        return userRepository.findAllByIdInAndDeletedAtIsNull(userIds).stream()
                 .map(user -> new UserResponse.UserProfile(
                         user.getId(),
                         imageService.resolveUrl(user.getAvatarUrl())
                 ))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, UserResponse.UserProfile> findUserProfilesMap(List<Long> userIds) {
+        return findUserProfiles(userIds).stream()
+                .collect(Collectors.toMap(
+                        UserResponse.UserProfile::userId,
+                        Function.identity(),
+                        (existing, ignored) -> existing
+                ));
     }
 
     @Transactional

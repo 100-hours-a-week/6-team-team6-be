@@ -19,6 +19,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     Optional<Group> findById(Long groupId);
 
     Optional<Group> findByIdAndDeletedAtIsNull(Long groupId);
+    List<Group> findAllByIdInAndDeletedAtIsNull(List<Long> groupIds);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
