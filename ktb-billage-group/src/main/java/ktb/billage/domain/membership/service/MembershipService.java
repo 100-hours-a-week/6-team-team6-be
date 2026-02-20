@@ -98,8 +98,11 @@ public class MembershipService {
 
     public Map<Long, MembershipProfile> findMembershipProfiles(List<Long> membershipIds) {
         return membershipRepository.findAllById(membershipIds).stream()
+                .filter(membership -> membership.getDeletedAt() == null)
                 .map(membership -> new MembershipProfile(
                         membership.getId(),
+                        membership.getGroupId(),
+                        membership.getUserId(),
                         membership.getNickname()
                 ))
                 .collect(Collectors.toMap(
@@ -112,12 +115,17 @@ public class MembershipService {
 
     public MembershipProfile findMembershipProfile(Long membershipId) {
         Membership membership = findMembership(membershipId);
-        return new MembershipProfile(membership.getId(), membership.getNickname());
+        return new MembershipProfile(
+                membership.getId(),
+                membership.getGroupId(),
+                membership.getUserId(),
+                membership.getNickname()
+        );
     }
 
     public MembershipProfile findMembershipProfile(Long groupId, Long userId) {
         Membership membership = findMembership(groupId, userId);
-        return new MembershipProfile(membership.getId(), membership.getNickname());
+        return findMembershipProfile(membership.getId());
     }
 
     public String changeNickname(Long groupId, Long userId, String newNickname) {

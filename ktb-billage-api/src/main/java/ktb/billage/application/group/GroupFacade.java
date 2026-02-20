@@ -4,6 +4,7 @@ import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.chat.service.ChatroomCommandService;
 import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.dto.MembershipProfile;
+import ktb.billage.domain.membership.dto.MembershipResponse;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.post.service.PostCommandService;
 import ktb.billage.domain.user.User;
@@ -96,9 +97,14 @@ public class GroupFacade {
     }
 
     @Transactional(readOnly = true)
-    public MembershipProfile getMyMembershipProfile(Long groupId, Long userId) {
+    public MembershipResponse.Profile getMyMembershipProfile(Long groupId, Long userId) {
         groupService.validateGroup(groupId);
-        return membershipService.findMembershipProfile(groupId, userId);
+        MembershipProfile profile = membershipService.findMembershipProfile(groupId, userId);
+
+        return new MembershipResponse.Profile(
+                profile.membershipId(),
+                profile.nickname()
+        );
     }
 
     @Transactional
