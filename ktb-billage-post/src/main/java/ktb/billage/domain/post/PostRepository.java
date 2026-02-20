@@ -23,14 +23,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             """)
     List<Post> findTop21ByGroupIdOrderByUpdatedAtDescIdDesc(@Param("groupId") Long groupId, Pageable pageable);
 
-    @Query("""
-            select p from Post p
-            join Membership m on m.id = p.sellerId
-            where m.groupId = :groupId
-              and p.deletedAt is null
-              and p.title like concat('%', :keyword, '%')
-              order by p.updatedAt desc, p.id desc
-            """)
+    @Query(value = """
+            select p.*
+            from post p
+            join membership m on m.id = p.membership_id
+            where m.group_id = :groupId
+              and p.deleted_at is null
+              and match(p.title) against (:keyword in boolean mode)
+            order by p.updated_at desc, p.id desc
+            """, nativeQuery = true)
     List<Post> findTop21ByGroupIdAndContainingKeywordOrderByUpdatedAtDescIdDesc(@Param("groupId") Long groupId,
                                                                                 @Param("keyword") String keyword,
                                                                                 Pageable pageable);
@@ -49,16 +50,17 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                             @Param("cursorId") Long cursorId,
                             Pageable pageable);
 
-    @Query("""
-            select p from Post p
-            join Membership m on m.id = p.sellerId
-            where m.groupId = :groupId
-              and p.deletedAt is null
-              and p.title like concat('%', :keyword, '%')
-              and (p.updatedAt < :cursorTime
-               or (p.updatedAt = :cursorTime and p.id < :cursorId))
-            order by p.updatedAt desc, p.id desc
-            """)
+    @Query(value = """
+            select p.*
+            from post p
+            join membership m on m.id = p.membership_id
+            where m.group_id = :groupId
+              and p.deleted_at is null
+              and match(p.title) against (:keyword in boolean mode)
+              and (p.updated_at < :cursorTime
+               or (p.updated_at = :cursorTime and p.id < :cursorId))
+            order by p.updated_at desc, p.id desc
+            """, nativeQuery = true)
     List<Post> findNextPageByKeyword(@Param("groupId") Long groupId,
                                      @Param("keyword") String keyword,
                                      @Param("cursorTime") Instant cursorTime,
