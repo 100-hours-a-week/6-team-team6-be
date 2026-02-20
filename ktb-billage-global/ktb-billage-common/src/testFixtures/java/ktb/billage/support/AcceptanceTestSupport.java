@@ -16,35 +16,11 @@ public abstract class AcceptanceTestSupport extends TestContainerSupport {
     @LocalServerPort
     protected int port;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
     @BeforeEach
     void setUpAcceptanceTestSupport() {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
     }
 
-    @AfterEach
-    void tearDownAcceptanceTestSupport() {
-        truncateAllTables();
-    }
 
-    private void truncateAllTables() {
-        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
-
-        List<String> tables = jdbcTemplate.queryForList(
-                "SELECT table_name FROM information_schema.tables " +
-                        "WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'",
-                String.class
-        );
-
-        for (String table : tables) {
-            if (!"flyway_schema_history".equalsIgnoreCase(table)) {
-                jdbcTemplate.execute("TRUNCATE TABLE " + table);
-            }
-        }
-
-        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
-    }
 }
