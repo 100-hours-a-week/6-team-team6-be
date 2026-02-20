@@ -1,6 +1,8 @@
 package ktb.billage.fixture;
 
 import ktb.billage.contract.token.TokenGenerator;
+import ktb.billage.domain.chat.ChatMessage;
+import ktb.billage.domain.chat.ChatMessageRepository;
 import ktb.billage.domain.chat.Chatroom;
 import ktb.billage.domain.chat.ChatroomRepository;
 import ktb.billage.domain.group.Group;
@@ -45,6 +47,9 @@ public class Fixtures {
 
     @Autowired
     private ChatroomRepository chatroomRepository;
+
+    @Autowired
+    private ChatMessageRepository chatMessageRepository;
 
     @Autowired
     private TokenGenerator tokenGenerator;
@@ -203,5 +208,15 @@ public class Fixtures {
 
     public Chatroom 채팅방_생성(Post post, Membership buyerMembership) {
         return chatroomRepository.save(new Chatroom(post.getId(), buyerMembership.getId()));
+    }
+
+    public ChatMessage 채팅_전송(Chatroom chatroom, Membership senderMembership, int sendAtPlusOffset) {
+        Instant sendAt = BASE_TIME.plusSeconds(sendAtPlusOffset * 1000L);
+        ChatMessage message = chatMessageRepository.save(new ChatMessage(senderMembership.getId(), chatroom, "message", BASE_TIME.plusSeconds(sendAtPlusOffset * 1000L)));
+
+        chatroom.sendMessage(message.getId(), senderMembership.getId(), sendAt);
+        chatroomRepository.save(chatroom);
+
+        return message;
     }
 }
