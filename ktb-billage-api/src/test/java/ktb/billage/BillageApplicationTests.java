@@ -10,7 +10,7 @@ import ktb.billage.support.TestContainerSupport;
         "spring.jpa.hibernate.ddl-auto=none"
 })
 @ActiveProfiles("test")
-class BillageApplicationTests extends TestContainerSupport {
+class BillageApplicationTests {
 
     @Test
     void contextLoads() {
