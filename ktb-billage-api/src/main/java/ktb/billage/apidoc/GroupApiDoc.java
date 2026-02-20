@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import ktb.billage.domain.group.dto.GroupRequest;
 import ktb.billage.domain.group.dto.GroupResponse;
-import ktb.billage.domain.membership.dto.MembershipProfile;
+import ktb.billage.domain.membership.dto.MembershipResponse;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -596,7 +596,7 @@ public interface GroupApiDoc {
                     responseCode = "200",
                     description = "내 멤버십 프로필 조회 성공",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = MembershipProfile.class))
+                            schema = @Schema(implementation = MembershipResponse.Profile.class))
             ),
             @ApiResponse(
                     responseCode = "404",
