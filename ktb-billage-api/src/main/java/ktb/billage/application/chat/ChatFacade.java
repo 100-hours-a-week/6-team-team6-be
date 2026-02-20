@@ -110,7 +110,7 @@ public class ChatFacade {
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
 
         ChatResponse.ChatroomSummaryCores cores = chatroomQueryService.findChatroomSummariesByMembershipIdsAndCursor(membershipIds, cursor);
-        List<Long> unreadCounts = chatMessageQueryService.countUnreadPartnerMessagesByChatroomSummariesAndMembershipIdForRole(cores, Set.copyOf(membershipIds));
+        Map<Long, Long> unreadCounts = chatMessageQueryService.countUnreadPartnerMessagesByChatroomSummariesAndMembershipIdForRole(cores, Set.copyOf(membershipIds));
 
         Map<Long, MembershipProfile> membershipProfilesMap = membershipService.findMembershipProfiles(toMembershipIds(cores.chatroomSummaryCores()));
         Map<Long, GroupResponse.GroupProfile> groupProfilesMap = groupService.findGroupProfiles(
@@ -151,7 +151,7 @@ public class ChatFacade {
                     getImagePresignedUrl(postFirstImageUrl),
                     core.lastMessageAt(),
                     core.lastMessage(),
-                    unreadCounts.get(i)
+                    unreadCounts.get(core.chatroomId())
                     ));
         }
 
