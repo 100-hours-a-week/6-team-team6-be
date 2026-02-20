@@ -4,15 +4,17 @@ import ktb.billage.common.cursor.CursorCodec;
 import ktb.billage.common.exception.ChatException;
 import ktb.billage.domain.chat.ChatMessage;
 import ktb.billage.domain.chat.ChatMessageRepository;
-import ktb.billage.domain.chat.Chatroom;
 import ktb.billage.domain.chat.dto.ChatResponse;
+import ktb.billage.domain.chat.dto.UnreadCountByChatroom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ktb.billage.common.exception.ExceptionCode.CHAT_NOT_FOUND;
 
@@ -20,7 +22,6 @@ import static ktb.billage.common.exception.ExceptionCode.CHAT_NOT_FOUND;
 @RequiredArgsConstructor
 public class ChatMessageQueryService {
     private final ChatMessageRepository chatMessageRepository;
-    private final ChatroomQueryService chatroomQueryService;
 
     private final CursorCodec cursorCodec;
 
@@ -61,28 +62,18 @@ public class ChatMessageQueryService {
         return unreadMessageCounts;
     }
 
-    public List<Long> countUnreadPartnerMessagesByChatroomSummariesAndMembershipIdForRole(ChatResponse.ChatroomSummaryCores cores, Set<Long> membershipIds) {
-        List<Long> unreadMessageCounts = new ArrayList<>();
-        for (ChatResponse.ChatroomSummaryCore summary : cores.chatroomSummaryCores()) {
-            Long unreadCount;
+    public Map<Long, Long> countUnreadPartnerMessagesByChatroomSummariesAndMembershipIdForRole(ChatResponse.ChatroomSummaryCores cores, Set<Long> membershipIds) {
+        List<Long> chatroomIds = cores.chatroomSummaryCores().stream()
+                .map(ChatResponse.ChatroomSummaryCore::chatroomId)
+                .toList();
 
-            Chatroom chatroom = chatroomQueryService.findChatroom(summary.chatroomId());
-            boolean isBuyer = chatroom.isBuyerContaining(membershipIds);
-            Long partnerId = summary.chatPartnerId();
+        List<UnreadCountByChatroom> unreadCounts = chatMessageRepository.findUnreadCountsByChatroomIdsAndMembershipIds(chatroomIds, membershipIds);
 
-            Long lastReadMessageId = isBuyer ? summary.buyerLastReadMessageId() : summary.sellerLastReadMessageId();
-
-            if (lastReadMessageId == null) {
-                unreadCount = chatMessageRepository.countAllPartnerMessagesCount(summary.chatroomId(), partnerId);
-            } else {
-                unreadCount = chatMessageRepository.countUnreadPartnerMessagesBetween(summary.chatroomId(), partnerId,
-                        summary.lastMessageId(), lastReadMessageId);
-            }
-
-            unreadMessageCounts.add(unreadCount);
-        }
-
-        return unreadMessageCounts;
+        return unreadCounts.stream()
+                .collect(Collectors.toMap(
+                        UnreadCountByChatroom::chatroomId,
+                        UnreadCountByChatroom::unreadCount
+                ));
     }
 
     public Long countUnreadMessagesByChatInfo(List<ChatResponse.ChatroomMembershipDto> chatroomMembershipDtos) {
