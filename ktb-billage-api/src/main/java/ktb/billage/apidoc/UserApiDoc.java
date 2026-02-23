@@ -178,6 +178,68 @@ public interface UserApiDoc {
     ResponseEntity<Void> updateWebPushSetting(@RequestBody UserRequest.WebPushEnabled request, @AuthenticatedId Long userId);
 
     @Operation(
+            summary = "웹 푸시 알림 설정 조회",
+            description = "내 웹 푸시 알림 허용 여부를 조회합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "웹 푸시 알림 설정 조회 성공",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.WebPushEnabled.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "사용자 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "USER01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "만료된 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN04"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    ResponseEntity<UserResponse.WebPushEnabled> getWebPushSetting(@AuthenticatedId Long userId);
+
+    @Operation(
             summary = "푸시 토큰 등록/갱신",
             description = "내 디바이스의 푸시 토큰을 platform + deviceId 기준으로 등록하거나 갱신합니다.",
             security = { @SecurityRequirement(name = "Bearer Auth") }

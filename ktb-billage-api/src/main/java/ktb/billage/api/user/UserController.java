@@ -42,7 +42,7 @@ public class UserController implements UserApiDoc {
     }
 
     @GetMapping("/me/web-push")
-    public ResponseEntity<?> getWebPushSetting(@AuthenticatedId Long userId) {
+    public ResponseEntity<UserResponse.WebPushEnabled> getWebPushSetting(@AuthenticatedId Long userId) {
         return ResponseEntity.ok(userService.getWebPushSetting(userId));
     }
 
