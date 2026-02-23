@@ -60,7 +60,7 @@ class FcmChatPushNotifierUnitTest {
     void sendPush_sendsMappedNotificationAndData() throws Exception {
         when(userPushTokenService.findTokensByUserId(10L)).thenReturn(List.of("t1", "t2"));
         when(membershipService.findMembershipProfile(31L))
-                .thenReturn(new MembershipProfile(31L, "sender-nick"));
+                .thenReturn(new MembershipProfile(31L, 11L, 21L, "sender-nick"));
 
         BatchResponse response = mock(BatchResponse.class);
         SendResponse sendResponse = mock(SendResponse.class);
@@ -78,11 +78,10 @@ class FcmChatPushNotifierUnitTest {
 
         assertEquals(List.of("t1", "t2"), readField(actual, "tokens", List.class));
 
-        Object notification = readField(actual, "notification", Object.class);
-        assertEquals("sender-nick", readField(notification, "title", String.class));
-        assertEquals("hello", readField(notification, "body", String.class));
-
         Map<String, String> data = readField(actual, "data", Map.class);
+        assertEquals("CHAT_MESSAGE", data.get("type"));
+        assertEquals("sender-nick", data.get("title"));
+        assertEquals("hello", data.get("body"));
         assertEquals("21", data.get("chatroomId"));
         assertEquals("m-1", data.get("messageId"));
         assertEquals("31", data.get("membershipId"));
@@ -94,7 +93,7 @@ class FcmChatPushNotifierUnitTest {
         List<String> tokens = List.of("ok-token", "bad-token-1", "bad-token-2", "retry-token");
         when(userPushTokenService.findTokensByUserId(10L)).thenReturn(tokens);
         when(membershipService.findMembershipProfile(31L))
-                .thenReturn(new MembershipProfile(31L, "sender-nick"));
+                .thenReturn(new MembershipProfile(31L, 11L, 21L, "sender-nick"));
 
         SendResponse ok = mock(SendResponse.class);
         when(ok.isSuccessful()).thenReturn(true);
@@ -118,7 +117,7 @@ class FcmChatPushNotifierUnitTest {
     void sendPush_doesNotDeleteOnTransientFailureOnly() throws Exception {
         when(userPushTokenService.findTokensByUserId(10L)).thenReturn(List.of("retry-token"));
         when(membershipService.findMembershipProfile(31L))
-                .thenReturn(new MembershipProfile(31L, "sender-nick"));
+                .thenReturn(new MembershipProfile(31L, 11L, 21L, "sender-nick"));
 
         SendResponse unavailable = failedResponse(MessagingErrorCode.UNAVAILABLE);
         BatchResponse response = mock(BatchResponse.class);
@@ -136,7 +135,7 @@ class FcmChatPushNotifierUnitTest {
     void sendPush_doesNotThrowWhenFirebaseMessagingThrows() throws Exception {
         when(userPushTokenService.findTokensByUserId(10L)).thenReturn(List.of("t1"));
         when(membershipService.findMembershipProfile(31L))
-                .thenReturn(new MembershipProfile(31L, "sender-nick"));
+                .thenReturn(new MembershipProfile(31L, 11L, 21L, "sender-nick"));
         when(firebaseMessaging.sendEachForMulticast(any(MulticastMessage.class)))
                 .thenThrow(mock(FirebaseMessagingException.class));
 
