@@ -57,7 +57,8 @@ public interface ErrorCodeApiDoc {
                                                 "USER01": "사용자를 찾을 수 없음",
                                                 "USER02": "로그인 ID 형식이 유효하지 않음",
                                                 "USER03": "닉네임 형식이 유효하지 않음",
-                                                "USER04": "로그인 ID가 중복됨"
+                                                "USER04": "로그인 ID가 중복됨",
+                                                "USER05": "푸시 토큰을 찾을 수 없음"
                                             }
                                             """
                             ))

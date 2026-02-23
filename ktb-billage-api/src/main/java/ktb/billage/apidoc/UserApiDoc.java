@@ -13,6 +13,7 @@ import ktb.billage.domain.user.dto.UserRequest;
 import ktb.billage.domain.user.dto.UserResponse;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Map;
@@ -311,4 +312,53 @@ public interface UserApiDoc {
             )
     })
     ResponseEntity<Void> updatePushToken(@Valid @RequestBody UserRequest.PushToken request, @AuthenticatedId Long userId);
+
+    @Operation(
+            summary = "푸시 토큰 삭제",
+            description = "내 디바이스의 푸시 토큰을 deviceId 기준으로 삭제합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "푸시 토큰 삭제 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "푸시 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "USER05"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    ResponseEntity<Void> deletePushToken(@PathVariable String deviceId, @AuthenticatedId Long userId);
 }
