@@ -174,9 +174,9 @@ class UserAcceptanceTest extends AcceptanceTestSupport {
             RestAssured.given()
                     .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
                     .when()
-                    .get("/users/me")
+                    .get("/users/me/web-push")
                     .then()
-                    .body("webPushEnabled", equalTo(true));
+                    .body("enabled", equalTo(true));
 
             // false로 변경 후 한 번 더 확인
             RestAssured.given()
@@ -195,9 +195,11 @@ class UserAcceptanceTest extends AcceptanceTestSupport {
             RestAssured.given()
                     .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
                     .when()
-                    .get("/users/me")
+                    .get("/users/me/web-push")
                     .then()
-                    .body("webPushEnabled", equalTo(false));
+                    .body("enabled", equalTo(false));
         }
     }
+
+
 }
