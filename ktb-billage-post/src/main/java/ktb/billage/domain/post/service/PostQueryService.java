@@ -2,6 +2,7 @@ package ktb.billage.domain.post.service;
 
 import ktb.billage.common.cursor.CursorCodec;
 import ktb.billage.common.exception.PostException;
+import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.post.PostImage;
 import ktb.billage.domain.post.PostImageRepository;
@@ -29,6 +30,7 @@ public class PostQueryService {
 
     private final CursorCodec cursorCodec;
     private final PostQueryRepository postQueryRepository;
+    private final ImageService imageService;
 
     public PostResponse.Summaries getPostsByCursor(Long groupId, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
@@ -172,7 +174,19 @@ public class PostQueryService {
             nextCursor = cursorCodec.encode(last.updatedAt(), last.postId());
         }
 
-        return new PostResponse.MySummaries(pagePosts, nextCursor, hasNextPage);
+        List<PostResponse.MySummary> results = pagePosts.stream()
+                .map(post ->
+                    new PostResponse.MySummary(
+                            post.postId(),
+                            post.postTitle(),
+                            post.postImageId(),
+                            imageService.resolveUrl(post.postFirstImageUrl()),
+                            post.updatedAt(),
+                            post.groupId()
+                    )
+                )
+                .toList();
+        return new PostResponse.MySummaries(results, nextCursor, hasNextPage);
     }
 
     private PostResponse.Summary toSummary(Post post) { // FIXME. 이미지 N + 1 문제 야기
