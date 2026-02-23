@@ -1,17 +1,15 @@
 package ktb.billage.infra.fcm;
 
 import com.google.firebase.messaging.BatchResponse;
-import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.MulticastMessage;
-import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.SendResponse;
 import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.user.service.UserPushTokenService;
 import ktb.billage.infra.fcm.dto.FcmDataPayload;
-import ktb.billage.infra.fcm.dto.FcmNotificationPayload;
 import ktb.billage.websocket.application.port.ChatPushNotifier;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +25,8 @@ import java.util.List;
 @ConditionalOnBean(FirebaseMessaging.class)
 @RequiredArgsConstructor
 public class FcmChatPushNotifier implements ChatPushNotifier {
+    private static final String DATA_TYPE_MESSAGE = "CHAT_MESSAGE";
+
     private final UserPushTokenService userPushTokenService;
     private final MembershipService membershipService;
 
@@ -43,11 +43,7 @@ public class FcmChatPushNotifier implements ChatPushNotifier {
                 receiveUserId, ack.chatroomId(), ack.messageId());
 
         MembershipProfile sender = membershipService.findMembershipProfile(ack.membershipId());
-        FcmNotificationPayload notificationPayload = new FcmNotificationPayload(
-                sender.nickname(),
-                ack.messageContent(),
-                ack.createdAt()
-        );
+
         FcmDataPayload dataPayload = new FcmDataPayload(
                 ack.chatroomId(),
                 ack.messageId(),
@@ -56,10 +52,9 @@ public class FcmChatPushNotifier implements ChatPushNotifier {
 
         MulticastMessage message = MulticastMessage.builder()
                 .addAllTokens(tokens)
-                .setNotification(Notification.builder()
-                        .setTitle(notificationPayload.title())
-                        .setBody(notificationPayload.body())
-                        .build())
+                .putData("type", DATA_TYPE_MESSAGE)
+                .putData("title", sender.nickname())
+                .putData("body", ack.messageContent())
                 .putData("chatroomId", String.valueOf(dataPayload.chatroomId()))
                 .putData("messageId", dataPayload.messageId())
                 .putData("membershipId", String.valueOf(dataPayload.membershipId()))
@@ -73,7 +68,7 @@ public class FcmChatPushNotifier implements ChatPushNotifier {
                     tokens.size(),
                     response.getSuccessCount(),
                     response.getFailureCount(),
-                    notificationPayload.createdAt());
+                    ack.createdAt());
         } catch (FirebaseMessagingException e) {
             log.error("FCM push failed. receiveUserId={}, chatroomId={}, messageId={}",
                     receiveUserId, ack.chatroomId(), ack.messageId(), e);
