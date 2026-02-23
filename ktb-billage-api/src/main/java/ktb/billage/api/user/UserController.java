@@ -8,7 +8,9 @@ import ktb.billage.domain.user.service.UserService;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,6 +51,12 @@ public class UserController implements UserApiDoc {
     @PostMapping("/me/push-token")
     public ResponseEntity<Void> updatePushToken(@Valid @RequestBody UserRequest.PushToken request, @AuthenticatedId Long userId) {
         userService.upsertPushToken(userId, request.platform(), request.deviceId(), request.newToken());
+        return ResponseEntity.noContent().build();
+    }
+    
+    @DeleteMapping("/me/push-token/{deviceId}")
+    public ResponseEntity<Void> deletePushToken(@PathVariable String deviceId, @AuthenticatedId Long userId) {
+        userService.deletePushToken(userId, deviceId);
         return ResponseEntity.noContent().build();
     }
 }

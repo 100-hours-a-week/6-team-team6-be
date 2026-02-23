@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import static ktb.billage.common.exception.ExceptionCode.AUTHENTICATION_FAILED;
 import static ktb.billage.common.exception.ExceptionCode.DUPLICATE_LOGIN_ID;
+import static ktb.billage.common.exception.ExceptionCode.PUSH_TOKEN_NOT_FOUND;
 import static ktb.billage.common.exception.ExceptionCode.USER_NOT_FOUND;
 
 @Service
@@ -109,6 +110,13 @@ public class UserService {
                         pushToken -> pushToken.updateToken(token, now),
                         () -> userPushTokenRepository.save(new UserPushToken(user, platform, deviceId, token, now))
                 );
+    }
+    
+    @Transactional
+    public void deletePushToken(Long userId, String deviceId) {
+        UserPushToken pushToken = userPushTokenRepository.findByUserIdAndDeviceId(userId, deviceId)
+                .orElseThrow(() -> new UserException(PUSH_TOKEN_NOT_FOUND));
+        userPushTokenRepository.delete(pushToken);
     }
 
     private void validateDuplicateLoginId(String loginId) {

@@ -17,6 +17,7 @@ public enum ExceptionCode {
     INVALID_LOGIN_ID("USER02", 400),
     INVALID_NICKNAME("USER03", 400),
     DUPLICATE_LOGIN_ID("USER04", 409),
+    PUSH_TOKEN_NOT_FOUND("USER05", 404),
 
     // group
     GROUP_NOT_FOUND("GROUP01", 404),
