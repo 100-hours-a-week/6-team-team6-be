@@ -7,11 +7,13 @@ public class UserResponse {
 
     public record MyProfile(
             String loginId,
-            String avatarImageUrl,
-            Boolean webPushEnabled
+            String avatarImageUrl
     ) {
     }
 
     public record UserProfile(Long userId, String avatarImageUrl) {
+    }
+
+    public record WebPushEnabled(boolean enabled) {
     }
 }

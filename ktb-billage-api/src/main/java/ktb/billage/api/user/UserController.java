@@ -41,6 +41,11 @@ public class UserController implements UserApiDoc {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/me/web-push")
+    public ResponseEntity<?> getWebPushSetting(@AuthenticatedId Long userId) {
+        return ResponseEntity.ok(userService.getWebPushSetting(userId));
+    }
+
     @PostMapping("/me/push-token")
     public ResponseEntity<Void> updatePushToken(@Valid @RequestBody UserRequest.PushToken request, @AuthenticatedId Long userId) {
         userService.upsertPushToken(userId, request.platform(), request.deviceId(), request.newToken());

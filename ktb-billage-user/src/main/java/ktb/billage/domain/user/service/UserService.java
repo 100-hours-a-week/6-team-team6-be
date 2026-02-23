@@ -64,7 +64,7 @@ public class UserService {
         User user = findById(userId);
 
         String avatarUrl = imageService.resolveUrl(user.getAvatarUrl());
-        return new UserResponse.MyProfile(user.getLoginId(), avatarUrl, user.getWebPushEnabled());
+        return new UserResponse.MyProfile(user.getLoginId(), avatarUrl);
     }
 
     @Transactional(readOnly = true)
@@ -91,6 +91,12 @@ public class UserService {
     public void changeWebPushSetting(Long userId, boolean enabled) {
         User user = findById(userId);
         user.changeWebPushSetting(enabled);
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse.WebPushEnabled getWebPushSetting(Long userId) {
+        Boolean enabled = findById(userId).getWebPushEnabled();
+        return new UserResponse.WebPushEnabled(enabled);
     }
 
     @Transactional
