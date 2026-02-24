@@ -135,11 +135,10 @@ public class Fixtures {
         for (int i = 1; i <= count; i++) {
             String loginId = "bulk_user_" + group.getId() + "_" + i;
             jdbcTemplate.update(
-                    "INSERT INTO users (login_id, password, nickname, avatar_url, created_at, updated_at, deleted_at) " +
-                            "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
+                    "INSERT INTO users (login_id, password, avatar_url, created_at, updated_at, deleted_at) " +
+                            "VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
                     loginId,
                     "test-password",
-                    "nick-" + i,
                     "images/default-avatar.png"
             );
             Long userId = jdbcTemplate.queryForObject(
@@ -148,10 +147,11 @@ public class Fixtures {
                     loginId
             );
             jdbcTemplate.update(
-                    "INSERT INTO membership (group_id, user_id, created_at, updated_at, deleted_at) " +
-                            "VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
+                    "INSERT INTO membership (group_id, user_id, nickname, created_at, updated_at, deleted_at) " +
+                            "VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
                     group.getId(),
-                    userId
+                    userId,
+                    "nick-" + i
             );
         }
     }
