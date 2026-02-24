@@ -2,6 +2,7 @@ package ktb.billage.infra.ai;
 
 import io.netty.handler.timeout.TimeoutException;
 import ktb.billage.common.exception.AiTimeoutException;
+import ktb.billage.common.exception.InternalException;
 import ktb.billage.domain.post.ai.AiPostDraftClient;
 import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
@@ -9,12 +10,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -31,8 +33,10 @@ import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
 public class AiPostDraftWebClient implements AiPostDraftClient {
     private final WebClient webClient;
 
-    @Value("${ai.post-draft-path:/ai/generate}")
-    private String postDraftPath;
+    @Value("${ai.base-url}")
+    private String baseUrl;
+
+    private static final String POST_DRAFT_PATH = "/ai/generate";
 
     @Override
     public PostResponse.PostDraft requestPostDraft(List<PostRequest.ImageComponent> images) {
@@ -54,20 +58,25 @@ public class AiPostDraftWebClient implements AiPostDraftClient {
                     .contentType(contentType);
         }
 
+        String requestUrl = baseUrl + POST_DRAFT_PATH;
         try {
             return webClient.post()
-                    .uri(postDraftPath)
+                    .uri(POST_DRAFT_PATH)
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(BodyInserters.fromMultipartData(builder.build()))
                     .retrieve()
                     .bodyToMono(PostResponse.PostDraft.class)
                     .block();
+        } catch (WebClientResponseException e) {
+            log.error("[AI Server Error Response] url={}, status={}, body={}",
+                    requestUrl, e.getStatusCode(), e.getResponseBodyAsString());
+            throw new InternalException(SERVER_ERROR);
         } catch (TimeoutException timeoutException) {
             log.error("[AI Server Exception] Time out");
             throw new AiTimeoutException(TIME_OUT);
         } catch (Exception e) {
-            log.error("[AI Server Exception] Not Handle Error");
-            throw new AiTimeoutException(SERVER_ERROR);
+            log.error("[AI Server Exception] Not Handle Error url={}, msg={}", requestUrl, e.getMessage());
+            throw new InternalException(SERVER_ERROR);
         }
     }
 

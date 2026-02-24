@@ -51,6 +51,16 @@ public class ChatroomCommandService {
         chatroom.readBy(membershipId, readMessageId, readAt);
     }
 
+    @Transactional
+    public int freezeByMembershipId(Long membershipId) {
+        return chatroomRepository.freezeByMembershipId(membershipId);
+    }
+
+    @Transactional
+    public int softDeleteByGroupId(Long groupId) {
+        return chatroomRepository.softDeleteByGroupId(groupId, Instant.now());
+    }
+
     private void validateNotSelfChat(Long sellerId, Long buyerId) {
         if (Objects.equals(sellerId, buyerId)) {
             throw new ChatException(SELF_CHAT_DENIED);

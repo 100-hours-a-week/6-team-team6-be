@@ -1,4 +1,4 @@
-package ktb.billage.domain.token;
+package ktb.billage.contract.token;
 
 import lombok.Getter;
 

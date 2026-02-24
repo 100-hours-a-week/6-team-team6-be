@@ -7,6 +7,7 @@ import ktb.billage.domain.chat.service.ChatroomCommandService;
 import ktb.billage.domain.chat.service.ChatroomQueryService;
 import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.group.service.GroupService;
+import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.post.dto.PostResponse;
 import ktb.billage.domain.post.service.PostQueryService;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -75,22 +77,24 @@ public class ChatFacade {
 
         GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
 
-        // TODO. v2에서는 userProfile이 아닌 membershipProfile로 가져와야함.
         List<UserResponse.UserProfile> userProfiles = userService.findUserProfiles(toUserIds(cores.chatroomSummaryCores()));
+        Map<Long, MembershipProfile> membershipProfilesMap = membershipService.findMembershipProfiles(toMembershipIds(cores.chatroomSummaryCores()));
 
         List<ChatResponse.ChatroomSummary> summaries = new ArrayList<>();
         for (int i = 0; i < cores.chatroomSummaryCores().size(); i++) {
+            ChatResponse.ChatroomSummaryCore summaryCore = cores.chatroomSummaryCores().get(i);
+
             summaries.add(new ChatResponse.ChatroomSummary(
-                    cores.chatroomSummaryCores().get(i).chatroomId(),
-                    cores.chatroomSummaryCores().get(i).chatPartnerId(),
+                    summaryCore.chatroomId(),
+                    membershipProfilesMap.get(summaryCore.chatPartnerId()).membershipId(),
                     getImagePresignedUrl(userProfiles.get(i).avatarImageUrl()),
-                    userProfiles.get(i).nickname(),
+                    membershipProfilesMap.get(summaryCore.chatPartnerId()).nickname(),
                     groupProfile.groupId(),
                     groupProfile.groupName(),
                     postId,
                     getImagePresignedUrl(postFirstImageUrl),
-                    cores.chatroomSummaryCores().get(i).lastMessageAt(),
-                    cores.chatroomSummaryCores().get(i).lastMessage(),
+                    summaryCore.lastMessageAt(),
+                    summaryCore.lastMessage(),
                     unreadMessageCounts.get(i)
             ));
         }
@@ -105,38 +109,53 @@ public class ChatFacade {
     public ChatResponse.ChatroomSummaries getMyParticipatingChatrooms(Long userId, String cursor) {
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
 
-        ChatResponse.ChatroomSummaryCores chatroomSummaryCores = chatroomQueryService.findChatroomSummariesByMembershipIdsAndCursor(membershipIds, cursor);
-        List<Long> unreadCounts = chatMessageQueryService.countUnreadPartnerMessagesByChatroomSummariesAndMembershipIdForRole(chatroomSummaryCores, Set.copyOf(membershipIds));
+        ChatResponse.ChatroomSummaryCores cores = chatroomQueryService.findChatroomSummariesByMembershipIdsAndCursor(membershipIds, cursor);
+        Map<Long, Long> unreadCounts = chatMessageQueryService.countUnreadPartnerMessagesByChatroomSummariesAndMembershipIdForRole(cores, Set.copyOf(membershipIds));
+
+        Map<Long, MembershipProfile> membershipProfilesMap = membershipService.findMembershipProfiles(toMembershipIds(cores.chatroomSummaryCores()));
+        Map<Long, GroupResponse.GroupProfile> groupProfilesMap = groupService.findGroupProfiles(
+                membershipProfilesMap.values().stream()
+                        .map(MembershipProfile::groupId)
+                        .toList()
+        );
+        Map<Long, UserResponse.UserProfile> userProfilesMap = userService.findUserProfilesMap(
+                membershipProfilesMap.values().stream()
+                        .map(MembershipProfile::userId)
+                        .toList()
+        );
+        Map<Long, String> postFirstImageUrlsMap = postQueryService.findPostFirstImageUrls(
+                cores.chatroomSummaryCores().stream()
+                        .map(ChatResponse.ChatroomSummaryCore::postId)
+                        .toList()
+        );
 
         List<ChatResponse.ChatroomSummary> summaries = new ArrayList<>();
-        List<ChatResponse.ChatroomSummaryCore> summaryCores = chatroomSummaryCores.chatroomSummaryCores();
+        List<ChatResponse.ChatroomSummaryCore> summaryCores = cores.chatroomSummaryCores();
         for (int i = 0; i < summaryCores.size(); i++) {
             ChatResponse.ChatroomSummaryCore core = summaryCores.get(i);
-            String postFirstImageUrl = postQueryService.findPostFirstImageUrl(core.postId());
 
-            Long groupId = membershipService.findGroupIdByMembershipId(core.chatPartnerId());
-            groupService.validateGroup(groupId);
-            GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
-
-            Long partnerUserId = membershipService.findUserIdByMembershipId(core.chatPartnerId());
-            UserResponse.UserProfile userProfile = userService.findUserProfile(partnerUserId);
+            MembershipProfile membershipProfile = membershipProfilesMap.get(core.chatPartnerId());
+            Long groupId = membershipProfile.groupId();
+            GroupResponse.GroupProfile groupProfile = groupProfilesMap.get(groupId);
+            UserResponse.UserProfile userProfile = userProfilesMap.get(membershipProfile.userId());
+            String postFirstImageUrl = postFirstImageUrlsMap.get(core.postId());
 
             summaries.add(new ChatResponse.ChatroomSummary(
                     core.chatroomId(),
-                    core.chatPartnerId(),
+                    membershipProfilesMap.get(core.chatPartnerId()).membershipId(),
                     getImagePresignedUrl(userProfile.avatarImageUrl()),
-                    userProfile.nickname(),
+                    membershipProfilesMap.get(core.chatPartnerId()).nickname(),
                     groupId,
                     groupProfile.groupName(),
                     core.postId(),
                     getImagePresignedUrl(postFirstImageUrl),
                     core.lastMessageAt(),
                     core.lastMessage(),
-                    unreadCounts.get(i)
+                    unreadCounts.get(core.chatroomId())
                     ));
         }
 
-        return new ChatResponse.ChatroomSummaries(summaries, chatroomSummaryCores.cursorDto());
+        return new ChatResponse.ChatroomSummaries(summaries, cores.cursorDto());
     }
 
     public Long countAllUnReadMessagesOnParticipatingChatrooms(Long userId) {
@@ -167,13 +186,9 @@ public class ChatFacade {
 
         ChatResponse.PartnerProfile partnerProfile = chatroomQueryService.findPartnerProfile(chatroomId, participation.membershipId());
 
-        // TODO. v2 에서는 사용자 닉네임 대신 PartnerProfile에서 한 번에 멤버십 닉네임으로 가져오기.
-        Long partnerUserId = membershipService.findUserIdByMembershipId(partnerProfile.partnerId());
-        UserResponse.UserProfile partnerUserProfile = userService.findUserProfile(partnerUserId);
-
         return new ChatResponse.PostSummary(
                 partnerProfile.partnerId(),
-                partnerUserProfile.nickname(),
+                partnerProfile.nickname(),
                 groupId,
                 groupProfile.groupName(),
                 postId,
@@ -199,6 +214,13 @@ public class ChatFacade {
         return cores.stream()
                 .mapToLong(ChatResponse.ChatroomSummaryCore::chatPartnerId)
                 .map(membershipService::findUserIdByMembershipId)
+                .boxed()
+                .toList();
+    }
+
+    private List<Long> toMembershipIds(List<ChatResponse.ChatroomSummaryCore> cores) {
+        return cores.stream()
+                .mapToLong(ChatResponse.ChatroomSummaryCore::chatPartnerId)
                 .boxed()
                 .toList();
     }

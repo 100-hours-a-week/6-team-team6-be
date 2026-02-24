@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+
+import static ktb.billage.common.exception.ExceptionCode.IMAGE_SIZE_LIMIT;
 
 @Slf4j
 @RestControllerAdvice
@@ -46,6 +49,12 @@ public class GlobalExceptionHandler {
         log.warn("[Parameter validation fail] on : {}", request.getRequestURI());
 
         return ErrorResponse.parameter();
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public ErrorResponse handleMaxUploadSizeExceededException() {
+        return new ErrorResponse(IMAGE_SIZE_LIMIT.getCode());
     }
 
     @ExceptionHandler({

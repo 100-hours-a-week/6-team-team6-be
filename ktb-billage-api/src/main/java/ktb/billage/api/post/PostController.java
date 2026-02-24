@@ -1,6 +1,7 @@
 package ktb.billage.api.post;
 
 import jakarta.validation.Valid;
+import ktb.billage.apidoc.PostApiDoc;
 import ktb.billage.application.post.PostFacade;
 import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
@@ -21,7 +22,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequiredArgsConstructor
-public class PostController {
+public class PostController implements PostApiDoc {
     private final PostFacade postFacade;
 
     @PostMapping("/groups/{groupId}/posts")
@@ -57,7 +58,7 @@ public class PostController {
                                                                              @RequestParam(required = false) String query, @RequestParam(required = false) String cursor) {
         return ResponseEntity.ok()
                 .body(
-                        query == null ? postFacade.getPostsByCursor(groupId, userId, cursor)
+                        (query == null || query.isBlank()) ? postFacade.getPostsByCursor(groupId, userId, cursor)
                         : postFacade.getPostsByKeywordAndCursor(groupId, userId, query, cursor)
                 );
     }
@@ -66,5 +67,11 @@ public class PostController {
     public ResponseEntity<?> getPost(@PathVariable Long groupId, @PathVariable Long postId, @AuthenticatedId Long userId) {
         return ResponseEntity.ok()
                 .body(postFacade.getPostDetail(groupId, postId, userId));
+    }
+
+    @GetMapping("/users/me/posts")
+    public ResponseEntity<?> getMyPostsByCursor(@AuthenticatedId Long userId, @RequestParam(required = false) String cursor) {
+        return ResponseEntity.ok()
+                .body(postFacade.getMyPostsByCursor(userId, cursor));
     }
 }

@@ -1,8 +1,8 @@
 package ktb.billage.domain.auth.service;
 
 import ktb.billage.contract.user.PasswordEncoder;
-import ktb.billage.domain.token.TokenGenerator;
-import ktb.billage.domain.token.Tokens;
+import ktb.billage.contract.token.TokenGenerator;
+import ktb.billage.contract.token.Tokens;
 import ktb.billage.domain.user.User;
 import ktb.billage.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,7 @@
 package ktb.billage.application.post;
 
 import ktb.billage.common.image.ImageService;
+import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.post.RentalStatus;
 import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
@@ -14,6 +15,8 @@ import ktb.billage.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -72,7 +75,7 @@ public class PostFacade {
     public PostResponse.Summaries getPostsByCursor(Long groupId, Long userId, String cursor) {
         groupService.validateGroup(groupId);
         membershipService.validateMembership(groupId, userId);
-        PostResponse.Summaries summaries = postQueryService.getPostsByCursor(cursor);
+        PostResponse.Summaries summaries = postQueryService.getPostsByCursor(groupId, cursor);
         var resolvedSummaries = summaries.summaries().stream()
                 .map(summary -> new PostResponse.Summary(
                         summary.postId(),
@@ -81,7 +84,8 @@ public class PostFacade {
                         getImagePresignedUrl(summary.postFirstImageUrl()),
                         summary.rentalFee(),
                         summary.feeUnit(),
-                        summary.rentalStatus()
+                        summary.rentalStatus(),
+                        summary.updatedAt()
                 ))
                 .toList();
         return new PostResponse.Summaries(resolvedSummaries, summaries.nextCursor(), summaries.hasNextPage());
@@ -91,7 +95,7 @@ public class PostFacade {
     public PostResponse.Summaries getPostsByKeywordAndCursor(Long groupId, Long userId, String keyword, String cursor) {
         groupService.validateGroup(groupId);
         membershipService.validateMembership(groupId, userId);
-        PostResponse.Summaries summaries = postQueryService.getPostsByKeywordAndCursor(keyword, cursor);
+        PostResponse.Summaries summaries = postQueryService.getPostsByKeywordAndCursor(groupId, keyword, cursor);
         var resolvedSummaries = summaries.summaries().stream()
                 .map(summary -> new PostResponse.Summary(
                         summary.postId(),
@@ -100,7 +104,8 @@ public class PostFacade {
                         getImagePresignedUrl(summary.postFirstImageUrl()),
                         summary.rentalFee(),
                         summary.feeUnit(),
-                        summary.rentalStatus()
+                        summary.rentalStatus(),
+                        summary.updatedAt()
                 ))
                 .toList();
         return new PostResponse.Summaries(resolvedSummaries, summaries.nextCursor(), summaries.hasNextPage());
@@ -112,8 +117,10 @@ public class PostFacade {
         PostResponse.DetailCore core = postQueryService.getPostDetailCore(postId);
         boolean isSeller = core.sellerId().equals(membershipId);
 
+        MembershipProfile sellerMembershipProfile = membershipService.findMembershipProfile(core.sellerId());
+
         Long sellerUserId = membershipService.findUserIdByMembershipId(core.sellerId());
-        UserResponse.UserProfile sellerProfile = userService.findUserProfile(sellerUserId);
+        UserResponse.UserProfile sellerUserProfile = userService.findUserProfile(sellerUserId);
 
         Long chatroomId;
         Long activeChatroomCount;
@@ -140,8 +147,8 @@ public class PostFacade {
                 core.content(),
                 resolvedImageUrls,
                 core.sellerId(),
-                sellerProfile.nickname(),
-                sellerProfile.avatarImageUrl(),
+                sellerMembershipProfile.nickname(),
+                sellerUserProfile.avatarImageUrl(),
                 core.rentalFee(),
                 core.feeUnit(),
                 core.rentalStatus(),
@@ -150,6 +157,12 @@ public class PostFacade {
                 chatroomId,
                 activeChatroomCount
         );
+    }
+
+    public PostResponse.MySummaries getMyPostsByCursor(Long userId, String cursor) {
+        List<Long> membershipIds = membershipService.findMembershipIds(userId);
+
+        return postQueryService.getMyPostsByCursor(membershipIds, cursor);
     }
 
     private String getImagePresignedUrl(String imageKey) {

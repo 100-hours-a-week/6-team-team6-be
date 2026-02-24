@@ -24,7 +24,7 @@ public class ChatroomQueryService {
     private final CursorCodec cursorCodec;
 
     public long countChatroomsByPostId(Long postId) {
-        return chatroomRepository.countByPostId(postId);
+        return chatroomRepository.countByPostIdAndLastMessageIdIsNotNullAndDeletedAtIsNull(postId);
     }
 
     public Long findChatroomIdByPostIdAndBuyerId(Long postId, Long buyerId) {

@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 
 import java.security.Principal;
 
+import static ktb.billage.websocket.config.WebSocketDestinations.CHATROOM_TOPIC_PREFIX;
+
 @Component
 @RequiredArgsConstructor
 public class ChatroomSubscriptionInterceptor implements ChannelInterceptor {
-    private static final String CHATROOM_TOPIC_PREFIX = "/topic/chatrooms/";
-
     private final ChatWebSocketFacade chatWebSocketFacade;
 
     @Override

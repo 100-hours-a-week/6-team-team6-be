@@ -1,5 +1,6 @@
 package ktb.billage.domain.chat;
 
+import ktb.billage.domain.chat.dto.UnreadCountByChatroom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -94,4 +95,31 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     Long findUnreadMessageCountByChatroomAndMembership(@Param("chatroomId") Long chatroomId,
                                                        @Param("membershipId") Long membershipId,
                                                        @Param("isSeller") boolean isSeller);
+
+    @Query("""
+        select new ktb.billage.domain.chat.dto.UnreadCountByChatroom(
+            c.id,
+            count(msg.id)
+        )
+        from Chatroom c
+        join Post p on p.id = c.postId
+        left join ChatMessage msg on msg.chatroom.id = c.id
+          and msg.deletedAt is null
+          and msg.id <= c.lastMessageId
+          and (
+              (c.buyerId in :membershipIds
+               and msg.senderId = p.sellerId
+               and msg.id > coalesce(c.buyerLastReadMessageId, 0))
+              or
+              (p.sellerId in :membershipIds
+               and msg.senderId = c.buyerId
+               and msg.id > coalesce(c.sellerLastReadMessageId, 0))
+          )
+        where c.id in :chatroomIds
+          and c.deletedAt is null
+          and c.lastMessageId is not null
+        group by c.id
+    """)
+    List<UnreadCountByChatroom> findUnreadCountsByChatroomIdsAndMembershipIds(@Param("chatroomIds") List<Long> chatroomIds,
+                                                                               @Param("membershipIds") Set<Long> membershipIds);
 }

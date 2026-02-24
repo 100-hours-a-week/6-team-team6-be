@@ -27,7 +27,25 @@ public class PostResponse {
             String postFirstImageUrl,
             BigDecimal rentalFee,
             FeeUnit feeUnit,
-            RentalStatus rentalStatus
+            RentalStatus rentalStatus,
+            Instant updatedAt
+    ) {
+    }
+
+    public record MySummaries(
+            List<MySummary> summaries,
+            String nextCursor,
+            Boolean hasNextPage
+    ) {
+    }
+
+    public record MySummary(
+            Long postId,
+            String postTitle,
+            Long postImageId,
+            String postFirstImageUrl,
+            Instant updatedAt,
+            Long groupId
     ) {
     }
 
@@ -75,7 +93,8 @@ public class PostResponse {
             String title,
             String content,
             BigDecimal rentalFee,
-            String feeUnit
+            String feeUnit,
+            Boolean isRentable
     ) {
     }
 }

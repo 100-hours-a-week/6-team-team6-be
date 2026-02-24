@@ -1,6 +1,7 @@
 package ktb.billage.websocket;
 
 import ktb.billage.websocket.application.ChatWebSocketFacade;
+import ktb.billage.websocket.config.WebSocketDestinations;
 import ktb.billage.websocket.dto.ChatJoinAckResponse;
 import ktb.billage.websocket.dto.ChatJoinRequest;
 import ktb.billage.websocket.dto.ChatReadRequest;
@@ -8,8 +9,8 @@ import ktb.billage.websocket.dto.ChatSendAckResponse;
 import ktb.billage.websocket.dto.ChatSendRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
@@ -30,21 +31,21 @@ public class ChatWebSocketController {
         var participation = chatWebSocketFacade.joinChatroom(chatroomId, userId);
         ChatJoinAckResponse payload = new ChatJoinAckResponse(chatroomId, participation.membershipId());
 
-        messagingTemplate.convertAndSend("/topic/chatrooms/" + chatroomId, payload);
+        messagingTemplate.convertAndSend(WebSocketDestinations.CHATROOM_TOPIC_PREFIX + chatroomId, payload);
     }
 
     @MessageMapping("/chat/send")
     public void send(ChatSendRequest request, Principal principal) {
-        Long userId = parseUserId(principal);
+        Long sendUserId = parseUserId(principal);
         Long chatroomId = request.chatroomId();
-        Long membershipId = request.membershipId();
+        Long sendMembershipId = request.membershipId();
         String message = request.message();
         log.info("[WS /chat/send] userId={}, chatroomId={}, membershipId={}, messageLength={}",
-                userId, chatroomId, membershipId, message == null ? 0 : message.length());
+                sendUserId, chatroomId, sendMembershipId, message == null ? 0 : message.length());
 
-        ChatSendAckResponse ack = chatWebSocketFacade.sendMessage(chatroomId, userId, membershipId, message);
+        ChatSendAckResponse response = chatWebSocketFacade.sendMessage(chatroomId, sendUserId, sendMembershipId, message);
 
-        messagingTemplate.convertAndSend("/topic/chatrooms/" + chatroomId, ack);
+        messagingTemplate.convertAndSend(WebSocketDestinations.CHATROOM_TOPIC_PREFIX + chatroomId, response);
     }
 
     @MessageMapping("/chat/read")

@@ -6,9 +6,12 @@ import ktb.billage.domain.chat.service.ChatMessageQueryService;
 import ktb.billage.domain.chat.service.ChatroomCommandService;
 import ktb.billage.domain.chat.service.ChatroomQueryService;
 import ktb.billage.domain.membership.service.MembershipService;
+import ktb.billage.websocket.application.event.ChatInboxSendEvent;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,6 +24,7 @@ public class ChatWebSocketFacade {
     private final ChatroomCommandService chatroomCommandService;
     private final ChatMessageQueryService chatMessageQueryService;
     private final ChatMessageCommandService chatMessageCommandService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ChatResponse.ChatroomMembershipDto joinChatroom(Long chatroomId, Long userId) {
         chatroomQueryService.validateChatroom(chatroomId);
@@ -37,14 +41,22 @@ public class ChatWebSocketFacade {
         chatroomQueryService.validateParticipating(chatroomId, membershipIds);
     }
 
-    public ChatSendAckResponse sendMessage(Long chatroomId, Long userId, Long membershipId, String message) {
-        membershipService.validateMembershipOwner(userId, membershipId);
-        chatroomQueryService.validateParticipating(chatroomId, membershipId);
+    @Transactional
+    public ChatSendAckResponse sendMessage(Long chatroomId, Long sendUserId, Long sendMembershipId, String message) {
+        membershipService.validateMembershipOwner(sendUserId, sendMembershipId);
+        chatroomQueryService.validateParticipating(chatroomId, sendMembershipId);
+
+        Long receiveMembershipId = chatroomQueryService.findPartnerProfile(chatroomId, sendMembershipId).partnerId();
+        Long receiveUserId = membershipService.findUserIdByMembershipId(receiveMembershipId);
 
         Instant now = Instant.now();
-        Long messageId = chatMessageCommandService.sendMessage(chatroomId, membershipId, message, now);
+        Long messageId = chatMessageCommandService.sendMessage(chatroomId, sendMembershipId, message, now);
 
-        return new ChatSendAckResponse(chatroomId, membershipId, String.valueOf(messageId), message, now);
+        ChatSendAckResponse ack = new ChatSendAckResponse(chatroomId, sendMembershipId, String.valueOf(messageId), message, now);
+
+        eventPublisher.publishEvent(new ChatInboxSendEvent(receiveUserId, ack));
+
+        return ack;
     }
 
     public void readMessage(Long chatroomId, Long userId, Long membershipId, String readMessageId) {

@@ -2,6 +2,7 @@ package ktb.billage.domain.post.service;
 
 import ktb.billage.common.cursor.CursorCodec;
 import ktb.billage.common.exception.PostException;
+import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.post.PostImage;
 import ktb.billage.domain.post.PostImageRepository;
@@ -13,7 +14,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static ktb.billage.common.exception.ExceptionCode.IMAGE_NOT_FOUND;
 import static ktb.billage.common.exception.ExceptionCode.POST_NOT_FOUND;
@@ -27,16 +30,17 @@ public class PostQueryService {
 
     private final CursorCodec cursorCodec;
     private final PostQueryRepository postQueryRepository;
+    private final ImageService imageService;
 
-    public PostResponse.Summaries getPostsByCursor(String cursor) {
+    public PostResponse.Summaries getPostsByCursor(Long groupId, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
-        List<Post> posts = loadPosts(decoded);
+        List<Post> posts = loadPosts(groupId, decoded);
         return buildSummaries(posts);
     }
 
-    public PostResponse.Summaries getPostsByKeywordAndCursor(String keyword, String cursor) {
+    public PostResponse.Summaries getPostsByKeywordAndCursor(Long groupId, String keyword, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
-        List<Post> posts = loadPostsByKeyword(keyword, decoded);
+        List<Post> posts = loadPostsByKeyword(groupId, keyword, decoded);
         return buildSummaries(posts);
     }
 
@@ -69,14 +73,28 @@ public class PostQueryService {
         }
     }
 
+    public PostResponse.MySummaries getMyPostsByCursor(List<Long> membershipIds, String cursor) {
+        CursorCodec.Cursor decoded = decodeCursor(cursor);
+        List<PostResponse.MySummary> myPosts = loadMyPosts(membershipIds, decoded);
+        return buildMySummaries(myPosts);
+    }
+
     public String findPostFirstImageUrl(Long postId) {
         return postImageRepository.findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(postId)
                 .orElseThrow(() -> new PostException(IMAGE_NOT_FOUND))
                 .getImageUrl();
     }
 
+    public Map<Long, String> findPostFirstImageUrls(List<Long> postIds) {
+        Map<Long, String> firstImageUrls = new LinkedHashMap<>();
+        for (PostImage postImage : postImageRepository.findAllFirstImagesByPostIds(postIds)) {
+            firstImageUrls.put(postImage.getPost().getId(), postImage.getImageUrl());
+        }
+        return firstImageUrls;
+    }
+
     private Post findPost(Long postId) {
-        return postRepository.findById(postId)
+        return postRepository.findByIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new PostException(POST_NOT_FOUND));
     }
 
@@ -88,20 +106,45 @@ public class PostQueryService {
         return cursorCodec.decode(cursor);
     }
 
-    private List<Post> loadPosts(CursorCodec.Cursor decoded) {
-        if (decoded == null) {
-            return postRepository.findTop21ByDeletedAtIsNullOrderByUpdatedAtDescIdDesc();
+    private List<PostResponse.MySummary> loadMyPosts(List<Long> membershipIds, CursorCodec.Cursor cursor) {
+        if (cursor == null) {
+            return postRepository.findTop21ByMyPosts(membershipIds, PageRequest.of(0, 21));
         }
 
-        return postRepository.findNextPage(decoded.time(), decoded.id(), PageRequest.of(0, 21));
+        return postRepository.findNextMyPosts(membershipIds, cursor.time(), cursor.id(), PageRequest.of(0, 21));
     }
 
-    private List<Post> loadPostsByKeyword(String keyword, CursorCodec.Cursor decoded) {
+    private List<Post> loadPosts(Long groupId, CursorCodec.Cursor decoded) {
         if (decoded == null) {
-            return postRepository.findTop21ByDeletedAtIsNullAndTitleContainingOrderByUpdatedAtDescIdDesc(keyword);
+            return postRepository.findTop21ByGroupIdOrderByUpdatedAtDescIdDesc(groupId, PageRequest.of(0, 21));
         }
 
-        return postRepository.findNextPageByKeyword(keyword, decoded.time(), decoded.id(), PageRequest.of(0, 21));
+        return postRepository.findNextPage(groupId, decoded.time(), decoded.id(), PageRequest.of(0, 21));
+    }
+
+    private List<Post> loadPostsByKeyword(Long groupId, String keyword, CursorCodec.Cursor decoded) {
+        String fullTextKeyword = toBooleanModeKeyword(keyword);
+        if (decoded == null) {
+            return postRepository.findTop21ByGroupIdAndContainingKeywordOrderByUpdatedAtDescIdDesc(
+                    groupId,
+                    fullTextKeyword,
+                    PageRequest.of(0, 21)
+            );
+        }
+
+        return postRepository.findNextPageByKeyword(
+                groupId,
+                fullTextKeyword,
+                decoded.time(),
+                decoded.id(),
+                PageRequest.of(0, 21)
+        );
+    }
+
+    private String toBooleanModeKeyword(String keyword) {
+        String normalized = keyword.trim().replaceAll("\\s+", " ");
+
+        return "+\"" + normalized.replace("\"", "\\\"") + "\"";
     }
 
     private PostResponse.Summaries buildSummaries(List<Post> posts) {
@@ -115,10 +158,35 @@ public class PostQueryService {
         String nextCursor = null;
         if (hasNextPage) {
             Post last = pagePosts.getLast();
-            nextCursor = cursorCodec.encode(last.getCreatedAt(), last.getId());
+            nextCursor = cursorCodec.encode(last.getUpdatedAt(), last.getId());
         }
 
         return new PostResponse.Summaries(summaries, nextCursor, hasNextPage);
+    }
+
+    private PostResponse.MySummaries buildMySummaries(List<PostResponse.MySummary> posts) {
+        boolean hasNextPage = posts.size() > 20;
+        List<PostResponse.MySummary> pagePosts = hasNextPage ? posts.subList(0, 20) : posts;
+
+        String nextCursor = null;
+        if (hasNextPage) {
+            PostResponse.MySummary last = pagePosts.getLast();
+            nextCursor = cursorCodec.encode(last.updatedAt(), last.postId());
+        }
+
+        List<PostResponse.MySummary> results = pagePosts.stream()
+                .map(post ->
+                    new PostResponse.MySummary(
+                            post.postId(),
+                            post.postTitle(),
+                            post.postImageId(),
+                            imageService.resolveUrl(post.postFirstImageUrl()),
+                            post.updatedAt(),
+                            post.groupId()
+                    )
+                )
+                .toList();
+        return new PostResponse.MySummaries(results, nextCursor, hasNextPage);
     }
 
     private PostResponse.Summary toSummary(Post post) { // FIXME. 이미지 N + 1 문제 야기
@@ -133,7 +201,8 @@ public class PostQueryService {
                 firstImage.getImageUrl(),
                 post.getRentalFee(),
                 post.getFeeUnit(),
-                post.getRentalStatus()
+                post.getRentalStatus(),
+                post.getUpdatedAt()
         );
     }
 }

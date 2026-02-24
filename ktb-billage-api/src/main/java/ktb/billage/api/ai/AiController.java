@@ -1,6 +1,7 @@
 package ktb.billage.api.ai;
 
 import jakarta.validation.constraints.NotNull;
+import ktb.billage.apidoc.AiApiDoc;
 import ktb.billage.application.ai.AiFacade;
 import ktb.billage.domain.post.dto.PostResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/ai")
 @RequiredArgsConstructor
-public class AiController {
+public class AiController implements AiApiDoc {
     private final AiFacade aiFacade;
 
     @PostMapping(value = "/post-drafts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

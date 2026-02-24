@@ -1,84 +1,102 @@
 package ktb.billage.api.ai;
 
-import io.restassured.module.mockmvc.RestAssuredMockMvc;
+import io.restassured.RestAssured;
 import ktb.billage.common.exception.AiTimeoutException;
+import ktb.billage.common.exception.InternalException;
 import ktb.billage.domain.post.ai.AiPostDraftClient;
 import ktb.billage.domain.post.dto.PostResponse;
-import org.hamcrest.Matchers;
+import ktb.billage.domain.user.User;
+import ktb.billage.fixture.Fixtures;
+import ktb.billage.support.AcceptanceTest;
+import ktb.billage.support.AcceptanceTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.context.annotation.Import;
-import ktb.billage.web.common.exception.GlobalExceptionHandler;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static ktb.billage.common.exception.ExceptionCode.SERVER_ERROR;
 import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
+import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        properties = {
-                "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration," +
-                        "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration"
-        }
-)
-@Import(GlobalExceptionHandler.class)
-class AiAcceptanceTest {
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+@AcceptanceTest
+class AiAcceptanceTest extends AcceptanceTestSupport {
 
     @MockitoBean
     private AiPostDraftClient aiPostDraftClient;
 
+    @Autowired
+    private Fixtures fixtures;
+
+    private User user;
+    private String accessToken;
+
     @BeforeEach
     void setUp() {
-        RestAssuredMockMvc.webAppContextSetup(webApplicationContext);
+        user = fixtures.유저_생성();
+        accessToken = fixtures.토큰_생성(user);
     }
 
     @Test
-    @DisplayName("AI 게시글 초안 생성 요청이 정상 응답을 반환한다")
+    @DisplayName("AI 게시글 초안 생성 요청 시나리오 테스트 성공")
     void makePostDraftByAi_success() {
-        PostResponse.PostDraft draft = new PostResponse.PostDraft(
-                "드릴 대여",
-                "생활용 드릴입니다.",
-                new BigDecimal("5000"),
-                "DAY"
-        );
-        given(aiPostDraftClient.requestPostDraft(anyList())).willReturn(draft);
+        given(aiPostDraftClient.requestPostDraft(anyList()))
+                .willReturn(new PostResponse.PostDraft(
+                        "AI 추천 제목",
+                        "AI 추천 내용",
+                        BigDecimal.ZERO,
+                        "HOUR",
+                        true
+                ));
 
-        given()
+        RestAssured.given()
+                .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
                 .multiPart("image", "image-1.jpg", "dummy".getBytes(StandardCharsets.UTF_8), "image/jpeg")
                 .when()
                 .post("/ai/post-drafts")
                 .then()
                 .statusCode(200)
-                .body("title", Matchers.equalTo("드릴 대여"))
-                .body("content", Matchers.equalTo("생활용 드릴입니다."))
-                .body("rentalFee", Matchers.equalTo(5000))
-                .body("feeUnit", Matchers.equalTo("DAY"));
+                .body("title", equalTo("AI 추천 제목"))
+                .body("content", equalTo("AI 추천 내용"))
+                .body("rentalFee", equalTo(0))
+                .body("feeUnit", equalTo("HOUR"))
+                .body("isRentable", equalTo(true));
     }
 
-//    @Test
-//    @DisplayName("AI 게시글 초안 생성 요청이 타임아웃으로 실패한다")
-//    void makePostDraftByAi_timeout() {
-//        given(aiPostDraftClient.requestPostDraft(anyList()))
-//                .willThrow(new AiTimeoutException(TIME_OUT));
-//
-//        given()
-//                .multiPart("images", "image-1.jpg", "dummy".getBytes(StandardCharsets.UTF_8), "image/jpeg")
-//                .when()
-//                .post("/ai/post-drafts")
-//                .then()
-//                .statusCode(504)
-//                .body("code", Matchers.equalTo("SERVER03"));
-//    }
+    @Test
+    @DisplayName("AI 게시글 초안 생성 요청 시나리오 테스트 실패 - 시간 초과")
+    void makePostDraftByAi_timeout() {
+        given(aiPostDraftClient.requestPostDraft(anyList()))
+                .willThrow(new AiTimeoutException(TIME_OUT));
+
+        RestAssured.given()
+                .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                .multiPart("image", "image-1.jpg", "dummy".getBytes(StandardCharsets.UTF_8), "image/jpeg")
+                .when()
+                .post("/ai/post-drafts")
+                .then()
+                .statusCode(504)
+                .body("code", equalTo("SERVER03"));
+    }
+
+    @Test
+    @DisplayName("AI 게시글 초안 생성 요청 시나리오 테스트 실패 - ai 서버의 실패")
+    void makePostDraftByAi_error() {
+        given(aiPostDraftClient.requestPostDraft(anyList()))
+                .willThrow(new InternalException(SERVER_ERROR));
+
+        RestAssured.given()
+                .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                .multiPart("image", "image-1.jpg", "dummy".getBytes(StandardCharsets.UTF_8), "image/jpeg")
+                .when()
+                .post("/ai/post-drafts")
+                .then()
+                .statusCode(500)
+                .body("code", equalTo("SERVER01"));
+    }
 }

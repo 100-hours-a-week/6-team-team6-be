@@ -1,0 +1,25 @@
+spring:
+  flyway:
+    enabled: true
+
+  servlet:
+    multipart:
+      max-file-size: 10MB      # 파일 1개 최대 크기
+      max-request-size: 30MB   # multipart/form-data 요청 전체(여러 파일 + 폼필드 포함) 최대 크기
+
+jwt:
+  secret-key: secretsecretsecretsecretsecretsecretsecretsecretsecretsecret
+  access-duration: 180000
+  refresh-duration: 3600000
+
+cors:
+  allowed:
+    origin: "*"
+
+ai:
+  base-url: localhost:9999
+  timeout-seconds: 5
+
+app:
+  cookie:
+    secure: false
