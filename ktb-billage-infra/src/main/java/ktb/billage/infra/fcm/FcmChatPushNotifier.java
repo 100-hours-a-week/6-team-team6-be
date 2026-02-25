@@ -14,7 +14,6 @@ import ktb.billage.websocket.application.port.ChatPushNotifier;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -22,7 +21,6 @@ import java.util.List;
 
 @Slf4j
 @Component
-@ConditionalOnBean(FirebaseMessaging.class)
 @RequiredArgsConstructor
 public class FcmChatPushNotifier implements ChatPushNotifier {
     private static final String DATA_TYPE_MESSAGE = "CHAT_MESSAGE";
@@ -36,6 +34,7 @@ public class FcmChatPushNotifier implements ChatPushNotifier {
     public void sendPush(Long receiveUserId, ChatSendAckResponse ack) {
         List<String> tokens = userPushTokenService.findTokensByUserId(receiveUserId);
         if (tokens.isEmpty()) {
+            log.info("FCM push skipped. receiveUserId={}, no tokens found", receiveUserId);
             return;
         }
 

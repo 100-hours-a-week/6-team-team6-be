@@ -5,7 +5,6 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +15,6 @@ import java.util.Base64;
 
 @Slf4j
 @Configuration
-@ConditionalOnProperty(name = {"fcm.json_base64", "fcm.project_id"})
 public class FcmConfig {
     private final byte[] firebaseResource;
     private final String projectId;

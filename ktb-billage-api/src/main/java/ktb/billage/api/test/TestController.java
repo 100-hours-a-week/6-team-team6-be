@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Instant;
 
 @Slf4j
-@Profile("dev")
+@Profile({"local", "dev"})
 @RestController
 @RequestMapping("/test")
 @RequiredArgsConstructor
