@@ -15,6 +15,7 @@ import static ktb.billage.common.exception.ExceptionCode.UNSUPPORTED_IMAGE_TYPE;
 public class ImageService {
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of("image/png", "image/jpeg");
     private static final String GROUP_DEFAULT_COVER_RPEFIX = "/group-cover-images";
+    private static final String DEFAULT_AVATAR_URL = "images/default-avatar.png";
 
     private final ImageStorage imageStorage;
     private final DataSize maxImageSize;
@@ -43,6 +44,10 @@ public class ImageService {
         }
 
         return imageStorage.resolveUrl(imageKey);
+    }
+
+    public String resolveDefaultAvatarUrl() {
+        return imageStorage.resolveUrl(DEFAULT_AVATAR_URL);
     }
 
     public void delete(String imageUrl) {
