@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
     public ErrorResponse handleMaxUploadSizeExceededException() {
         return new ErrorResponse(IMAGE_SIZE_LIMIT.getCode());
     }
