@@ -85,6 +85,6 @@ app:
 
 logging:
   level:
-    root: TRACE
+    root: INFO
     org.springframework.web.socket.config.WebSocketMessageBrokerStats: WARN
     org.springframework.boot.context.config: TRACE

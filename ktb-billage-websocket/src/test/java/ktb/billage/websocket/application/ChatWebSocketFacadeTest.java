@@ -5,10 +5,11 @@ import ktb.billage.domain.chat.service.ChatMessageCommandService;
 import ktb.billage.domain.chat.service.ChatMessageQueryService;
 import ktb.billage.domain.chat.service.ChatroomCommandService;
 import ktb.billage.domain.chat.service.ChatroomQueryService;
+import ktb.billage.domain.group.dto.GroupResponse;
+import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.websocket.application.event.ChatInboxSendEvent;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
-import ktb.billage.websocket.dto.ChatSendResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,10 +34,7 @@ class ChatWebSocketFacadeTest {
     private ChatroomQueryService chatroomQueryService;
 
     @Mock
-    private ChatroomCommandService chatroomCommandService;
-
-    @Mock
-    private ChatMessageQueryService chatMessageQueryService;
+    private GroupService groupService;
 
     @Mock
     private ChatMessageCommandService chatMessageCommandService;
@@ -62,6 +60,7 @@ class ChatWebSocketFacadeTest {
                 .thenReturn(receiveUserId);
         when(chatMessageCommandService.sendMessage(eq(chatroomId), eq(sendMembershipId), eq(message), any(Instant.class)))
                 .thenReturn(999L);
+        when(groupService.findGroupProfileByMembershipId(sendMembershipId)).thenReturn(new GroupResponse.GroupProfile(888L, "test group", "group-cover.url"));
 
         ChatSendAckResponse ack = chatWebSocketFacade.sendMessage(chatroomId, sendUserId, sendMembershipId, message);
 

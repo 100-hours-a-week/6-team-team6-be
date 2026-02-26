@@ -45,7 +45,8 @@ public class TestController {
                 membershipService.findMembershipIds(userId).getFirst(),
                 "test",
                 "목 데이터 웹 푸시 테스트",
-                Instant.now()
+                Instant.now(),
+                "test group"
         );
 
         log.info("[WEB PUSH TEST] Controller --- user id: {}", userId);

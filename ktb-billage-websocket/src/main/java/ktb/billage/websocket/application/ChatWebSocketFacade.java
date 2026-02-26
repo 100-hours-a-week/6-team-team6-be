@@ -5,6 +5,8 @@ import ktb.billage.domain.chat.service.ChatMessageCommandService;
 import ktb.billage.domain.chat.service.ChatMessageQueryService;
 import ktb.billage.domain.chat.service.ChatroomCommandService;
 import ktb.billage.domain.chat.service.ChatroomQueryService;
+import ktb.billage.domain.group.dto.GroupResponse;
+import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.websocket.application.event.ChatInboxSendEvent;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
@@ -19,6 +21,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ChatWebSocketFacade {
+    private final GroupService groupService;
     private final MembershipService membershipService;
     private final ChatroomQueryService chatroomQueryService;
     private final ChatroomCommandService chatroomCommandService;
@@ -49,10 +52,12 @@ public class ChatWebSocketFacade {
         Long receiveMembershipId = chatroomQueryService.findPartnerProfile(chatroomId, sendMembershipId).partnerId();
         Long receiveUserId = membershipService.findUserIdByMembershipId(receiveMembershipId);
 
+        GroupResponse.GroupProfile groupProfile = groupService.findGroupProfileByMembershipId(sendMembershipId);
+
         Instant now = Instant.now();
         Long messageId = chatMessageCommandService.sendMessage(chatroomId, sendMembershipId, message, now);
 
-        ChatSendAckResponse ack = new ChatSendAckResponse(chatroomId, sendMembershipId, String.valueOf(messageId), message, now);
+        ChatSendAckResponse ack = new ChatSendAckResponse(chatroomId, sendMembershipId, String.valueOf(messageId), message, now, groupProfile.groupName());
 
         eventPublisher.publishEvent(new ChatInboxSendEvent(receiveUserId, ack));
 

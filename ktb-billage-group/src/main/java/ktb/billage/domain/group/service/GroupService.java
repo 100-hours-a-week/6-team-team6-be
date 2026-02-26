@@ -103,6 +103,16 @@ public class GroupService {
         );
     }
 
+    public GroupResponse.GroupProfile findGroupProfileByMembershipId(Long membershipId) {
+        return groupRepository.findByMembershipId(membershipId)
+                .map(group -> new GroupResponse.GroupProfile(
+                        group.getId(),
+                        group.getName(),
+                        group.getGroupCoverImageUrl()
+                ))
+                .orElseThrow(() -> new GroupException(GROUP_NOT_FOUND));
+    }
+
     private Group findGroup(Long groupId) {
         return groupRepository.findByIdAndDeletedAtIsNull(groupId)
                 .orElseThrow(() -> new GroupException(GROUP_NOT_FOUND));
