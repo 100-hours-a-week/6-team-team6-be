@@ -1,6 +1,11 @@
 package ktb.billage.application.post;
 
+import ktb.billage.application.post.event.PostCreateEvent;
+import ktb.billage.application.post.event.PostDeleteEvent;
+import ktb.billage.application.post.event.PostUpdateEvent;
+import ktb.billage.application.post.event.PostUpsertPayload;
 import ktb.billage.common.image.ImageService;
+import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.post.RentalStatus;
 import ktb.billage.domain.post.dto.PostRequest;
@@ -13,6 +18,7 @@ import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.user.dto.UserResponse;
 import ktb.billage.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,12 +34,14 @@ public class PostFacade {
     private final MembershipService membershipService;
     private final ChatroomQueryService chatroomQueryService;
     private final UserService userService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public PostResponse.Id create(Long groupId, Long userId, PostRequest.Create request) {
-        groupService.validateGroup(groupId);
+        GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
-        return postCommandService.create(
+
+        PostResponse.Id response = postCommandService.create(
                 membershipId,
                 request.title(),
                 request.content(),
@@ -41,13 +49,25 @@ public class PostFacade {
                 request.rentalFee(),
                 request.feeUnit()
         );
+
+        var payload = new PostUpsertPayload(
+                membershipId,
+                groupProfile.groupId(),
+                response.postId(),
+                request.imageUrls().getFirst(),
+                request.title(),
+                request.rentalFee(),
+                request.feeUnit().name()
+        );
+        eventPublisher.publishEvent(new PostCreateEvent(payload));
+        return response;
     }
 
     @Transactional
     public PostResponse.Id update(Long groupId, Long postId, Long userId, PostRequest.Update request) {
-        groupService.validateGroup(groupId);
+        GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
-        return postCommandService.update(
+        PostResponse.Id response = postCommandService.update(
                 postId,
                 membershipId,
                 request.title(),
@@ -56,6 +76,18 @@ public class PostFacade {
                 request.rentalFee(),
                 request.feeUnit()
         );
+
+        var payload = new PostUpsertPayload(
+                membershipId,
+                groupProfile.groupId(),
+                response.postId(),
+                request.imageUrls().getFirst().imageUrl(),
+                request.title(),
+                request.rentalFee(),
+                request.feeUnit().name()
+        );
+        eventPublisher.publishEvent(new PostUpdateEvent(payload));
+        return response;
     }
 
     @Transactional
@@ -70,6 +102,8 @@ public class PostFacade {
         groupService.validateGroup(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
         postCommandService.delete(postId, membershipId);
+
+        eventPublisher.publishEvent(new PostDeleteEvent(postId));
     }
 
     public PostResponse.Summaries getPostsByCursor(Long groupId, Long userId, String cursor) {

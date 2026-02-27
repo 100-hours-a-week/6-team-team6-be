@@ -1,104 +1,64 @@
 package ktb.billage.infra.fcm;
 
-import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.MessagingErrorCode;
-import com.google.firebase.messaging.MulticastMessage;
-import com.google.firebase.messaging.SendResponse;
+import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.user.service.UserPushTokenService;
-import ktb.billage.infra.fcm.dto.FcmDataPayload;
 import ktb.billage.websocket.application.port.ChatPushNotifier;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-@Slf4j
 @Component
-@ConditionalOnBean(FirebaseMessaging.class)
-@RequiredArgsConstructor
-public class FcmChatPushNotifier implements ChatPushNotifier {
-    private static final String DATA_TYPE_MESSAGE = "CHAT_MESSAGE";
+public class FcmChatPushNotifier extends FcmPush<ChatSendAckResponse> implements ChatPushNotifier {
+    private static final String CHAT_TYPE_MESSAGE = "CHAT_MESSAGE";
+    private static final String CHATROOM_PATH_PREFIX = "/chat";
 
-    private final UserPushTokenService userPushTokenService;
     private final MembershipService membershipService;
+    private final ImageService imageService;
 
-    private final FirebaseMessaging firebaseMessaging;
+    @Value("${app.push.base-url:}")
+    private String pushBaseUrl;
+
+    public FcmChatPushNotifier(UserPushTokenService userPushTokenService,
+                               MembershipService membershipService,
+                               FirebaseMessaging firebaseMessaging,
+                               ImageService imageService) {
+        super(userPushTokenService, firebaseMessaging);
+        this.membershipService = membershipService;
+        this.imageService = imageService;
+    }
 
     @Override
     public void sendPush(Long receiveUserId, ChatSendAckResponse ack) {
-        List<String> tokens = userPushTokenService.findTokensByUserId(receiveUserId);
-        if (tokens.isEmpty()) {
-            return;
-        }
+        send(receiveUserId, ack);
+    }
 
-        log.info("FCM push requested. receiveUserId={}, chatroomId={}, messageId={}",
-                receiveUserId, ack.chatroomId(), ack.messageId());
-
+    @Override
+    protected Map<String, String> buildData(ChatSendAckResponse ack) {
         MembershipProfile sender = membershipService.findMembershipProfile(ack.membershipId());
 
-        FcmDataPayload dataPayload = new FcmDataPayload(
-                ack.chatroomId(),
-                ack.messageId(),
-                ack.membershipId()
-        );
-
-        MulticastMessage message = MulticastMessage.builder()
-                .addAllTokens(tokens)
-                .putData("type", DATA_TYPE_MESSAGE)
-                .putData("title", sender.nickname())
-                .putData("body", ack.messageContent())
-                .putData("chatroomId", String.valueOf(dataPayload.chatroomId()))
-                .putData("messageId", dataPayload.messageId())
-                .putData("membershipId", String.valueOf(dataPayload.membershipId()))
-                .build();
-
-        try {
-            BatchResponse response = firebaseMessaging.sendEachForMulticast(message);
-            cleanupInvalidTokens(tokens, response);
-            log.info("FCM push sent. receiveUserId={}, tokenCount={}, successCount={}, failureCount={}, createdAt={}",
-                    receiveUserId,
-                    tokens.size(),
-                    response.getSuccessCount(),
-                    response.getFailureCount(),
-                    ack.createdAt());
-        } catch (FirebaseMessagingException e) {
-            log.error("FCM push failed. receiveUserId={}, chatroomId={}, messageId={}",
-                    receiveUserId, ack.chatroomId(), ack.messageId(), e);
-        }
+        Map<String, String> data = new LinkedHashMap<>();
+        data.put(KEY_TYPE, CHAT_TYPE_MESSAGE);
+        data.put(KEY_CREATED_AT, String.valueOf(ack.createdAt()));
+        data.put(KEY_TITLE, APP_NAME);
+        data.put(KEY_BODY, ack.messageContent());
+        data.put(KEY_SUBTITLE, sender.nickname());
+        data.put(KEY_IMAGE_URL, imageService.resolveDefaultAvatarUrl());
+        data.put(KEY_TARGET_URL, buildTargetUrl(ack));
+        return data;
     }
 
-    private void cleanupInvalidTokens(List<String> tokens, BatchResponse response) {
-        List<String> invalidTokens = extractInvalidTokens(tokens, response.getResponses());
-        if (invalidTokens.isEmpty()) {
-            return;
-        }
-
-        userPushTokenService.deleteInvalidTokens(invalidTokens);
-        log.info("FCM invalid tokens removed. count={}", invalidTokens.size());
+    @Override
+    protected String logContext(ChatSendAckResponse ack) {
+        return "chatroomId=" + ack.chatroomId() + ", messageId=" + ack.messageId() + ", membershipId=" + ack.membershipId();
     }
 
-    private List<String> extractInvalidTokens(List<String> tokens, List<SendResponse> responses) {
-        List<String> invalidTokens = new ArrayList<>();
-
-        for (int i = 0; i < responses.size(); i++) {
-            SendResponse sendResponse = responses.get(i);
-            if (sendResponse.isSuccessful() || sendResponse.getException() == null) {
-                continue;
-            }
-
-            MessagingErrorCode errorCode = sendResponse.getException().getMessagingErrorCode();
-            if (errorCode == MessagingErrorCode.UNREGISTERED || errorCode == MessagingErrorCode.INVALID_ARGUMENT) {
-                invalidTokens.add(tokens.get(i));
-            }
-        }
-        return invalidTokens;
+    private String buildTargetUrl(ChatSendAckResponse ack) {
+        return String.format("%s/%s", CHATROOM_PATH_PREFIX, ack.chatroomId());
     }
 }

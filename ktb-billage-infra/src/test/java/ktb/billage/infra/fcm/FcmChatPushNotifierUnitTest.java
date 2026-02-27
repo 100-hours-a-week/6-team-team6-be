@@ -6,6 +6,7 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.MulticastMessage;
 import com.google.firebase.messaging.SendResponse;
+import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.user.service.UserPushTokenService;
@@ -40,6 +41,8 @@ class FcmChatPushNotifierUnitTest {
     private MembershipService membershipService;
     @Mock
     private FirebaseMessaging firebaseMessaging;
+    @Mock
+    private ImageService imageService;
 
     @InjectMocks
     private FcmChatPushNotifier fcmChatPushNotifier;
@@ -61,6 +64,7 @@ class FcmChatPushNotifierUnitTest {
         when(userPushTokenService.findTokensByUserId(10L)).thenReturn(List.of("t1", "t2"));
         when(membershipService.findMembershipProfile(31L))
                 .thenReturn(new MembershipProfile(31L, 11L, 21L, "sender-nick"));
+        when(imageService.resolveDefaultAvatarUrl()).thenReturn("default-avatar-url");
 
         BatchResponse response = mock(BatchResponse.class);
         SendResponse sendResponse = mock(SendResponse.class);
@@ -80,11 +84,8 @@ class FcmChatPushNotifierUnitTest {
 
         Map<String, String> data = readField(actual, "data", Map.class);
         assertEquals("CHAT_MESSAGE", data.get("type"));
-        assertEquals("sender-nick", data.get("title"));
+        assertEquals("Billages", data.get("title"));
         assertEquals("hello", data.get("body"));
-        assertEquals("21", data.get("chatroomId"));
-        assertEquals("m-1", data.get("messageId"));
-        assertEquals("31", data.get("membershipId"));
     }
 
     @Test
@@ -94,6 +95,7 @@ class FcmChatPushNotifierUnitTest {
         when(userPushTokenService.findTokensByUserId(10L)).thenReturn(tokens);
         when(membershipService.findMembershipProfile(31L))
                 .thenReturn(new MembershipProfile(31L, 11L, 21L, "sender-nick"));
+        when(imageService.resolveDefaultAvatarUrl()).thenReturn("default-avatar-url");
 
         SendResponse ok = mock(SendResponse.class);
         when(ok.isSuccessful()).thenReturn(true);
@@ -118,6 +120,7 @@ class FcmChatPushNotifierUnitTest {
         when(userPushTokenService.findTokensByUserId(10L)).thenReturn(List.of("retry-token"));
         when(membershipService.findMembershipProfile(31L))
                 .thenReturn(new MembershipProfile(31L, 11L, 21L, "sender-nick"));
+        when(imageService.resolveDefaultAvatarUrl()).thenReturn("default-avatar-url");
 
         SendResponse unavailable = failedResponse(MessagingErrorCode.UNAVAILABLE);
         BatchResponse response = mock(BatchResponse.class);
@@ -138,6 +141,7 @@ class FcmChatPushNotifierUnitTest {
                 .thenReturn(new MembershipProfile(31L, 11L, 21L, "sender-nick"));
         when(firebaseMessaging.sendEachForMulticast(any(MulticastMessage.class)))
                 .thenThrow(mock(FirebaseMessagingException.class));
+        when(imageService.resolveDefaultAvatarUrl()).thenReturn("default-avatar-url");
 
         assertDoesNotThrow(() -> fcmChatPushNotifier.sendPush(10L, ack()));
     }
@@ -148,7 +152,8 @@ class FcmChatPushNotifierUnitTest {
                 31L,
                 "m-1",
                 "hello",
-                Instant.parse("2026-02-17T12:34:56Z")
+                Instant.parse("2026-02-17T12:34:56Z"),
+                "test group"
         );
     }
 

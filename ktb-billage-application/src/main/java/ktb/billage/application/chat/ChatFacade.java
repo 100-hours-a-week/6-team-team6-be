@@ -1,7 +1,10 @@
 package ktb.billage.application.chat;
 
+import ktb.billage.common.exception.ChatException;
+import ktb.billage.common.exception.GroupException;
 import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.chat.dto.ChatResponse;
+import ktb.billage.domain.chat.dto.PartnerProfile;
 import ktb.billage.domain.chat.service.ChatMessageQueryService;
 import ktb.billage.domain.chat.service.ChatroomCommandService;
 import ktb.billage.domain.chat.service.ChatroomQueryService;
@@ -9,7 +12,7 @@ import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.membership.service.MembershipService;
-import ktb.billage.domain.post.dto.PostResponse;
+import ktb.billage.domain.post.dto.PostSummaryInChatroom;
 import ktb.billage.domain.post.service.PostQueryService;
 import ktb.billage.domain.user.dto.UserResponse;
 import ktb.billage.domain.user.service.UserService;
@@ -21,6 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static ktb.billage.common.exception.ExceptionCode.CHATROOM_NOT_FOUND;
+import static ktb.billage.common.exception.ExceptionCode.NOT_GROUP_MEMBER;
 
 @Service
 @RequiredArgsConstructor
@@ -47,26 +53,30 @@ public class ChatFacade {
     }
 
     public ChatResponse.Messages getMessagesByCursor(Long postId, Long chatroomId, Long userId, String cursor) {
-        postQueryService.validatePost(postId);
-        Long sellerMembershipId = postQueryService.findSellerIdByPostId(postId);
+        chatroomQueryService.validateChatroomWithMessage(chatroomId);
+        Long actualPostId = chatroomQueryService.findPostIdByChatroomId(chatroomId);
+        if (!actualPostId.equals(postId)) {
+            throw new ChatException(CHATROOM_NOT_FOUND);
+        }
 
-        Long groupId = membershipService.findGroupIdByMembershipId(sellerMembershipId);
-        groupService.validateGroup(groupId);
+        List<Long> membershipIds = membershipService.findMembershipIds(userId);
+        if (membershipIds.isEmpty()) {
+            throw new GroupException(NOT_GROUP_MEMBER);
+        }
 
-        Long requestorMembershipId = membershipService.findMembershipId(groupId, userId);
-
-        chatroomQueryService.validateChatroom(chatroomId);
-        chatroomQueryService.validateParticipating(chatroomId, requestorMembershipId);
+        chatroomQueryService.validateParticipating(chatroomId, membershipIds);
+        Long requestorMembershipId = chatroomQueryService.findParticipation(chatroomId, membershipIds).membershipId();
         return chatMessageQueryService.getMessagesByCursor(chatroomId, requestorMembershipId, cursor);
     }
 
     @Transactional
     public ChatResponse.ChatroomSummaries getChatroomsByMyPostId(Long postId, Long userId, String cursor) {
 
-        postQueryService.validatePost(postId);
+        postQueryService.validatePostIncludingDeleted(postId);
         String postFirstImageUrl = postQueryService.findPostFirstImageUrl(postId);
 
         Long sellerMembershipId = postQueryService.findSellerIdByPostId(postId);
+        membershipService.validateNotLeave(sellerMembershipId);
         membershipService.validateMembershipOwner(userId, sellerMembershipId);
 
         Long groupId = membershipService.findGroupIdByMembershipId(sellerMembershipId);
@@ -171,8 +181,8 @@ public class ChatFacade {
     }
 
     public ChatResponse.PostSummary getPostSummaryInChatroom(Long postId, Long chatroomId, Long userId) {
-        postQueryService.validatePost(postId);
-        PostResponse.DetailCore postDetailCore = postQueryService.getPostDetailCore(postId);
+        postQueryService.validatePostIncludingDeleted(postId);
+        PostSummaryInChatroom postDto = postQueryService.getPostSummaryInChatroom(postId);
 
         Long sellerMembershipId = postQueryService.findSellerIdByPostId(postId);
 
@@ -181,29 +191,31 @@ public class ChatFacade {
 
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
 
-        chatroomQueryService.validateChatroom(chatroomId);
+        chatroomQueryService.validateChatroomWithMessage(chatroomId);
         ChatResponse.ChatroomMembershipDto participation = chatroomQueryService.findParticipation(chatroomId, membershipIds);
 
-        ChatResponse.PartnerProfile partnerProfile = chatroomQueryService.findPartnerProfile(chatroomId, participation.membershipId());
+        PartnerProfile partnerProfile = chatroomQueryService.findPartnerProfile(chatroomId, participation.membershipId());
 
         return new ChatResponse.PostSummary(
                 partnerProfile.partnerId(),
                 partnerProfile.nickname(),
+                partnerProfile.isLeftGroup(),
                 groupId,
                 groupProfile.groupName(),
                 postId,
-                postDetailCore.title(),
-                getImagePresignedUrl(postDetailCore.imageUrls().imageInfos().getFirst().imageUrl()),
-                postDetailCore.rentalFee(),
-                postDetailCore.feeUnit().name(),
-                postDetailCore.rentalStatus().name()
+                postDto.title(),
+                getImagePresignedUrl(postDto.firstImageUrl()),
+                postDto.rentalFee(),
+                postDto.feeUnit(),
+                postDto.rentalStatus(),
+                postDto.isDeleted()
         );
     }
 
     public Long getPostIdByChatroomId(Long chatroomId, Long userId) {
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
 
-        chatroomQueryService.validateChatroom(chatroomId);
+        chatroomQueryService.validateChatroomWithMessage(chatroomId);
         chatroomQueryService.validateParticipating(chatroomId, membershipIds);
 
         Long postId = chatroomQueryService.findPostIdByChatroomId(chatroomId);

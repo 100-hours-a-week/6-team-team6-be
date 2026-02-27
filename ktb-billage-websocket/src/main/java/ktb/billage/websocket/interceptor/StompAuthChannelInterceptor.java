@@ -29,15 +29,14 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             return message;
         }
 
-        String token = resolveAuthHeader(accessor);
-        if (token == null) {
-            throw new AuthException(WS_AUTH_TOKEN_NOT_FOUND);
-        }
-
-        String userId = tokenParser.parseId(token);
-
         StompCommand command = accessor.getCommand();
         if (command == StompCommand.CONNECT) {
+            String token = resolveAuthHeader(accessor);
+            if (token == null) {
+                throw new AuthException(WS_AUTH_TOKEN_NOT_FOUND);
+            }
+            String userId = tokenParser.parseId(token);
+
             if (accessor.getUser() != null) {
                 throw new AuthException(WS_ALREADY_CONNECTED);
             }
@@ -45,9 +44,21 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             return message;
         }
 
-        if (accessor.getUser() == null) {
-            accessor.setUser(new StompPrincipal(userId));
+        if (command == StompCommand.DISCONNECT) {
+            return message;
         }
+
+        if (accessor.getUser() != null) {
+            return message;
+        }
+
+        String token = resolveAuthHeader(accessor);
+        if (token == null) {
+            throw new AuthException(WS_AUTH_TOKEN_NOT_FOUND);
+        }
+        String userId = tokenParser.parseId(token);
+        accessor.setUser(new StompPrincipal(userId));
+
         return message;
     }
 

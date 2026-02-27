@@ -39,4 +39,14 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
           and m.deletedAt is null
     """)
     List<Group> findAllByUserId(@Param("userId") Long userId);
+
+    @Query("""
+        select g
+        from Group g
+        join Membership m on m.groupId = g.id
+        where m.id = :membershipId
+          and m.deletedAt is null
+          and g.deletedAt is null
+    """)
+    Optional<Group> findByMembershipId(@Param("membershipId") Long membershipId);
 }

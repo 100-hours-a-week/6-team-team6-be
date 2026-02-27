@@ -219,4 +219,15 @@ public class Fixtures {
 
         return message;
     }
+
+    public ChatMessage 채팅_전송(Long chatroomId, Membership senderMembership) {
+        Chatroom chatroom = chatroomRepository.findById(chatroomId)
+                .orElseThrow(() -> new IllegalArgumentException("Chatroom not found"));
+
+        ChatMessage message = chatMessageRepository.save(new ChatMessage(senderMembership.getId(), chatroom, "message", Instant.now()));
+        chatroom.sendMessage(message.getId(), senderMembership.getId(), Instant.now());
+        chatroomRepository.save(chatroom);
+
+        return message;
+    }
 }

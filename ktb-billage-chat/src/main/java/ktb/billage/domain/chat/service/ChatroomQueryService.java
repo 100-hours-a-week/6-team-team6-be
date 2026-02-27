@@ -5,6 +5,7 @@ import ktb.billage.common.exception.ChatException;
 import ktb.billage.domain.chat.Chatroom;
 import ktb.billage.domain.chat.ChatroomRepository;
 import ktb.billage.domain.chat.dto.ChatResponse;
+import ktb.billage.domain.chat.dto.PartnerProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -100,12 +101,17 @@ public class ChatroomQueryService {
                 .orElseThrow(() -> new ChatException(CHATROOM_NOT_PARTICIPATE));
     }
 
-    public void validateChatroom(Long chatroomId) {
+    public void validateChatroomWithMessage(Long chatroomId) {
+        chatroomRepository.findByIdAndLastMessageIdIsNotNull(chatroomId)
+                .orElseThrow(() -> new ChatException(CHATROOM_NOT_FOUND));
+    }
+
+    public void validateChatroomExists(Long chatroomId) {
         chatroomRepository.findById(chatroomId)
                 .orElseThrow(() -> new ChatException(CHATROOM_NOT_FOUND));
     }
 
-    public ChatResponse.PartnerProfile findPartnerProfile(Long chatroomId, Long myMembershipId) {
+    public PartnerProfile findPartnerProfile(Long chatroomId, Long myMembershipId) {
         return chatroomRepository.findPartnerProfile(chatroomId, myMembershipId);
     }
 
