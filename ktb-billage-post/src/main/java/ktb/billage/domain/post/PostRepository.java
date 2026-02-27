@@ -1,6 +1,7 @@
 package ktb.billage.domain.post;
 
 import ktb.billage.domain.post.dto.PostResponse;
+import ktb.billage.domain.post.dto.PostSummaryInChatroom;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<Post> findByIdAndDeletedAtIsNull(Long postId);
+    Boolean existsByIdAndDeletedAtIsNull(Long postId);
 
     @Query("""
             select p from Post p
@@ -127,4 +129,22 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                                  @Param("cursorTime") Instant cursorTime,
                                                  @Param("cursorId") Long cursorId,
                                                  Pageable pageable);
+
+    @Query("""
+        select new ktb.billage.domain.post.dto.PostSummaryInChatroom(
+            p.title,
+            pi.imageUrl,
+            p.rentalFee,
+            cast(p.feeUnit as string),
+            cast(p.rentalStatus as string),
+            case when p.deletedAt is not null then true else false end
+        )
+        from Post p
+        left join PostImage pi
+          on pi.post = p
+         and pi.sortOrder = 1
+         and pi.deletedAt is null
+        where p.id = :postId
+    """)
+    PostSummaryInChatroom findChatroomPostSummary(@Param("postId") Long postId);
 }

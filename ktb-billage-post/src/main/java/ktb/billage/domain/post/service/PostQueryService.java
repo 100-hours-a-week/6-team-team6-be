@@ -8,6 +8,7 @@ import ktb.billage.domain.post.PostImage;
 import ktb.billage.domain.post.PostImageRepository;
 import ktb.billage.domain.post.PostQueryRepository;
 import ktb.billage.domain.post.PostRepository;
+import ktb.billage.domain.post.dto.PostSummaryInChatroom;
 import ktb.billage.domain.post.dto.PostResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -59,15 +60,25 @@ public class PostQueryService {
         );
     }
 
+    public PostSummaryInChatroom getPostSummaryInChatroom(Long postId) {
+        return postRepository.findChatroomPostSummary(postId);
+    }
+
     public Long findGroupIdByPostId(Long postId){
         return postRepository.findGroupIdByPostId(postId);
     }
 
     public Long findSellerIdByPostId(Long postId) {
-        return findPost(postId).getSellerId();
+        return findPostIncludingDeleted(postId).getSellerId();
     }
 
     public void validatePost(Long postId) {
+        if (!postRepository.existsByIdAndDeletedAtIsNull(postId)) {
+            throw new PostException(POST_NOT_FOUND);
+        }
+    }
+
+    public void validatePostIncludingDeleted(Long postId) {
         if (!postRepository.existsById(postId)) {
             throw new PostException(POST_NOT_FOUND);
         }
@@ -95,6 +106,11 @@ public class PostQueryService {
 
     private Post findPost(Long postId) {
         return postRepository.findByIdAndDeletedAtIsNull(postId)
+                .orElseThrow(() -> new PostException(POST_NOT_FOUND));
+    }
+
+    private Post findPostIncludingDeleted(Long postId) {
+        return postRepository.findById(postId)
                 .orElseThrow(() -> new PostException(POST_NOT_FOUND));
     }
 
