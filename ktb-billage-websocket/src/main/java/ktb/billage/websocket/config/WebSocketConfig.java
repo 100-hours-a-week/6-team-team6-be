@@ -1,5 +1,6 @@
 package ktb.billage.websocket.config;
 
+import ktb.billage.websocket.application.port.WebSocketBrokerRelayPort;
 import ktb.billage.websocket.exception.StompErrorHandler;
 import ktb.billage.websocket.interceptor.ChatroomSubscriptionInterceptor;
 import ktb.billage.websocket.interceptor.StompAuthChannelInterceptor;
@@ -32,6 +33,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final ObjectMapper objectMapper;
     private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
     private final ChatroomSubscriptionInterceptor chatroomSubscriptionInterceptor;
+    private final WebSocketBrokerRelayPort webSocketBrokerRelayConfigPort;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) { // 웹소켓 연결을 위한 엔드포인트 billages.com/ws
@@ -41,7 +43,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker(TOPIC_PREFIX, QUEUE_PREFIX); // 서버에서 브로드캐스팅/유저 큐를 위한 프리픽스
+        registry.enableStompBrokerRelay(TOPIC_PREFIX, QUEUE_PREFIX)
+            .setRelayHost(webSocketBrokerRelayConfigPort.host())
+            .setRelayPort(webSocketBrokerRelayConfigPort.port())
+            .setVirtualHost(webSocketBrokerRelayConfigPort.virtualHost())
+            .setClientLogin(webSocketBrokerRelayConfigPort.username())
+            .setClientPasscode(webSocketBrokerRelayConfigPort.password())
+            .setSystemLogin(webSocketBrokerRelayConfigPort.username())
+            .setSystemPasscode(webSocketBrokerRelayConfigPort.password());
+
         registry.setApplicationDestinationPrefixes(APP_PREFIX); // 클라이언트에서 웹소켓 요청을 위한 프리픽스
         registry.setUserDestinationPrefix(USER_PREFIX); // 1:1 user destination 프리픽스
     }
