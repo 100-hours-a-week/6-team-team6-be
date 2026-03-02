@@ -1,0 +1,40 @@
+sentry:
+  dsn: ${SENTRY_DSN}
+  environment: ${SENTRY_ENV:local}
+  release: ${SENTRY_RELEASE:unknown}
+  send-default-pii: true
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:1.0}
+  profiles-sample-rate: ${SENTRY_PROFILES_SAMPLE_RATE:1.0}
+  logging:
+    minimum-event-level: ${SENTRY_MINIMUM_EVENT_LEVEL:warn}
+    minimum-breadcrumb-level: ${SENTRY_MINIMUM_BREADCRUMB_LEVEL:info}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+sentry:
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
+  profiles-sample-rate: ${SENTRY_PROFILES_SAMPLE_RATE:0.1}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+sentry:
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.3}
+  profiles-sample-rate: ${SENTRY_PROFILES_SAMPLE_RATE:0.3}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+sentry:
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:1.0}
+  profiles-sample-rate: ${SENTRY_PROFILES_SAMPLE_RATE:1.0}
