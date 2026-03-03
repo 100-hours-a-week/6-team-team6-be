@@ -17,11 +17,10 @@ spring:
       on-profile: dev
 
 rabbitmq:
-  host: ${RABBITMQ_HOST}
-  port: ${RABBITMQ_PORT}
-  virtual-host: ${RABBITMQ_VIRTUAL_HOST}
-  username: ${RABBITMQ_USERNAME}
-  password: ${RABBITMQ_PASSWORD}
+  host: ${RABBITMQ_STOMP_HOST}
+  port: ${RABBITMQ_STOMP_PORT}
+  username: ${RABBITMQ_STOMP_USERNAME}
+  password: ${RABBITMQ_STOMP_PASSWORD}
 
 ---
 spring:
