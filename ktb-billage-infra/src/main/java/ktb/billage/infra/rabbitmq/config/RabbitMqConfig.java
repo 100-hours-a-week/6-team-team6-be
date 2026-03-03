@@ -1,11 +1,13 @@
 package ktb.billage.infra.rabbitmq.config;
 
 import lombok.Getter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Getter
 @Configuration
+@ConditionalOnProperty(prefix = "websocket.broker.relay", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class RabbitMqConfig {
     private static final String DEFAULT_VIRTUAL_HOST = "/";
 
