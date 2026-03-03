@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Configuration
 public class RabbitMqConfig {
+    private static final String DEFAULT_VIRTUAL_HOST = "/";
+
     private final String host;
     private final int port;
     private final String virtualHost;
@@ -16,13 +18,12 @@ public class RabbitMqConfig {
     public RabbitMqConfig(
             @Value("${rabbitmq.host}") String host,
             @Value("${rabbitmq.port}") String port,
-            @Value("${rabbitmq.virtual-host}") String virtualHost,
             @Value("${rabbitmq.username}") String username,
             @Value("${rabbitmq.password}") String password
     ) {
         this.host = host;
         this.port = Integer.parseInt(port);
-        this.virtualHost = virtualHost;
+        this.virtualHost = DEFAULT_VIRTUAL_HOST;
         this.username = username;
         this.password = password;
     }
