@@ -3,10 +3,12 @@ package ktb.billage.infra.rabbitmq;
 import ktb.billage.infra.rabbitmq.config.RabbitMqConfig;
 import ktb.billage.websocket.application.port.WebSocketBrokerRelayPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "websocket.broker.relay", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class RabbitMqWebSocketBrokerRelay implements WebSocketBrokerRelayPort {
     private final RabbitMqConfig rabbitMqConfig;
 
