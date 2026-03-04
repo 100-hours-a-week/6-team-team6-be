@@ -73,7 +73,7 @@ jobs:
             ASG_NAME="${DEV_ASG_NAME}"
             MIN_HEALTHY="${DEV_MIN_HEALTHY}"
             INSTANCE_WARMUP="${DEV_INSTANCE_WARMUP}"
-            RUNTIME_TAG="dev-latest"
+            RUNTIME_TAG="latest"
             DEPLOY_LABEL="DEV"
           elif [ "$DEPLOY_ENV" = "main" ] || [ "$DEPLOY_ENV" = "prod" ]; then
             ASG_NAME="${PROD_ASG_NAME}"
