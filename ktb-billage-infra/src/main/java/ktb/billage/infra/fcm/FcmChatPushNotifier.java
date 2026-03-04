@@ -7,12 +7,14 @@ import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.user.service.UserPushTokenService;
 import ktb.billage.websocket.application.port.ChatPushNotifier;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class FcmChatPushNotifier extends FcmPush<ChatSendAckResponse> implements ChatPushNotifier {
     private static final String CHAT_TYPE_MESSAGE = "CHAT_MESSAGE";
@@ -35,6 +37,8 @@ public class FcmChatPushNotifier extends FcmPush<ChatSendAckResponse> implements
 
     @Override
     public void sendPush(Long receiveUserId, ChatSendAckResponse ack) {
+        log.info("[FCM CHAT PUSH][START] receiveUserId={}, chatroomId={}, messageId={}, membershipId={}",
+                receiveUserId, ack.chatroomId(), ack.messageId(), ack.membershipId());
         send(receiveUserId, ack);
     }
 

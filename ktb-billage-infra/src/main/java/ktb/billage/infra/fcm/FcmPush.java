@@ -46,16 +46,36 @@ public abstract class FcmPush<T> {
         try {
             BatchResponse response = firebaseMessaging.sendEachForMulticast(message);
             cleanupInvalidTokens(tokens, response);
-            log.info("FCM push sent. receiveUserId={}, tokenCount={}, successCount={}, failureCount={}, context={}",
-                    receiveUserId, tokens.size(), response.getSuccessCount(), response.getFailureCount(), logContext(payload));
+            log.info("FCM push sent. receiveUserId={}, fcmTokens={}, tokenCount={}, successCount={}, failureCount={}, context={}",
+                    receiveUserId, response.getResponses().toString(), tokens.size(), response.getSuccessCount(), response.getFailureCount(), logContext(payload));
         } catch (FirebaseMessagingException e) {
-            log.error("FCM push failed. receiveUserId={}, context={}", receiveUserId, logContext(payload), e);
+            log.error("FCM push failed. receiveUserId={}, fcmTokens={}, context={}",
+                    receiveUserId, tokens, logContext(payload), e);
         }
     }
 
     protected abstract Map<String, String> buildData(T payload);
 
     protected abstract String logContext(T payload);
+
+    private void logPerTokenResult(Long receiveUserId, List<String> tokens, List<String> deviceIds, List<SendResponse> responses) {
+        for (int i = 0; i < responses.size(); i++) {
+            SendResponse sendResponse = responses.get(i);
+            String token = i < tokens.size() ? tokens.get(i) : "UNKNOWN";
+            String deviceId = i < deviceIds.size() ? deviceIds.get(i) : "UNKNOWN";
+            if (sendResponse.isSuccessful()) {
+                log.info("FCM push token result. receiveUserId={}, index={}, deviceId={}, fcmToken={}, success=true",
+                        receiveUserId, i, deviceId, token);
+                continue;
+            }
+
+            String errorCode = sendResponse.getException() == null
+                    ? "UNKNOWN"
+                    : String.valueOf(sendResponse.getException().getMessagingErrorCode());
+            log.warn("FCM push token result. receiveUserId={}, index={}, deviceId={}, fcmToken={}, success=false, errorCode={}",
+                    receiveUserId, i, deviceId, token, errorCode);
+        }
+    }
 
     private void cleanupInvalidTokens(List<String> tokens, BatchResponse response) {
         List<String> invalidTokens = extractInvalidTokens(tokens, response.getResponses());
