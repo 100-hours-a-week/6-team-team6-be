@@ -11,6 +11,7 @@ import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.websocket.application.event.ChatInboxSendEvent;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatWebSocketFacade {
@@ -59,6 +61,7 @@ public class ChatWebSocketFacade {
 
         ChatSendAckResponse ack = new ChatSendAckResponse(chatroomId, sendMembershipId, String.valueOf(messageId), message, now, groupProfile.groupName());
 
+        log.info("[ChatFacade] arrive");
         eventPublisher.publishEvent(new ChatInboxSendEvent(receiveUserId, ack));
 
         return ack;
