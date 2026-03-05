@@ -8,6 +8,7 @@ public record ChatSendAckResponse(
         String messageId,
         String messageContent,
         Instant createdAt,
-        String groupName
+        String groupName,
+        String clientMessageId
 ){
 }

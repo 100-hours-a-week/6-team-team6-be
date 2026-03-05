@@ -47,7 +47,7 @@ public class ChatWebSocketFacade {
     }
 
     @Transactional
-    public ChatSendAckResponse sendMessage(Long chatroomId, Long sendUserId, Long sendMembershipId, String message) {
+    public ChatSendAckResponse sendMessage(Long chatroomId, Long sendUserId, Long sendMembershipId, String message, String clientMessageId) {
         membershipService.validateMembershipOwner(sendUserId, sendMembershipId);
         chatroomQueryService.validateParticipating(chatroomId, sendMembershipId);
 
@@ -59,7 +59,7 @@ public class ChatWebSocketFacade {
         Instant now = Instant.now();
         Long messageId = chatMessageCommandService.sendMessage(chatroomId, sendMembershipId, message, now);
 
-        ChatSendAckResponse ack = new ChatSendAckResponse(chatroomId, sendMembershipId, String.valueOf(messageId), message, now, groupProfile.groupName());
+        ChatSendAckResponse ack = new ChatSendAckResponse(chatroomId, sendMembershipId, String.valueOf(messageId), message, now, groupProfile.groupName(), clientMessageId);
 
         log.info("[ChatFacade] arrive");
         eventPublisher.publishEvent(new ChatInboxSendEvent(receiveUserId, ack));

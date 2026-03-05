@@ -43,7 +43,7 @@ public class ChatWebSocketController {
         log.info("[WS /chat/send] userId={}, chatroomId={}, membershipId={}, messageLength={}",
                 sendUserId, chatroomId, sendMembershipId, message == null ? 0 : message.length());
 
-        ChatSendAckResponse response = chatWebSocketFacade.sendMessage(chatroomId, sendUserId, sendMembershipId, message);
+        ChatSendAckResponse response = chatWebSocketFacade.sendMessage(chatroomId, sendUserId, sendMembershipId, message, request.clientMessageId());
 
         messagingTemplate.convertAndSend(WebSocketDestinations.CHATROOM_TOPIC_PREFIX + chatroomId, response);
     }
