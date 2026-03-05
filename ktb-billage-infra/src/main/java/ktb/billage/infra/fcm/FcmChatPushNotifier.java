@@ -23,9 +23,6 @@ public class FcmChatPushNotifier extends FcmPush<ChatSendAckResponse> implements
     private final MembershipService membershipService;
     private final ImageService imageService;
 
-    @Value("${app.push.base-url:}")
-    private String pushBaseUrl;
-
     public FcmChatPushNotifier(UserPushTokenService userPushTokenService,
                                MembershipService membershipService,
                                FirebaseMessaging firebaseMessaging,
