@@ -37,9 +37,7 @@ app:
   cookie:
     secure: false
 
-websocket:
-  broker:
-    relay:
+rabbitmq:
       enabled: false
 
 fcm:
