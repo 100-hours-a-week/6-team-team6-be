@@ -8,6 +8,7 @@ rabbitmq:
   port: ${RABBITMQ_STOMP_PORT}
   username: ${RABBITMQ_STOMP_USERNAME}
   password: ${RABBITMQ_STOMP_PASSWORD}
+  enabled: ${RABBITMQ_ENABLED}
 
 ---
 spring:
@@ -20,6 +21,7 @@ rabbitmq:
   port: ${RABBITMQ_STOMP_PORT}
   username: ${RABBITMQ_STOMP_USERNAME}
   password: ${RABBITMQ_STOMP_PASSWORD}
+  enabled: ${RABBITMQ_ENABLED}
 
 ---
 spring:
@@ -32,3 +34,4 @@ rabbitmq:
   port: ${RABBITMQ_STOMP_PORT}
   username: ${RABBITMQ_STOMP_USERNAME}
   password: ${RABBITMQ_STOMP_PASSWORD}
+  enabled: ${RABBITMQ_ENABLED}

@@ -35,7 +35,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
     private final ChatroomSubscriptionInterceptor chatroomSubscriptionInterceptor;
     private final ObjectProvider<WebSocketBrokerRelayPort> webSocketBrokerRelayConfigPortProvider;
-    @Value("${websocket.broker.relay.enabled:true}")
+    @Value("${rabbitmq.enabled:true}")
     private boolean relayEnabled;
 
     @Override

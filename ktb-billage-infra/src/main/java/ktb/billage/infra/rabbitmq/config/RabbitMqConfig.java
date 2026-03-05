@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Getter
 @Configuration
-@ConditionalOnProperty(prefix = "websocket.broker.relay", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "rabbitmq", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class RabbitMqConfig {
     private static final String DEFAULT_VIRTUAL_HOST = "/";
 

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "websocket.broker.relay", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "rabbitmq", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class RabbitMqWebSocketBrokerRelay implements WebSocketBrokerRelayPort {
     private final RabbitMqConfig rabbitMqConfig;
 
