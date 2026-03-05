@@ -47,7 +47,7 @@ public abstract class FcmPush<T> {
             BatchResponse response = firebaseMessaging.sendEachForMulticast(message);
             cleanupInvalidTokens(tokens, response);
             log.info("FCM push sent. receiveUserId={}, fcmTokens={}, tokenCount={}, successCount={}, failureCount={}, context={}",
-                    receiveUserId, response.getResponses().toString(), tokens.size(), response.getSuccessCount(), response.getFailureCount(), logContext(payload));
+                    receiveUserId, formatTokenResults(tokens, response.getResponses()), tokens.size(), response.getSuccessCount(), response.getFailureCount(), logContext(payload));
         } catch (FirebaseMessagingException e) {
             log.error("FCM push failed. receiveUserId={}, fcmTokens={}, context={}",
                     receiveUserId, tokens, logContext(payload), e);
@@ -99,5 +99,23 @@ public abstract class FcmPush<T> {
             }
         }
         return invalidTokens;
+    }
+
+    private List<String> formatTokenResults(List<String> tokens, List<SendResponse> responses) {
+        List<String> results = new ArrayList<>();
+        for (int i = 0; i < responses.size(); i++) {
+            SendResponse sendResponse = responses.get(i);
+            String token = i < tokens.size() ? tokens.get(i) : "UNKNOWN";
+            if (sendResponse.isSuccessful()) {
+                results.add("token=" + token + ",success=true");
+                continue;
+            }
+
+            String errorCode = sendResponse.getException() == null
+                    ? "UNKNOWN"
+                    : String.valueOf(sendResponse.getException().getMessagingErrorCode());
+            results.add("token=" + token + ",success=false,errorCode=" + errorCode);
+        }
+        return results;
     }
 }
