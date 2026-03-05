@@ -7,12 +7,14 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.web.common.annotation.AuthenticatedId;
-import ktb.billage.websocket.application.port.ChatPushNotifier;
+import ktb.billage.websocket.application.event.ChatInboxSendEvent;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +29,7 @@ import java.time.Instant;
 @Tag(name = "테스트 API")
 public class TestController {
     private final MembershipService membershipService;
-    private final ChatPushNotifier chatPushNotifier;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Operation(
             summary = "내 계정 웹 푸시 테스트 전송",
@@ -39,6 +41,7 @@ public class TestController {
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @PostMapping("/push/me")
+    @Transactional
     public ResponseEntity<Void> sendPushToMe(@AuthenticatedId Long userId) {
         ChatSendAckResponse ack = new ChatSendAckResponse(
                 9999L,
@@ -46,11 +49,13 @@ public class TestController {
                 "test",
                 "목 데이터 웹 푸시 테스트",
                 Instant.now(),
-                "test group"
+                "test group",
+                "client-message-id"
         );
 
         log.info("[WEB PUSH TEST] Controller --- user id: {}", userId);
-        chatPushNotifier.sendPush(userId, ack);
+        eventPublisher.publishEvent(new ChatInboxSendEvent(userId, ack));
+
         return ResponseEntity.noContent().build();
     }
 }

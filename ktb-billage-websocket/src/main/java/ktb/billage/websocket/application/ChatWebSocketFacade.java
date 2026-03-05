@@ -11,6 +11,7 @@ import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.websocket.application.event.ChatInboxSendEvent;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatWebSocketFacade {
@@ -45,7 +47,7 @@ public class ChatWebSocketFacade {
     }
 
     @Transactional
-    public ChatSendAckResponse sendMessage(Long chatroomId, Long sendUserId, Long sendMembershipId, String message) {
+    public ChatSendAckResponse sendMessage(Long chatroomId, Long sendUserId, Long sendMembershipId, String message, String clientMessageId) {
         membershipService.validateMembershipOwner(sendUserId, sendMembershipId);
         chatroomQueryService.validateParticipating(chatroomId, sendMembershipId);
 
@@ -57,8 +59,9 @@ public class ChatWebSocketFacade {
         Instant now = Instant.now();
         Long messageId = chatMessageCommandService.sendMessage(chatroomId, sendMembershipId, message, now);
 
-        ChatSendAckResponse ack = new ChatSendAckResponse(chatroomId, sendMembershipId, String.valueOf(messageId), message, now, groupProfile.groupName());
+        ChatSendAckResponse ack = new ChatSendAckResponse(chatroomId, sendMembershipId, String.valueOf(messageId), message, now, groupProfile.groupName(), clientMessageId);
 
+        log.info("[ChatFacade] arrive");
         eventPublisher.publishEvent(new ChatInboxSendEvent(receiveUserId, ack));
 
         return ack;

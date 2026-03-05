@@ -29,7 +29,8 @@ class ChatWebSocketEventListenerTest {
                 "200",
                 "message",
                 Instant.parse("2026-02-16T00:00:00Z"),
-                "test group"
+                "test group",
+                "client-message-id"
         );
         ChatInboxSendEvent event = new ChatInboxSendEvent(20L, ack);
 

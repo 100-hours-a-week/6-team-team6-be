@@ -153,7 +153,8 @@ class FcmChatPushNotifierUnitTest {
                 "m-1",
                 "hello",
                 Instant.parse("2026-02-17T12:34:56Z"),
-                "test group"
+                "test group",
+                "client-message-id"
         );
     }
 

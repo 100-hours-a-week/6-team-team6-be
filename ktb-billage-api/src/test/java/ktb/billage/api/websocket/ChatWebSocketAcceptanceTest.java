@@ -110,14 +110,16 @@ class ChatWebSocketAcceptanceTest extends AcceptanceTestSupport {
             Thread.sleep(200);
 
             StompSession anotherSession = connect(client, wsUrl, anotherToken);
+            String clientMessageId = "client-message-id";
             sendChatMessage(anotherSession, anotherToken,
-                    chatroom.getId(), anotherMembership.getId(), "chatroom 구독 테스트");
+                    chatroom.getId(), anotherMembership.getId(), "chatroom 구독 테스트", clientMessageId);
 
             ChatSendAckResponse received = chatroomMessages.poll(5, TimeUnit.SECONDS);
             assertThat(received).isNotNull();
             assertThat(received.chatroomId()).isEqualTo(chatroom.getId());
             assertThat(received.membershipId()).isEqualTo(anotherMembership.getId());
             assertThat(received.messageContent()).isEqualTo("chatroom 구독 테스트");
+            assertThat(received.clientMessageId()).isEqualTo(clientMessageId);
         } finally {
             client.stop();
         }
@@ -136,14 +138,16 @@ class ChatWebSocketAcceptanceTest extends AcceptanceTestSupport {
             Thread.sleep(200);
 
             StompSession anotherSession = connect(client, wsUrl, anotherToken);
+            String clientMessageId = "client-message-id";
             sendChatMessage(anotherSession, anotherToken,
-                    chatroom.getId(), anotherMembership.getId(), "inbox 구독 테스트");
+                    chatroom.getId(), anotherMembership.getId(), "inbox 구독 테스트", clientMessageId);
 
             ChatSendAckResponse received = inboxMessages.poll(5, TimeUnit.SECONDS);
             assertThat(received).isNotNull();
             assertThat(received.chatroomId()).isEqualTo(chatroom.getId());
             assertThat(received.membershipId()).isEqualTo(anotherMembership.getId());
             assertThat(received.messageContent()).isEqualTo("inbox 구독 테스트");
+            assertThat(received.clientMessageId()).isEqualTo(clientMessageId);
         } finally {
             client.stop();
         }
@@ -170,7 +174,7 @@ class ChatWebSocketAcceptanceTest extends AcceptanceTestSupport {
         session.subscribe(subscribeHeaders, new TestClientFrameHandler(sink));
     }
 
-    private void sendChatMessage(StompSession session, String senderToken, Long chatroomId, Long senderMembershipId, String message) {
+    private void sendChatMessage(StompSession session, String senderToken, Long chatroomId, Long senderMembershipId, String message, String clientMessageId) {
         StompHeaders sendHeaders = new StompHeaders();
         sendHeaders.setDestination("/app/chat/send");
         sendHeaders.add(AUTHORIZATION_HEADER, BEARER_PREFIX + senderToken);
@@ -179,9 +183,10 @@ class ChatWebSocketAcceptanceTest extends AcceptanceTestSupport {
                 {
                   "chatroomId": %d,
                   "membershipId": %d,
-                  "message": "%s"
+                  "message": "%s",
+                  "clientMessageId": "%s"
                 }
-                """.formatted(chatroomId, senderMembershipId, message);
+                """.formatted(chatroomId, senderMembershipId, message, clientMessageId);
         session.send(sendHeaders, payload.getBytes(StandardCharsets.UTF_8));
     }
 
