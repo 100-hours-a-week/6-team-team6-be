@@ -63,7 +63,7 @@ springdoc:
 
 logging:
   level:
-    root: WARN
+    root: ${LOGGING_LEVEL}
     org.springframework.web.socket.config.WebSocketMessageBrokerStats: WARN
 
 ---
