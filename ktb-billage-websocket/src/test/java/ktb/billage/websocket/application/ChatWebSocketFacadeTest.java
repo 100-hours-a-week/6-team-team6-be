@@ -51,6 +51,7 @@ class ChatWebSocketFacadeTest {
         Long receiveMembershipId = 200L;
         Long receiveUserId = 20L;
         String message = "test message";
+        String clientMessageId = "test-client-message-id";
 
         when(chatroomQueryService.findPartnerProfile(chatroomId, sendMembershipId))
                 .thenReturn(new PartnerProfile(receiveMembershipId, "partner", false));
@@ -60,13 +61,14 @@ class ChatWebSocketFacadeTest {
                 .thenReturn(999L);
         when(groupService.findGroupProfileByMembershipId(sendMembershipId)).thenReturn(new GroupResponse.GroupProfile(888L, "test group", "group-cover.url"));
 
-        ChatSendAckResponse ack = chatWebSocketFacade.sendMessage(chatroomId, sendUserId, sendMembershipId, message);
+        ChatSendAckResponse ack = chatWebSocketFacade.sendMessage(chatroomId, sendUserId, sendMembershipId, message, clientMessageId);
 
         assertThat(ack.chatroomId()).isEqualTo(chatroomId);
         assertThat(ack.membershipId()).isEqualTo(sendMembershipId);
         assertThat(ack.messageId()).isEqualTo("999");
         assertThat(ack.messageContent()).isEqualTo(message);
         assertThat(ack.createdAt()).isNotNull();
+        assertThat(ack.clientMessageId()).isEqualTo(clientMessageId);
 
         verify(membershipService).validateMembershipOwner(sendUserId, sendMembershipId);
         verify(chatroomQueryService).validateParticipating(chatroomId, sendMembershipId);
