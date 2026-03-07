@@ -6,7 +6,16 @@ spring:
 spring:
   config:
     activate:
-      on-profile: local,dev
+      on-profile: local
+
+  flyway:
+    enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
 
   flyway:
     enabled: true
