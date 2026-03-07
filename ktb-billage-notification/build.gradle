@@ -1,0 +1,9 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':ktb-billage-global:ktb-billage-common')
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+}
