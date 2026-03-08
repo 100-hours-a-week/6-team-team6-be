@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Map;
+
 @Tag(name = "알림 API")
 public interface NotificationApiDoc {
 
@@ -62,6 +64,30 @@ public interface NotificationApiDoc {
                             )
                     )
             ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "유효하지 않은 커서",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                              "code" : "CURSOR01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                              "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            )
     })
     ResponseEntity<NotificationResponse.Notifications> getMyNotifications(
             @AuthenticatedId Long userId,
@@ -78,6 +104,53 @@ public interface NotificationApiDoc {
             @ApiResponse(
                     responseCode = "204",
                     description = "알림 삭제 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                              "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "본인 알림이 아님",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                              "code" : "NOTIFICATION03"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "알림이 존재하지 않거나 이미 삭제됨",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "존재하지 않는 알림",
+                                            value = """
+                                                    {
+                                                      "code" : "NOTIFICATION01"
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "이미 삭제된 알림",
+                                            value = """
+                                                    {
+                                                      "code" : "NOTIFICATION02"
+                                                    }
+                                                    """
+                                    )
+                            })
             )
     })
     ResponseEntity<Void> deleteNotification(
