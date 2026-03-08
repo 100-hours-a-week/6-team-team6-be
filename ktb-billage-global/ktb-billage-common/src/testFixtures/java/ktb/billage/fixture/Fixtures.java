@@ -7,6 +7,8 @@ import ktb.billage.domain.chat.Chatroom;
 import ktb.billage.domain.chat.ChatroomRepository;
 import ktb.billage.domain.group.Group;
 import ktb.billage.domain.group.GroupRepository;
+import ktb.billage.domain.keywordsubscription.KeywordSubscription;
+import ktb.billage.domain.keywordsubscription.KeywordSubscriptionRepository;
 import ktb.billage.domain.membership.Membership;
 import ktb.billage.domain.membership.MembershipRepository;
 import ktb.billage.domain.notification.Notification;
@@ -27,6 +29,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntPredicate;
+import java.util.stream.IntStream;
 
 @Component
 public class Fixtures {
@@ -55,6 +58,9 @@ public class Fixtures {
 
     @Autowired
     private NotificationRepository notificationRepository;
+
+    @Autowired
+    private KeywordSubscriptionRepository keywordSubscriptionRepository;
 
     @Autowired
     private TokenGenerator tokenGenerator;
@@ -109,7 +115,7 @@ public class Fixtures {
         for (int i = 1; i <= count; i++) {
             jdbcTemplate.update(
                     "INSERT INTO billage_group (group_name, group_cover_image_url, created_at, updated_at, deleted_at) " +
-                    "VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
+                            "VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
                     "group-" + i,
                     "dummy.png"
             );
@@ -258,5 +264,25 @@ public class Fixtures {
         Instant adjusted = BASE_TIME.plusSeconds(offset * 1000L);
 
         jdbcTemplate.update("UPDATE notification SET created_at = ? WHERE id = ?", adjusted, notification.getId());
+    }
+
+    public KeywordSubscription 키워드_구독_등록(User user, Group group, String keyword) {
+        return keywordSubscriptionRepository.save(KeywordSubscriptionFixture.one(user, group, keyword));
+    }
+
+    public List<KeywordSubscription> 키워드_구독_벌크_등록(User user, Group group, int size) {
+        return IntStream.range(0, size)
+                .mapToObj(i -> {
+                    var subscription = keywordSubscriptionRepository.save(KeywordSubscriptionFixture.one(user, group, "keyword" + i));
+                    구독_등록시간_변경(subscription, i);
+                    return subscription;
+                })
+                .toList();
+    }
+
+    private void 구독_등록시간_변경(KeywordSubscription subscription, int offset) {
+        Instant adjusted = BASE_TIME.plusSeconds(offset * 1000L);
+
+        jdbcTemplate.update("UPDATE keyword_subscription SET created_at = ? WHERE id = ?", adjusted, subscription.getId());
     }
 }
