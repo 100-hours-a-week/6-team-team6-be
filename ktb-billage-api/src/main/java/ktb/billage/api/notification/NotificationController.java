@@ -1,6 +1,7 @@
 package ktb.billage.api.notification;
 
 import ktb.billage.apidoc.NotificationApiDoc;
+import ktb.billage.application.notification.NotificationFacade;
 import ktb.billage.domain.notification.dto.NotificationResponse;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import lombok.RequiredArgsConstructor;
@@ -17,19 +18,14 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class NotificationController implements NotificationApiDoc {
+    private final NotificationFacade notificationFacade;
 
     @GetMapping("/users/me/notifications")
     public ResponseEntity<NotificationResponse.Notifications> getMyNotifications(
             @AuthenticatedId Long userId,
             @RequestParam(required = false) String cursor
     ) {
-        List<NotificationResponse.NotificationItem> notifications = resolveMockNotifications(cursor);
-        NotificationResponse.Notifications response = new NotificationResponse.Notifications(
-                notifications,
-                "a1b2c3",
-                true
-        );
-
+        var response = notificationFacade.getMyNotifications(userId, cursor);
         return ResponseEntity.ok(response);
     }
 
