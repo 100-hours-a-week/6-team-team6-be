@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
@@ -49,12 +47,7 @@ public class KeywordSubscriptionController implements KeywordSubscriptionApiDoc 
             @PathVariable Long groupId,
             @AuthenticatedId Long userId
     ) {
-        return ResponseEntity.ok(new KeywordSubscriptionResponse.Summaries(
-                List.of(
-                        new KeywordSubscriptionResponse.Summary(1L, "노트북"),
-                        new KeywordSubscriptionResponse.Summary(2L, "핸드폰")
-                )
-        ));
+        return ResponseEntity.ok(keywordSubscriptionFacade.getMyKeywordSubscriptionsInGroup(userId, groupId));
     }
 
 }

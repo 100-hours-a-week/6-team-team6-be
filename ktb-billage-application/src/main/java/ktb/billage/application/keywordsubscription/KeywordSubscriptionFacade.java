@@ -31,4 +31,11 @@ public class KeywordSubscriptionFacade {
 
         keywordSubscriptionService.softDelete(userId, keywordSubscriptionId);
     }
+
+    public KeywordSubscriptionResponse.Summaries getMyKeywordSubscriptionsInGroup(Long userId, Long groupId) {
+        groupService.validateGroup(groupId);
+        membershipService.validateMembership(groupId, userId);
+
+        return keywordSubscriptionService.getKeywordSubscritpions(userId, groupId);
+    }
 }
