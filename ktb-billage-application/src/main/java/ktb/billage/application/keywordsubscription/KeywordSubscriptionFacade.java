@@ -24,4 +24,11 @@ public class KeywordSubscriptionFacade {
 
         return new KeywordSubscriptionResponse.Id(subscriptionId);
     }
+
+    public void delete(Long userId, Long groupId, Long keywordSubscriptionId) {
+        groupService.validateGroup(groupId);
+        membershipService.validateMembership(groupId, userId);
+
+        keywordSubscriptionService.softDelete(userId, keywordSubscriptionId);
+    }
 }
