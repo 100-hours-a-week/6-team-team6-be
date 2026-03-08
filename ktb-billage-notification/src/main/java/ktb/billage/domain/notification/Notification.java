@@ -12,6 +12,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -55,5 +57,17 @@ public class Notification extends BaseEntity {
         this.title = title;
         this.description = description;
         this.type = type;
+    }
+
+    public boolean isOwned(Long userId) {
+        return this.userId.equals(userId);
+    }
+
+    public boolean isDeleted() {
+        return this.getDeletedAt() != null;
+    }
+
+    public void delete(Instant at) {
+        super.delete(at);
     }
 }

@@ -34,6 +34,7 @@ public class NotificationController implements NotificationApiDoc {
             @AuthenticatedId Long userId,
             @PathVariable Long notificationId
     ) {
+        notificationFacade.deleteNotification(userId, notificationId);
         return ResponseEntity.noContent().build();
     }
 
