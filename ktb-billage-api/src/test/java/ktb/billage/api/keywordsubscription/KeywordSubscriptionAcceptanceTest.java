@@ -101,10 +101,10 @@ public class KeywordSubscriptionAcceptanceTest extends AcceptanceTestSupport {
                     .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
                     .contentType("application/json")
                     .body("""
-                      {
-                        "keyword" : "%s"
-                      }
-                    """.formatted(value))
+                              {
+                                "keyword" : "%s"
+                              }
+                            """.formatted(value))
                     .when()
                     .post("/groups/{groupId}/memberships/me/keyword-subscriptions", group.getId())
                     .then()
@@ -121,10 +121,10 @@ public class KeywordSubscriptionAcceptanceTest extends AcceptanceTestSupport {
                     .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
                     .contentType("application/json")
                     .body("""
-                      {
-                        "keyword" : "%s"
-                      }
-                    """.formatted(alreadyKeword))
+                              {
+                                "keyword" : "%s"
+                              }
+                            """.formatted(alreadyKeword))
                     .when()
                     .post("/groups/{groupId}/memberships/me/keyword-subscriptions", group.getId())
                     .then()
@@ -148,6 +148,90 @@ public class KeywordSubscriptionAcceptanceTest extends AcceptanceTestSupport {
                     .post("/groups/{groupId}/memberships/me/keyword-subscriptions", group.getId())
                     .then()
                     .statusCode(409);
+        }
+    }
+
+    @Nested
+    class 키워드_구독_삭제_테스트 {
+
+        @Test
+        @DisplayName("삭제 성공")
+        void success_delete_keyword_subscrption() {
+            Long keywordSubscriptionId = fixtures.키워드_구독_등록(me, group, "키워드").getId();
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .delete("/groups/{groupId}/memberships/me/keyword-subscriptions/{keywordSubscriptionId}",
+                            group.getId(), keywordSubscriptionId)
+                    .then()
+                    .statusCode(204);
+        }
+
+        @Test
+        @DisplayName("삭제 실패 - 존재하지 않는 그룹")
+        void fail_delete_non_existing_group() {
+            Long nonExistentGroupId = 999999L;
+            Long keywordSubscriptionId = fixtures.키워드_구독_등록(me, group, "키워드").getId();
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .delete("/groups/{groupId}/memberships/me/keyword-subscriptions/{keywordSubscriptionId}",
+                            nonExistentGroupId, keywordSubscriptionId)
+                    .then()
+                    .statusCode(404);
+        }
+
+        @Test
+        @DisplayName("삭제 실패 - 그룹원이 아님")
+        void fail_delete_not_group_member() {
+            Long keywordSubscriptionId = fixtures.키워드_구독_등록(me, group, "키워드").getId();
+            fixtures.그룹_탈퇴(group, me);
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .delete("/groups/{groupId}/memberships/me/keyword-subscriptions/{keywordSubscriptionId}",
+                            group.getId(), keywordSubscriptionId)
+                    .then()
+                    .statusCode(403);
+        }
+
+        @Test
+        @DisplayName("삭제 실패 - 존재하지 않는 구독 정보")
+        void fail_delete_non_existing_keyword_subscrption() {
+            Long nonExistentKeywordSubscriptionId = 999999L;
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .delete("/groups/{groupId}/memberships/me/keyword-subscriptions/{keywordSubscriptionId}",
+                            group.getId(), nonExistentKeywordSubscriptionId)
+                    .then()
+                    .statusCode(404);
+        }
+
+        @Test
+        @DisplayName("삭제 실패 - 이미 삭제한 구독 정보")
+        void fail_delete_already_deleted_keyword_subscrption() {
+            Long keywordSubscriptionId = fixtures.키워드_구독_등록(me, group, "키워드").getId();
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .delete("/groups/{groupId}/memberships/me/keyword-subscriptions/{keywordSubscriptionId}",
+                            group.getId(), keywordSubscriptionId)
+                    .then()
+                    .statusCode(204);
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .delete("/groups/{groupId}/memberships/me/keyword-subscriptions/{keywordSubscriptionId}",
+                            group.getId(), keywordSubscriptionId)
+                    .then()
+                    .statusCode(404);
         }
     }
 }
