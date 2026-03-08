@@ -9,6 +9,8 @@ import ktb.billage.domain.group.Group;
 import ktb.billage.domain.group.GroupRepository;
 import ktb.billage.domain.membership.Membership;
 import ktb.billage.domain.membership.MembershipRepository;
+import ktb.billage.domain.notification.Notification;
+import ktb.billage.domain.notification.NotificationRepository;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.post.PostImage;
 import ktb.billage.domain.post.PostImageRepository;
@@ -50,6 +52,9 @@ public class Fixtures {
 
     @Autowired
     private ChatMessageRepository chatMessageRepository;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     @Autowired
     private TokenGenerator tokenGenerator;
@@ -229,5 +234,29 @@ public class Fixtures {
         chatroomRepository.save(chatroom);
 
         return message;
+    }
+
+    public Notification 알림_생성_게시글(User user, Group group, Post post, int offset) {
+        var notification = notificationRepository.save(NotificationFixture.one(user, group, post));
+
+        알림_생성시간_변경(notification, offset);
+        return notification;
+    }
+
+    public Notification 알림_생성_채팅방(User user, Group group, Chatroom chatroom, int offset) {
+        var notification = notificationRepository.save(NotificationFixture.one(user, group, chatroom));
+
+        알림_생성시간_변경(notification, offset);
+        return notification;
+    }
+
+    public void 알림_삭제(Long notificationId) {
+        jdbcTemplate.update("UPDATE notification SET deleted_at = ? WHERE id = ?", Instant.now(), notificationId);
+    }
+
+    private void 알림_생성시간_변경(Notification notification, int offset) {
+        Instant adjusted = BASE_TIME.plusSeconds(offset * 1000L);
+
+        jdbcTemplate.update("UPDATE notification SET created_at = ? WHERE id = ?", adjusted, notification.getId());
     }
 }
