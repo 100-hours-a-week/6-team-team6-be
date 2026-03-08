@@ -3,10 +3,12 @@ package ktb.billage.domain.keywordsubscription.service;
 import ktb.billage.common.exception.KeywordSubscriptionException;
 import ktb.billage.domain.keywordsubscription.KeywordSubscription;
 import ktb.billage.domain.keywordsubscription.KeywordSubscriptionRepository;
+import ktb.billage.domain.keywordsubscription.dto.KeywordSubscriptionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 
 import static ktb.billage.common.exception.ExceptionCode.KEYWORD_SUBSCRIPTION_ALREADY_DELETE;
 import static ktb.billage.common.exception.ExceptionCode.KEYWORD_SUBSCRIPTION_ALREADY_EXISTS;
@@ -50,5 +52,18 @@ public class KeywordSubscriptionService {
     private KeywordSubscription findKeywordSubscription(Long keywordSubscriptionId) {
         return keywordSubscriptionRepository.findById(keywordSubscriptionId)
                 .orElseThrow(() -> new KeywordSubscriptionException(KEYWORD_SUBSCRIPTION_NOT_FOUND));
+    }
+
+    public KeywordSubscriptionResponse.Summaries getKeywordSubscritpions(Long userId, Long groupId) {
+        List<KeywordSubscription> keywordSubscriptions = keywordSubscriptionRepository.findByUserIdAndGroupIdAndDeletedAtIsNull(userId, groupId);
+
+        return new KeywordSubscriptionResponse.Summaries(
+                keywordSubscriptions.stream()
+                        .map(subscription -> new KeywordSubscriptionResponse.Summary(
+                                subscription.getId(),
+                                subscription.getKeyword(),
+                                subscription.getCreatedAt()
+                        )).toList()
+        );
     }
 }
