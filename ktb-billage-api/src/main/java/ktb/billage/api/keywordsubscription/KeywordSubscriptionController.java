@@ -40,6 +40,7 @@ public class KeywordSubscriptionController implements KeywordSubscriptionApiDoc 
             @PathVariable Long keywordSubscriptionId,
             @AuthenticatedId Long userId
     ) {
+        keywordSubscriptionFacade.delete(userId, groupId, keywordSubscriptionId);
         return ResponseEntity.noContent().build();
     }
 

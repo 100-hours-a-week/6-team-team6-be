@@ -9,6 +9,8 @@ import ktb.billage.common.entity.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
@@ -30,5 +32,17 @@ public class KeywordSubscription extends BaseEntity {
         this.userId = userId;
         this.groupId = groupId;
         this.keyword = keyword;
+    }
+
+    public boolean isOwned(Long userId) {
+        return this.userId.equals(userId);
+    }
+
+    public boolean isDeleted() {
+        return this.getDeletedAt() != null;
+    }
+
+    public void delete(Instant at) {
+        super.delete(at);
     }
 }
