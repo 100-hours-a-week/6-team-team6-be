@@ -1,11 +1,6 @@
 spring:
   flyway:
-    enabled: false
-
-  jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
-    hibernate:
-      ddl-auto: create-drop
+    enabled: true
 
   servlet:
     multipart:

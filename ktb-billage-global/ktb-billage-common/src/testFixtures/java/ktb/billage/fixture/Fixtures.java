@@ -140,8 +140,8 @@ public class Fixtures {
         for (int i = 1; i <= count; i++) {
             String loginId = "bulk_user_" + group.getId() + "_" + i;
             jdbcTemplate.update(
-                    "INSERT INTO users (login_id, password, avatar_url, created_at, updated_at, deleted_at) " +
-                            "VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
+                    "INSERT INTO users (login_id, password, avatar_url, web_push_enabled, created_at, updated_at, deleted_at) " +
+                            "VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
                     loginId,
                     "test-password",
                     "images/default-avatar.png"

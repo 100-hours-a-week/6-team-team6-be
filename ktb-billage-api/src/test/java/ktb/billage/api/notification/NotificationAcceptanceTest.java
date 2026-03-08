@@ -2,13 +2,16 @@ package ktb.billage.api.notification;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import ktb.billage.common.exception.ExceptionCode;
 import ktb.billage.domain.group.Group;
 import ktb.billage.domain.membership.Membership;
+import ktb.billage.domain.notification.Notification;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.user.User;
 import ktb.billage.fixture.Fixtures;
 import ktb.billage.support.AcceptanceTest;
 import ktb.billage.support.AcceptanceTestSupport;
+import org.apache.http.auth.AUTH;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,7 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 
+import static ktb.billage.common.exception.ExceptionCode.NOTIFICATION_ALREAY_DELETED;
+import static ktb.billage.common.exception.ExceptionCode.NOTIFICATION_NOT_FOUND;
+import static ktb.billage.common.exception.ExceptionCode.NOTIFICATION_NOT_OWNED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.is;
 
 @AcceptanceTest
 public class NotificationAcceptanceTest extends AcceptanceTestSupport {
@@ -31,6 +38,7 @@ public class NotificationAcceptanceTest extends AcceptanceTestSupport {
     private Membership myMembership;
     private Post myPost;
 
+    private User another;
     private Post anotherPost;
     
     @BeforeEach
@@ -40,7 +48,7 @@ public class NotificationAcceptanceTest extends AcceptanceTestSupport {
         group = fixtures.그룹_생성("test");
         myMembership = fixtures.그룹_가입(group, me);
 
-        User another = fixtures.또_다른_유저_생성();
+        another = fixtures.또_다른_유저_생성();
         Membership anotherMembership = fixtures.그룹_가입(group, another);
 
         myPost = fixtures.게시글_생성(myMembership);
@@ -218,5 +226,89 @@ public class NotificationAcceptanceTest extends AcceptanceTestSupport {
 
     @Nested
     class 알림_삭제_테스트 {
+
+        @Test
+        @DisplayName("삭제 성공")
+        void success_delete_notification() {
+            for (int i = 0; i < 10; i++) {
+                fixtures.알림_생성_게시글(me, group, anotherPost, i);
+            }
+
+            Response beforeResponse = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/users/me/notifications")
+                    .then()
+                    .extract()
+                    .response();
+
+            Long targetId = ((Number) beforeResponse.path("notifications[0].notificationId")).longValue();
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .delete("/users/me/notifications/" + targetId)
+                    .then()
+                    .statusCode(204);
+
+            Response afterResponse = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/users/me/notifications")
+                    .then()
+                    .extract()
+                    .response();
+
+            Long nonTargetId = ((Number) afterResponse.path("notifications[0].notificationId")).longValue();
+            int afterSize = afterResponse.jsonPath().getList("notifications").size();
+
+            assertThat(nonTargetId).isNotEqualTo(targetId);
+            assertThat(afterSize).isEqualTo(9);
+        }
+
+        @Test
+        @DisplayName("삭제 실패 - 이미 삭제된 알림")
+        void fail_delete_already_deleted_notification() {
+            Notification notification = fixtures.알림_생성_게시글(me, group, anotherPost, 0);
+            Long notificationId = notification.getId();
+
+            fixtures.알림_삭제(notificationId);
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .delete("/users/me/notifications/" + notificationId)
+                    .then()
+                    .statusCode(404)
+                    .body("code", is(NOTIFICATION_ALREAY_DELETED.getCode()));
+        }
+
+        @Test
+        @DisplayName("삭제 실패 - 본인의 알림이 아닌 경우")
+        void fail_delete_notification_not_my_notification() {
+            Notification notification = fixtures.알림_생성_게시글(another, group, myPost, 0);
+            Long notificationId = notification.getId();
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .delete("/users/me/notifications/" + notificationId)
+                    .then()
+                    .statusCode(403)
+                    .body("code", is(NOTIFICATION_NOT_OWNED.getCode()));
+        }
+
+        @Test
+        @DisplayName("삭제 실패 - 존재하지 않는 알림")
+        void fail_delete_notification_not_existing() {
+            Long nonExistentNotificationId = 999999L;
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .delete("/users/me/notifications/" + nonExistentNotificationId)
+                    .then()
+                    .statusCode(404)
+                    .body("code", is(NOTIFICATION_NOT_FOUND.getCode()));
+        }
     }
 }
