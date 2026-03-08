@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 
-import static ktb.billage.common.exception.ExceptionCode.NOTIFICATION_ALREAY_DELETED;
+import static ktb.billage.common.exception.ExceptionCode.NOTIFICATION_ALREADY_DELETED;
 import static ktb.billage.common.exception.ExceptionCode.NOTIFICATION_NOT_FOUND;
 import static ktb.billage.common.exception.ExceptionCode.NOTIFICATION_NOT_OWNED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -279,7 +279,7 @@ public class NotificationAcceptanceTest extends AcceptanceTestSupport {
                     .delete("/users/me/notifications/" + notificationId)
                     .then()
                     .statusCode(404)
-                    .body("code", is(NOTIFICATION_ALREAY_DELETED.getCode()));
+                    .body("code", is(NOTIFICATION_ALREADY_DELETED.getCode()));
         }
 
         @Test
