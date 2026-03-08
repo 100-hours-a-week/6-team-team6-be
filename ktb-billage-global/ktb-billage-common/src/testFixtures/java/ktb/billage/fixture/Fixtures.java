@@ -285,4 +285,8 @@ public class Fixtures {
 
         jdbcTemplate.update("UPDATE keyword_subscription SET created_at = ? WHERE id = ?", adjusted, subscription.getId());
     }
+
+    public void 키워드_구독_삭제(Long subscriptionId) {
+        jdbcTemplate.update("UPDATE keyword_subscription SET deleted_at = ? WHERE id = ?", Instant.now(), subscriptionId);
+    }
 }

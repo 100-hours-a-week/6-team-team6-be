@@ -3,6 +3,7 @@ package ktb.billage.api.keywordsubscription;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import ktb.billage.domain.group.Group;
+import ktb.billage.domain.keywordsubscription.dto.KeywordSubscriptionResponse;
 import ktb.billage.domain.user.User;
 import ktb.billage.fixture.Fixtures;
 import ktb.billage.support.AcceptanceTest;
@@ -15,6 +16,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 
 @AcceptanceTest
@@ -232,6 +236,93 @@ public class KeywordSubscriptionAcceptanceTest extends AcceptanceTestSupport {
                             group.getId(), keywordSubscriptionId)
                     .then()
                     .statusCode(404);
+        }
+    }
+
+    @Nested
+    class 키워드_구독_조회_테스트 {
+
+        @Test
+        @DisplayName("조회 성공 - 빈 리스트")
+        void success_empty_list() {
+            Response response = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}/memberships/me/keyword-subscriptions", group.getId())
+                    .then()
+                    .statusCode(200)
+                    .extract().response();
+
+            response.jsonPath().getList("keywordSubscriptions").isEmpty();
+        }
+
+        @Test
+        @DisplayName("조회 성공 - 최근에 등록한 순으로 먼저 조회된다")
+        void success_ordered_by_newest() {
+            fixtures.키워드_구독_벌크_등록(me, group, 10);
+
+            Response response = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}/memberships/me/keyword-subscriptions", group.getId())
+                    .then()
+                    .statusCode(200)
+                    .extract().response();
+
+            List<KeywordSubscriptionResponse.Summary> summaries = response.jsonPath()
+                    .getList("keywordSubscriptions", KeywordSubscriptionResponse.Summary.class);
+
+            assertThat(summaries.getFirst().createdAt()).isAfterOrEqualTo(summaries.getLast().createdAt());
+        }
+
+        @Test
+        @DisplayName("조회 성공 - 최대 30개가 모두 조회된다")
+        void success_max_count() {
+            fixtures.키워드_구독_벌크_등록(me, group, 30);
+
+            Response response = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}/memberships/me/keyword-subscriptions", group.getId())
+                    .then()
+                    .statusCode(200)
+                    .extract().response();
+
+            assertThat(response.jsonPath().getList("keywordSubscriptions")).hasSize(30);
+        }
+        
+        @Test
+        @DisplayName("조회 성공 - 삭제된 건 조회되지 않는다")
+        void success_not_include_deleted_keyword_subscrption() {
+            fixtures.키워드_구독_벌크_등록(me, group, 10);
+
+            Response beforeResponse = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}/memberships/me/keyword-subscriptions", group.getId())
+                    .then()
+                    .statusCode(200)
+                    .extract().response();
+
+            var beforeResult = beforeResponse.jsonPath().getList("keywordSubscriptions", KeywordSubscriptionResponse.Summary.class);
+            assertThat(beforeResult.size()).isEqualTo(10);
+
+            fixtures.키워드_구독_삭제(beforeResult.getFirst().keywordSubscriptionId());
+
+            Response afterResponse = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}/memberships/me/keyword-subscriptions", group.getId())
+                    .then()
+                    .statusCode(200)
+                    .extract().response();
+
+            var afterResult = afterResponse.jsonPath().getList("keywordSubscriptions", KeywordSubscriptionResponse.Summary.class);
+            
+            assertThat(afterResult.size()).isEqualTo(9);
+            assertThat(afterResult)
+                    .extracting(KeywordSubscriptionResponse.Summary::keywordSubscriptionId)
+                    .doesNotContain(beforeResult.getFirst().keywordSubscriptionId());
         }
     }
 }
