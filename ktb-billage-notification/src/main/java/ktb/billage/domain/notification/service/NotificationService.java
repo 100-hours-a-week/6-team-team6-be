@@ -1,13 +1,19 @@
 package ktb.billage.domain.notification.service;
 
 import ktb.billage.common.cursor.CursorCodec;
+import ktb.billage.common.exception.NotificationException;
 import ktb.billage.domain.notification.Notification;
 import ktb.billage.domain.notification.NotificationRepository;
 import ktb.billage.domain.notification.dto.NotificationSummaries;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
+
+import static ktb.billage.common.exception.ExceptionCode.NOTIFICATION_ALREAY_DELETED;
+import static ktb.billage.common.exception.ExceptionCode.NOTIFICATION_NOT_FOUND;
+import static ktb.billage.common.exception.ExceptionCode.NOTIFICATION_NOT_OWNED;
 
 @Service
 @RequiredArgsConstructor
@@ -60,5 +66,24 @@ public class NotificationService {
         } else {
             return new NotificationSummaries.CursorDto(null, false);
         }
+    }
+
+    public void softDelete(Long userId, Long notificationId) {
+        Notification notification = findNotificationWithDeletion(notificationId);
+
+        if (!notification.isOwned(userId)) {
+            throw new NotificationException(NOTIFICATION_NOT_OWNED);
+        }
+
+        if (notification.isDeleted()) {
+            throw new NotificationException(NOTIFICATION_ALREAY_DELETED);
+        }
+
+        notification.delete(Instant.now());
+    }
+
+    private Notification findNotificationWithDeletion(Long notificationId) {
+        return notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new NotificationException(NOTIFICATION_NOT_FOUND));
     }
 }

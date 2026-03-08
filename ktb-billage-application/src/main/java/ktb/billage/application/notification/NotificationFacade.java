@@ -7,10 +7,12 @@ import ktb.billage.domain.notification.dto.NotificationSummaries;
 import ktb.billage.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class NotificationFacade {
     private final NotificationService notificationService;
@@ -40,5 +42,9 @@ public class NotificationFacade {
                 summaries.cursorDto().nextCursor(),
                 summaries.cursorDto().hasNext()
         );
+    }
+
+    public void deleteNotification(Long userId, Long notificationId) {
+        notificationService.softDelete(userId, notificationId);
     }
 }
