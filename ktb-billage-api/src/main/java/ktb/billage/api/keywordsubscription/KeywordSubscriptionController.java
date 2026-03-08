@@ -2,6 +2,7 @@ package ktb.billage.api.keywordsubscription;
 
 import jakarta.validation.Valid;
 import ktb.billage.apidoc.KeywordSubscriptionApiDoc;
+import ktb.billage.application.keywordsubscription.KeywordSubscriptionFacade;
 import ktb.billage.domain.keywordsubscription.dto.KeywordSubscriptionRequest;
 import ktb.billage.domain.keywordsubscription.dto.KeywordSubscriptionResponse;
 import ktb.billage.web.common.annotation.AuthenticatedId;
@@ -21,6 +22,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RestController
 @RequiredArgsConstructor
 public class KeywordSubscriptionController implements KeywordSubscriptionApiDoc {
+    private final KeywordSubscriptionFacade keywordSubscriptionFacade;
 
     @PostMapping("/groups/{groupId}/memberships/me/keyword-subscriptions")
     public ResponseEntity<KeywordSubscriptionResponse.Id> createKeywordSubscription(
@@ -29,7 +31,7 @@ public class KeywordSubscriptionController implements KeywordSubscriptionApiDoc 
             @AuthenticatedId Long userId
     ) {
         return ResponseEntity.status(CREATED)
-                .body(new KeywordSubscriptionResponse.Id(1L));
+                .body(keywordSubscriptionFacade.registerKeyword(userId, groupId, request.keyword()));
     }
 
     @DeleteMapping("/groups/{groupId}/memberships/me/keyword-subscriptions/{keywordSubscriptionId}")
