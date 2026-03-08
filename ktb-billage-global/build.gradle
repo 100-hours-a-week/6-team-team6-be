@@ -19,6 +19,7 @@ project(':ktb-billage-global:ktb-billage-common') {
         testFixturesImplementation project(':ktb-billage-post')
         testFixturesImplementation project(':ktb-billage-chat')
         testFixturesImplementation project(':ktb-billage-notification')
+        testFixturesImplementation project(':ktb-billage-keywordsubscription')
         testFixturesImplementation project(':ktb-billage-global:ktb-billage-contract')
 
         testFixturesApi platform('org.testcontainers:testcontainers-bom:2.0.3')
