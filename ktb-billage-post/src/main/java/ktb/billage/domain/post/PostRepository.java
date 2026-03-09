@@ -69,6 +69,42 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                      @Param("cursorId") Long cursorId,
                                      Pageable pageable);
 
+    @Query(value = """
+            select p.id
+            from post p
+            join membership m on m.id = p.membership_id
+            where m.group_id = :groupId
+              and p.deleted_at is null
+            order by p.updated_at desc, p.id desc
+            """, nativeQuery = true)
+    List<Long> findTopCandidateIdsByGroupId(@Param("groupId") Long groupId, Pageable pageable);
+
+    @Query(value = """
+            select p.id
+            from post p
+            join membership m on m.id = p.membership_id
+            where m.group_id = :groupId
+              and p.deleted_at is null
+              and (p.updated_at < :cursorTime
+               or (p.updated_at = :cursorTime and p.id < :cursorId))
+            order by p.updated_at desc, p.id desc
+            """, nativeQuery = true)
+    List<Long> findNextCandidateIdsByGroupId(@Param("groupId") Long groupId,
+                                             @Param("cursorTime") Instant cursorTime,
+                                             @Param("cursorId") Long cursorId,
+                                             Pageable pageable);
+
+    @Query(value = """
+            select p.*
+            from post p
+            where p.id in (:candidateIds)
+              and match(p.title) against (:keyword in boolean mode)
+            order by p.updated_at desc, p.id desc
+            """, nativeQuery = true)
+    List<Post> findTopByCandidateIdsAndContainingKeyword(@Param("candidateIds") List<Long> candidateIds,
+                                                          @Param("keyword") String keyword,
+                                                          Pageable pageable);
+
     @Query("""
         select m.groupId
         from Post p
