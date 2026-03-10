@@ -53,7 +53,7 @@ public class ChatFacade {
     }
 
     public ChatResponse.Messages getMessagesByCursor(Long postId, Long chatroomId, Long userId, String cursor) {
-        chatroomQueryService.validateChatroomWithMessage(chatroomId);
+        chatroomQueryService.validateChatroomExists(chatroomId);
         Long actualPostId = chatroomQueryService.findPostIdByChatroomId(chatroomId);
         if (!actualPostId.equals(postId)) {
             throw new ChatException(CHATROOM_NOT_FOUND);
@@ -191,7 +191,7 @@ public class ChatFacade {
 
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
 
-        chatroomQueryService.validateChatroomWithMessage(chatroomId);
+        chatroomQueryService.validateChatroomExists(chatroomId);
         ChatResponse.ChatroomMembershipDto participation = chatroomQueryService.findParticipation(chatroomId, membershipIds);
 
         PartnerProfile partnerProfile = chatroomQueryService.findPartnerProfile(chatroomId, participation.membershipId());
@@ -215,7 +215,7 @@ public class ChatFacade {
     public Long getPostIdByChatroomId(Long chatroomId, Long userId) {
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
 
-        chatroomQueryService.validateChatroomWithMessage(chatroomId);
+        chatroomQueryService.validateChatroomExists(chatroomId);
         chatroomQueryService.validateParticipating(chatroomId, membershipIds);
 
         Long postId = chatroomQueryService.findPostIdByChatroomId(chatroomId);
