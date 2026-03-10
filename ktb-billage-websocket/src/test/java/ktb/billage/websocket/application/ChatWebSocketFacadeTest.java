@@ -57,7 +57,7 @@ class ChatWebSocketFacadeTest {
                 .thenReturn(new PartnerProfile(receiveMembershipId, "partner", false));
         when(membershipService.findUserIdByMembershipId(receiveMembershipId))
                 .thenReturn(receiveUserId);
-        when(chatMessageCommandService.sendMessage(eq(chatroomId), eq(sendMembershipId), eq(message), any(Instant.class)))
+        when(chatMessageCommandService.sendMessage(eq(chatroomId), eq(sendMembershipId), eq(message), any(Instant.class), any(String.class)))
                 .thenReturn(999L);
         when(groupService.findGroupProfileByMembershipId(sendMembershipId)).thenReturn(new GroupResponse.GroupProfile(888L, "test group", "group-cover.url"));
 
@@ -74,7 +74,7 @@ class ChatWebSocketFacadeTest {
         verify(chatroomQueryService).validateParticipating(chatroomId, sendMembershipId);
         verify(chatroomQueryService).findPartnerProfile(chatroomId, sendMembershipId);
         verify(membershipService).findUserIdByMembershipId(receiveMembershipId);
-        verify(chatMessageCommandService).sendMessage(chatroomId, sendMembershipId, message, ack.createdAt());
+        verify(chatMessageCommandService).sendMessage(chatroomId, sendMembershipId, message, ack.createdAt(), clientMessageId);
         verify(eventPublisher).publishEvent(new ChatInboxSendEvent(receiveUserId, ack));
     }
 }

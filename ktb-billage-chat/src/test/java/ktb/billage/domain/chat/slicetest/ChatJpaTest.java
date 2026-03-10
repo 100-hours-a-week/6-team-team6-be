@@ -139,7 +139,7 @@ public class ChatJpaTest {
     }
 
     private ChatMessage saveMessage(Chatroom chatroom, Long senderId, Instant sendAt) {
-        return chatMessageRepository.saveAndFlush(new ChatMessage(senderId, chatroom, "message", sendAt));
+        return chatMessageRepository.saveAndFlush(new ChatMessage(senderId, chatroom, "message", sendAt, "clientMessageId"));
     }
 
     @Configuration

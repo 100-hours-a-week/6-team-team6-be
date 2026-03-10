@@ -223,7 +223,7 @@ public class Fixtures {
 
     public ChatMessage 채팅_전송(Chatroom chatroom, Membership senderMembership, int sendAtPlusOffset) {
         Instant sendAt = BASE_TIME.plusSeconds(sendAtPlusOffset * 1000L);
-        ChatMessage message = chatMessageRepository.save(new ChatMessage(senderMembership.getId(), chatroom, "message", BASE_TIME.plusSeconds(sendAtPlusOffset * 1000L)));
+        ChatMessage message = chatMessageRepository.save(new ChatMessage(senderMembership.getId(), chatroom, "message", BASE_TIME.plusSeconds(sendAtPlusOffset * 1000L), "clientMessageId"));
 
         chatroom.sendMessage(message.getId(), senderMembership.getId(), sendAt);
         chatroomRepository.save(chatroom);
@@ -235,7 +235,7 @@ public class Fixtures {
         Chatroom chatroom = chatroomRepository.findById(chatroomId)
                 .orElseThrow(() -> new IllegalArgumentException("Chatroom not found"));
 
-        ChatMessage message = chatMessageRepository.save(new ChatMessage(senderMembership.getId(), chatroom, "message", Instant.now()));
+        ChatMessage message = chatMessageRepository.save(new ChatMessage(senderMembership.getId(), chatroom, "message", Instant.now(), "clientMessageId"));
         chatroom.sendMessage(message.getId(), senderMembership.getId(), Instant.now());
         chatroomRepository.save(chatroom);
 
