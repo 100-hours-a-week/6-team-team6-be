@@ -73,7 +73,7 @@ public class UserService {
         return userRepository.findAllByIdInAndDeletedAtIsNull(userIds).stream()
                 .map(user -> new UserResponse.UserProfile(
                         user.getId(),
-                        imageService.resolveUrl(user.getAvatarUrl())
+                        user.getAvatarUrl()
                 ))
                 .toList();
     }
