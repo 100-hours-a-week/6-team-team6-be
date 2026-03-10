@@ -20,13 +20,13 @@ public class ChatMessageCommandService {
     private final ChatMessageRepository chatMessageRepository;
 
     @Transactional
-    public Long sendMessage(Long chatroomId, Long membershipId, String message, Instant sendAt) {
+    public Long sendMessage(Long chatroomId, Long membershipId, String message, Instant sendAt, String clientMessageId) {
         Chatroom chatroom = chatroomQueryService.findChatroom(chatroomId);
         if (!chatroom.isActive()) {
             throw new ChatException(FROZEN_CHATROOM);
         }
 
-        ChatMessage chatMessage = chatMessageRepository.save(new ChatMessage(membershipId, chatroom, message, sendAt));
+        ChatMessage chatMessage = chatMessageRepository.save(new ChatMessage(membershipId, chatroom, message, sendAt, clientMessageId));
 
         chatroom.sendMessage(chatMessage.getId(), membershipId, sendAt);
 

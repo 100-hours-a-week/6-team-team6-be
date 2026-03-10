@@ -57,7 +57,7 @@ public class ChatWebSocketFacade {
         GroupResponse.GroupProfile groupProfile = groupService.findGroupProfileByMembershipId(sendMembershipId);
 
         Instant now = Instant.now();
-        Long messageId = chatMessageCommandService.sendMessage(chatroomId, sendMembershipId, message, now);
+        Long messageId = chatMessageCommandService.sendMessage(chatroomId, sendMembershipId, message, now, clientMessageId);
 
         ChatSendAckResponse ack = new ChatSendAckResponse(chatroomId, sendMembershipId, String.valueOf(messageId), message, now, groupProfile.groupName(), clientMessageId);
 
