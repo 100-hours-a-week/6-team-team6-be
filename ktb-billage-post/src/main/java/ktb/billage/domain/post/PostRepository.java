@@ -25,19 +25,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             """)
     List<Post> findTop21ByGroupIdOrderByUpdatedAtDescIdDesc(@Param("groupId") Long groupId, Pageable pageable);
 
-    @Query(value = """
-            select p.*
-            from post p
-            join membership m on m.id = p.membership_id
-            where m.group_id = :groupId
-              and p.deleted_at is null
-              and match(p.title) against (:keyword in boolean mode)
-            order by p.updated_at desc, p.id desc
-            """, nativeQuery = true)
-    List<Post> findTop21ByGroupIdAndContainingKeywordOrderByUpdatedAtDescIdDesc(@Param("groupId") Long groupId,
-                                                                                @Param("keyword") String keyword,
-                                                                                Pageable pageable);
-
     @Query("""
             select p from Post p
             join Membership m on m.id = p.sellerId
@@ -54,56 +41,49 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query(value = """
             select p.*
-            from post p
-            join membership m on m.id = p.membership_id
-            where m.group_id = :groupId
-              and p.deleted_at is null
-              and match(p.title) against (:keyword in boolean mode)
-              and (p.updated_at < :cursorTime
-               or (p.updated_at = :cursorTime and p.id < :cursorId))
+            from (
+                select p1.id
+                from post p1
+                join membership m1 on m1.id = p1.membership_id
+                where m1.group_id = :groupId
+                  and p1.deleted_at is null
+                order by p1.updated_at desc, p1.id desc
+                limit :candidateWindowSize
+            ) c
+            straight_join post p on p.id = c.id
+            where match(p.title) against (:keyword in boolean mode)
             order by p.updated_at desc, p.id desc
+            limit :pageSize
             """, nativeQuery = true)
-    List<Post> findNextPageByKeyword(@Param("groupId") Long groupId,
-                                     @Param("keyword") String keyword,
-                                     @Param("cursorTime") Instant cursorTime,
-                                     @Param("cursorId") Long cursorId,
-                                     Pageable pageable);
-
-    @Query(value = """
-            select p.id
-            from post p
-            join membership m on m.id = p.membership_id
-            where m.group_id = :groupId
-              and p.deleted_at is null
-            order by p.updated_at desc, p.id desc
-            """, nativeQuery = true)
-    List<Long> findTopCandidateIdsByGroupId(@Param("groupId") Long groupId, Pageable pageable);
-
-    @Query(value = """
-            select p.id
-            from post p
-            join membership m on m.id = p.membership_id
-            where m.group_id = :groupId
-              and p.deleted_at is null
-              and (p.updated_at < :cursorTime
-               or (p.updated_at = :cursorTime and p.id < :cursorId))
-            order by p.updated_at desc, p.id desc
-            """, nativeQuery = true)
-    List<Long> findNextCandidateIdsByGroupId(@Param("groupId") Long groupId,
-                                             @Param("cursorTime") Instant cursorTime,
-                                             @Param("cursorId") Long cursorId,
-                                             Pageable pageable);
+    List<Post> findTopByGroupIdAndKeywordWithCandidateJoin(@Param("groupId") Long groupId,
+                                                           @Param("keyword") String keyword,
+                                                           @Param("candidateWindowSize") int candidateWindowSize,
+                                                           @Param("pageSize") int pageSize);
 
     @Query(value = """
             select p.*
-            from post p
-            where p.id in (:candidateIds)
-              and match(p.title) against (:keyword in boolean mode)
+            from (
+                select p1.id
+                from post p1
+                join membership m1 on m1.id = p1.membership_id
+                where m1.group_id = :groupId
+                  and p1.deleted_at is null
+                  and (p1.updated_at < :cursorTime
+                   or (p1.updated_at = :cursorTime and p1.id < :cursorId))
+                order by p1.updated_at desc, p1.id desc
+                limit :candidateWindowSize
+            ) c
+           straight_join post p on p.id = c.id
+            where match(p.title) against (:keyword in boolean mode)
             order by p.updated_at desc, p.id desc
+            limit :pageSize
             """, nativeQuery = true)
-    List<Post> findTopByCandidateIdsAndContainingKeyword(@Param("candidateIds") List<Long> candidateIds,
-                                                          @Param("keyword") String keyword,
-                                                          Pageable pageable);
+    List<Post> findNextByGroupIdAndKeywordWithCandidateJoin(@Param("groupId") Long groupId,
+                                                            @Param("keyword") String keyword,
+                                                            @Param("cursorTime") Instant cursorTime,
+                                                            @Param("cursorId") Long cursorId,
+                                                            @Param("candidateWindowSize") int candidateWindowSize,
+                                                            @Param("pageSize") int pageSize);
 
     @Query("""
         select m.groupId
