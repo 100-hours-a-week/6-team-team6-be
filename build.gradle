@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'java-test-fixtures'
+    id 'jacoco'
     id 'org.springframework.boot' version '4.0.1' apply false
     id 'io.spring.dependency-management' version '1.1.7' apply false
     id 'checkstyle'
@@ -11,10 +12,15 @@ group = 'backend'
 version = '0.0.1-SNAPSHOT'
 description = 'billage'
 
+repositories {
+    mavenCentral()
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'java-test-fixtures'
     apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'jacoco'
 
     java {
         toolchain {
@@ -64,6 +70,31 @@ subprojects {
 
     test {
         useJUnitPlatform()
+        finalizedBy(tasks.named('jacocoTestReport'))
+    }
+
+    jacoco {
+        toolVersion = '0.8.13'
+    }
+
+    tasks.named('jacocoTestReport', JacocoReport) {
+        dependsOn(tasks.named('test'))
+
+        classDirectories.setFrom(files(sourceSets.main.output.classesDirs.files.collect { dir ->
+            fileTree(dir) {
+                exclude '**/generated/**'
+                exclude '**/dto/**'
+                exclude '**/Q*.class'
+                exclude '**/test/**'
+                exclude '**/apidoc/**'
+            }
+        }))
+
+        reports {
+            xml.required = true
+            html.required = true
+            csv.required = false
+        }
     }
 }
 
@@ -92,4 +123,32 @@ tasks.register('integrationTest', Test) {
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     useJUnitPlatform()
+}
+
+tasks.register('jacocoRootReport', JacocoReport) {
+    group = 'verification'
+    description = 'Generates an aggregate JaCoCo coverage report for all subprojects.'
+
+    dependsOn(subprojects.collect { it.tasks.named('test') })
+
+    additionalSourceDirs.from(files(subprojects.collect { it.sourceSets.main.allSource.srcDirs }))
+    sourceDirectories.from(files(subprojects.collect { it.sourceSets.main.allSource.srcDirs }))
+    classDirectories.from(files(subprojects.collect { project ->
+        project.sourceSets.main.output.classesDirs.files.collect { dir ->
+            project.fileTree(dir) {
+                exclude '**/generated/**'
+                exclude '**/dto/**'
+                exclude '**/Q*.class'
+                exclude '**/test/**'
+                exclude '**/apidoc/**'
+            }
+        }
+    }))
+    executionData.from(files(subprojects.collect { it.layout.buildDirectory.file('jacoco/test.exec') }))
+
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
 }
