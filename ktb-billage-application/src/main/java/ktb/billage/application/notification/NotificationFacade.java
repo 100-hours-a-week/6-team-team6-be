@@ -42,7 +42,7 @@ public class NotificationFacade {
                                 summary.type(),
                                 summary.chatroomId(),
                                 summary.postId(),
-                                imageService.resolveUrl(postImageUrls.get(summary.postId())),
+                                summary.postId() == null ? null : imageService.resolveUrl(postImageUrls.get(summary.postId())),
                                 summary.title(),
                                 summary.groupId(),
                                 groupProfiles.get(summary.groupId()).groupName(),
