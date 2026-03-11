@@ -3,6 +3,7 @@ package ktb.billage.api.notification;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import ktb.billage.common.exception.ExceptionCode;
+import ktb.billage.domain.chat.Chatroom;
 import ktb.billage.domain.group.Group;
 import ktb.billage.domain.membership.Membership;
 import ktb.billage.domain.notification.Notification;
@@ -221,6 +222,39 @@ public class NotificationAcceptanceTest extends AcceptanceTestSupport {
             Long idAfterDeletion = ((Number) afterDeletionResponse.path("notifications[0].notificationId")).longValue();
 
             assertThat(idAfterDeletion).isNotEqualTo(idBeforeDeletion);
+        }
+        
+        @Test
+        @DisplayName("조회 성공 - post Type의 알림은 postFirstImageUrl 값이 있다")
+        void success_post_type_notification_belongs_to_firstImageUrl() {
+            Membership anotherMembership = fixtures.그룹_가입(group, another);
+            Chatroom chatroom = fixtures.채팅방_생성(myPost, anotherMembership);
+
+            for (int i = 0; i < 10; i++) {
+                fixtures.알림_생성_게시글(me, group, anotherPost, i);
+            }
+            fixtures.알림_생성_채팅방(me, group, chatroom, 1);
+            
+            Response response = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/users/me/notifications")
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .response();
+
+            int notificationCount = response.jsonPath().getList("notifications").size();
+            for (int i = 0; i < notificationCount; i++) {
+                String type = response.jsonPath().getString("notifications[" + i + "].type");
+                String postFirstImageUrl = response.jsonPath().getString("notifications[" + i + "].postFirstImageUrl");
+
+                if ("POST".equals(type)) {
+                    assertThat(postFirstImageUrl).isNotNull();
+                } else if ("CHATROOM".equals(type)) {
+                    assertThat(postFirstImageUrl).isNull();
+                }
+            }
         }
     }
 
