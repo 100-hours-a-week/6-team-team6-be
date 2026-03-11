@@ -1,5 +1,6 @@
 package ktb.billage.application.notification;
 
+import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.notification.dto.NotificationResponse;
@@ -20,6 +21,7 @@ public class NotificationFacade {
     private final NotificationService notificationService;
     private final GroupService groupService;
     private final PostQueryService postQueryService;
+    private final ImageService imageService;
 
     public NotificationResponse.Notifications getMyNotifications(Long userId, String cursor) {
         NotificationSummaries summaries = notificationService.findByUserIdAndCursor(userId, cursor);
@@ -40,7 +42,7 @@ public class NotificationFacade {
                                 summary.type(),
                                 summary.chatroomId(),
                                 summary.postId(),
-                                postImageUrls.get(summary.postId()),
+                                imageService.resolveUrl(postImageUrls.get(summary.postId())),
                                 summary.title(),
                                 summary.groupId(),
                                 groupProfiles.get(summary.groupId()).groupName(),
