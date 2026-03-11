@@ -18,6 +18,8 @@ import ktb.billage.domain.post.PostImage;
 import ktb.billage.domain.post.PostImageRepository;
 import ktb.billage.domain.post.PostRepository;
 import ktb.billage.domain.user.User;
+import ktb.billage.domain.user.UserPushToken;
+import ktb.billage.domain.user.UserPushTokenRepository;
 import ktb.billage.domain.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,6 +72,8 @@ public class Fixtures {
 
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    @Autowired
+    private UserPushTokenRepository userPushTokenRepository;
 
     public String 토큰_생성(User user) {
         return tokenGenerator.generateAccessToken(user.getId());
@@ -288,5 +292,9 @@ public class Fixtures {
 
     public void 키워드_구독_삭제(Long subscriptionId) {
         jdbcTemplate.update("UPDATE keyword_subscription SET deleted_at = ? WHERE id = ?", Instant.now(), subscriptionId);
+    }
+
+    public UserPushToken 유저_푸시_토큰_생성(User user, UserPushToken.PushPlatform platform, String deviceToken, String fcmToken) {
+        return userPushTokenRepository.save(UserPushTokenFixture.one(user, platform, deviceToken, fcmToken));
     }
 }
