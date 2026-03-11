@@ -2,29 +2,25 @@ package ktb.billage.application.chat;
 
 import ktb.billage.domain.chat.Chatroom;
 import ktb.billage.domain.chat.dto.ChatResponse;
-import ktb.billage.domain.chat.service.ChatMessageCommandService;
 import ktb.billage.domain.group.Group;
 import ktb.billage.domain.membership.Membership;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.user.User;
 import ktb.billage.fixture.Fixtures;
 import ktb.billage.support.TestContainerSupport;
-import org.hibernate.resource.jdbc.spi.StatementInspector;
+import ktb.billage.support.querycount.QueryCountCaptor;
+import ktb.billage.support.querycount.QueryCountResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static ktb.billage.support.querycount.QueryCountAssertions.assertQueryCountLessThan;
 
 @SpringBootTest(properties = {
         "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver",
         "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect",
-        "spring.jpa.properties.hibernate.session_factory.statement_inspector=ktb.billage.application.chat.ChatFacadeQueryCountTest$SqlCaptureStatementInspector"
+        "spring.jpa.properties.hibernate.session_factory.statement_inspector=ktb.billage.support.querycount.QueryCountCaptor$SqlCaptureStatementInspector"
 })
 class ChatFacadeQueryCountTest extends TestContainerSupport {
 
@@ -51,51 +47,16 @@ class ChatFacadeQueryCountTest extends TestContainerSupport {
             fixtures.채팅_전송(chatroom, partnerMembership, i);
         }
 
-        SqlCaptureStatementInspector.clear();
-
-        ChatResponse.ChatroomSummaries result = chatFacade.getMyParticipatingChatrooms(me.getId(), null);
-
-        List<String> executedSql = SqlCaptureStatementInspector.snapshot();
-        Map<String, Long> queryCounts = aggregateQueryCounts(executedSql);
+        QueryCountResult<ChatResponse.ChatroomSummaries> queryCountResult =
+                QueryCountCaptor.measure(() -> chatFacade.getMyParticipatingChatrooms(me.getId(), null));
+        ChatResponse.ChatroomSummaries result = queryCountResult.result();
 
         assertThat(result.chatroomSummaries()).hasSize(20);
         assertThat(result.cursorDto().hasNext()).isTrue();
-        assertThat(executedSql).isNotEmpty();
+        assertThat(queryCountResult.executedSql()).isNotEmpty();
+        assertQueryCountLessThan(queryCountResult, 100);
 
         System.out.println("===== getMyParticipatingChatrooms query count =====");
-        System.out.println("total: " + executedSql.size());
-        queryCounts.forEach((sql, count) -> System.out.println(count + "x | " + sql));
-    }
-
-    private Map<String, Long> aggregateQueryCounts(List<String> sqls) {
-        Map<String, Long> counts = new LinkedHashMap<>();
-        for (String sql : sqls) {
-            counts.merge(normalizeWhitespace(sql), 1L, Long::sum);
-        }
-        return counts;
-    }
-
-    private String normalizeWhitespace(String sql) {
-        return sql.replaceAll("\\s+", " ").trim();
-    }
-
-    public static final class SqlCaptureStatementInspector implements StatementInspector {
-        private static final List<String> CAPTURED_SQL = new CopyOnWriteArrayList<>();
-
-        @Override
-        public String inspect(String sql) {
-            if (sql != null && !sql.isBlank()) {
-                CAPTURED_SQL.add(sql);
-            }
-            return sql;
-        }
-
-        static void clear() {
-            CAPTURED_SQL.clear();
-        }
-
-        static List<String> snapshot() {
-            return List.copyOf(CAPTURED_SQL);
-        }
+        System.out.println(queryCountResult.describe());
     }
 }
