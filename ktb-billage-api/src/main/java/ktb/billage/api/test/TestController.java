@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import ktb.billage.infra.kafka.test.KafkaTestMessage;
+import ktb.billage.infra.kafka.test.KafkaTestService;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.web.common.annotation.AuthenticatedId;
 import ktb.billage.websocket.application.event.ChatInboxSendEvent;
@@ -13,8 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +34,7 @@ import java.time.Instant;
 public class TestController {
     private final MembershipService membershipService;
     private final ApplicationEventPublisher eventPublisher;
+    private final KafkaTestService kafkaTestService;
 
     @Operation(
             summary = "내 계정 웹 푸시 테스트 전송",
@@ -57,5 +62,22 @@ public class TestController {
         eventPublisher.publishEvent(new ChatInboxSendEvent(userId, ack));
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Kafka 테스트 메시지 발행",
+            description = "billage.test 토픽으로 테스트 메시지를 발행합니다. local/dev 프로필에서만 활성화됩니다.",
+            security = {@SecurityRequirement(name = "Bearer Auth")}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "테스트 메시지 발행 성공")
+    })
+    @PostMapping("/kafka")
+    public ResponseEntity<KafkaTestMessage> publishKafkaTestMessage(@RequestBody KafkaTestRequest request) {
+        KafkaTestMessage message = kafkaTestService.publish(request.content());
+        return ResponseEntity.status(HttpStatus.CREATED).body(message);
+    }
+
+    public record KafkaTestRequest(String content) {
     }
 }
