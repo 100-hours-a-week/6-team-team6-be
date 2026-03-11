@@ -143,27 +143,22 @@ public class PostQueryService {
 
     private List<Post> loadPostsByKeyword(Long groupId, String keyword, CursorCodec.Cursor decoded) {
         String fullTextKeyword = toBooleanModeKeyword(keyword);
-        List<Long> candidateIds;
         if (decoded == null) {
-            candidateIds = postRepository.findTopCandidateIdsByGroupId(
+            return postRepository.findTopByGroupIdAndKeywordWithCandidateJoin(
                     groupId,
-                    PageRequest.of(0, KEYWORD_CANDIDATE_WINDOW_SIZE)
-            );
-        } else {
-            candidateIds = postRepository.findNextCandidateIdsByGroupId(
-                    groupId,
-                    decoded.time(),
-                    decoded.id(),
-                    PageRequest.of(0, KEYWORD_CANDIDATE_WINDOW_SIZE)
+                    fullTextKeyword,
+                    KEYWORD_CANDIDATE_WINDOW_SIZE,
+                    PAGE_FETCH_SIZE
             );
         }
-        if (candidateIds.isEmpty()) {
-            return List.of();
-        }
-        return postRepository.findTopByCandidateIdsAndContainingKeyword(
-                candidateIds,
+
+        return postRepository.findNextByGroupIdAndKeywordWithCandidateJoin(
+                groupId,
                 fullTextKeyword,
-                PageRequest.of(0, PAGE_FETCH_SIZE)
+                decoded.time(),
+                decoded.id(),
+                KEYWORD_CANDIDATE_WINDOW_SIZE,
+                PAGE_FETCH_SIZE
         );
     }
 
