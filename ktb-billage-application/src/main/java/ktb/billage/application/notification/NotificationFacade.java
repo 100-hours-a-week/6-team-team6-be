@@ -5,10 +5,12 @@ import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.notification.dto.NotificationResponse;
 import ktb.billage.domain.notification.dto.NotificationSummaries;
 import ktb.billage.domain.notification.service.NotificationService;
+import ktb.billage.domain.post.service.PostQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -17,6 +19,7 @@ import java.util.Map;
 public class NotificationFacade {
     private final NotificationService notificationService;
     private final GroupService groupService;
+    private final PostQueryService postQueryService;
 
     public NotificationResponse.Notifications getMyNotifications(Long userId, String cursor) {
         NotificationSummaries summaries = notificationService.findByUserIdAndCursor(userId, cursor);
@@ -27,6 +30,9 @@ public class NotificationFacade {
                         .toList()
         );
 
+        List<Long> postTypeNotificationIds = resolvePostNotificationSummaryIds(summaries.notificationSummaries());
+        Map<Long, String> postImageUrls = postQueryService.findPostFirstImageUrls(postTypeNotificationIds);
+
         return new NotificationResponse.Notifications(
                 summaries.notificationSummaries().stream()
                         .map(summary -> new NotificationResponse.NotificationItem(
@@ -34,7 +40,9 @@ public class NotificationFacade {
                                 summary.type(),
                                 summary.chatroomId(),
                                 summary.postId(),
+                                postImageUrls.get(summary.postId()),
                                 summary.title(),
+                                summary.groupId(),
                                 groupProfiles.get(summary.groupId()).groupName(),
                                 summary.description(),
                                 summary.createdAt()
@@ -46,5 +54,12 @@ public class NotificationFacade {
 
     public void deleteNotification(Long userId, Long notificationId) {
         notificationService.softDelete(userId, notificationId);
+    }
+
+    private List<Long> resolvePostNotificationSummaryIds(List<NotificationSummaries.NotificationSummary> summaries) {
+        return summaries.stream()
+                .filter(item -> "POST".equals(item.type()))
+                .map(NotificationSummaries.NotificationSummary::postId)
+                .toList();
     }
 }

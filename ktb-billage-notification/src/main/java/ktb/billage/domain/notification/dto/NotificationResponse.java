@@ -17,7 +17,9 @@ public class NotificationResponse {
             String type,
             Long chatroomId,
             Long postId,
+            String postFirstImageUrl,
             String title,
+            Long groupId,
             String groupName,
             String description,
             Instant createdAt
