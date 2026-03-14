@@ -86,4 +86,9 @@ public class NotificationService {
         return notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotificationException(NOTIFICATION_NOT_FOUND));
     }
+
+    // TODO. bulk 연산이 아님. -> 성능 문제 발견시 batch나
+    public void saveAllNotifications(List<Notification> notificationsToSave) {
+        notificationRepository.saveAll(notificationsToSave);
+    }
 }

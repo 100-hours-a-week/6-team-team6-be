@@ -4,6 +4,7 @@ import ktb.billage.application.post.event.PostCreateEvent;
 import ktb.billage.application.post.event.PostDeleteEvent;
 import ktb.billage.application.post.event.PostUpdateEvent;
 import ktb.billage.application.post.event.PostUpsertPayload;
+import ktb.billage.application.post.port.PostEventPublisher;
 import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.membership.dto.MembershipProfile;
@@ -35,6 +36,7 @@ public class PostFacade {
     private final ChatroomQueryService chatroomQueryService;
     private final UserService userService;
     private final ApplicationEventPublisher eventPublisher;
+    private final PostEventPublisher postEventPublisher;
 
     @Transactional
     public PostResponse.Id create(Long groupId, Long userId, PostRequest.Create request) {
@@ -59,7 +61,9 @@ public class PostFacade {
                 request.rentalFee(),
                 request.feeUnit().name()
         );
-        eventPublisher.publishEvent(new PostCreateEvent(payload));
+        PostCreateEvent postCreateEvent = new PostCreateEvent(payload);
+        postEventPublisher.publishPostCreated(postCreateEvent); // FIXME. 트랜잭션 성공 보장 처리 필요
+        eventPublisher.publishEvent(postCreateEvent);
         return response;
     }
 
