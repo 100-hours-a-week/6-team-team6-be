@@ -36,6 +36,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson'
     runtimeOnly 'com.mysql:mysql-connector-j'
 
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'com.mysql:mysql-connector-j'
 }
 
