@@ -2,6 +2,7 @@ package ktb.billage.api.post;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import ktb.billage.application.post.port.PostEventPublisher;
 import ktb.billage.domain.group.Group;
 import ktb.billage.domain.membership.Membership;
 import ktb.billage.domain.post.Post;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
 import java.util.List;
@@ -31,6 +33,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AcceptanceTest
 @Import(GlobalExceptionHandler.class)
 class PostAcceptanceTest extends AcceptanceTestSupport {
+    @MockitoBean
+    private PostEventPublisher postEventPublisher;
 
     @Autowired
     private Fixtures fixtures;
