@@ -66,4 +66,9 @@ public class KeywordSubscriptionService {
                         )).toList()
         );
     }
+
+    public void deleteAllByGroupIdAndUserId(Long groupId, Long userId) {
+        Instant now = Instant.now();
+        keywordSubscriptionRepository.softDeleteAllByGroupIdAndUserId(groupId, userId, now);
+    }
 }
