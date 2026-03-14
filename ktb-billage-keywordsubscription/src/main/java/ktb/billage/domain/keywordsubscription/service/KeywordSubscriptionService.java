@@ -71,4 +71,15 @@ public class KeywordSubscriptionService {
         Instant now = Instant.now();
         keywordSubscriptionRepository.softDeleteAllByGroupIdAndUserId(groupId, userId, now);
     }
+
+    public List<KeywordSubscription> findAllActiveSubscriptionsInGroupAndNotMine(Long groupId, Long postAuthorUserId) {
+        return keywordSubscriptionRepository.findAllByGroupIdAndNotUserIdAndDeletedAtIsNull(groupId, postAuthorUserId);
+    }
+
+    // TODO. 성능 저하 시 Trie 방식으로 개선 필요
+    public List<KeywordSubscription> findMatchedKeywordSubscription(List<KeywordSubscription> subscriptions, String title) {
+        return subscriptions.stream()
+                .filter(subscription -> title.contains(subscription.getKeyword()))
+                .toList();
+    }
 }
