@@ -3,6 +3,7 @@ package ktb.billage.application.group;
 import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.chat.service.ChatroomCommandService;
 import ktb.billage.domain.group.service.GroupService;
+import ktb.billage.domain.keywordsubscription.service.KeywordSubscriptionService;
 import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.membership.dto.MembershipResponse;
 import ktb.billage.domain.membership.service.MembershipService;
@@ -21,6 +22,7 @@ public class GroupFacade {
     private final UserService userService;
     private final PostCommandService postCommandService;
     private final ChatroomCommandService chatroomCommandService;
+    private final KeywordSubscriptionService keywordSubscriptionService;
 
     @Transactional
     public Long createGroup(Long userId, String groupName, String groupCoverImageUrl) {
@@ -77,6 +79,7 @@ public class GroupFacade {
 
         postCommandService.softDeleteBySellerId(membershipId);
         chatroomCommandService.freezeByMembershipId(membershipId);
+        keywordSubscriptionService.deleteAllByGroupIdAndUserId(groupId, userId);
 
         if (isLastMember) {
             groupService.softDeleteByGroupId(groupId);
