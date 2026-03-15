@@ -2,24 +2,20 @@ package ktb.billage.infra.kafka.post;
 
 import ktb.billage.application.keywordsubscription.PostCreatedKeywordNotificationUseCase;
 import ktb.billage.application.post.event.PostCreateEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class PostCreatedKafkaConsumer {
-    private static final Logger log = LoggerFactory.getLogger(PostCreatedKafkaConsumer.class);
-
     private final PostCreatedKeywordNotificationUseCase useCase;
 
-    public PostCreatedKafkaConsumer(PostCreatedKeywordNotificationUseCase useCase) {
-        this.useCase = useCase;
-    }
-
     @KafkaListener(
-            topics = "#{T(ktb.billage.infra.kafka.post.PostKafkaTopic).CREATED.value()}",
+            topics = "#{T(ktb.billage.infra.kafka.KafkaTopic).POST_CREATED.value()}",
             groupId = "post-created-keyword-notification-consumer",
             properties = {
                     "spring.json.value.default.type=ktb.billage.application.post.event.PostCreateEvent"
