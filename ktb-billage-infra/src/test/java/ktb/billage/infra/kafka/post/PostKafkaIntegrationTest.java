@@ -4,6 +4,7 @@ import ktb.billage.application.keywordsubscription.PostCreatedKeywordNotificatio
 import ktb.billage.application.post.event.PostCreateEvent;
 import ktb.billage.application.post.event.PostUpsertPayload;
 import ktb.billage.infra.kafka.KafkaConfig;
+import ktb.billage.infra.kafka.KafkaTopic;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -82,7 +83,7 @@ class PostKafkaIntegrationTest {
         PostCreateEvent event = createEvent();
 
         testConsumer = createPublisherTestConsumer("publisher-test-group-" + UUID.randomUUID());
-        TopicPartition topicPartition = new TopicPartition(PostKafkaTopic.CREATED.value(), 0);
+        TopicPartition topicPartition = new TopicPartition(KafkaTopic.POST_CREATED.value(), 0);
         testConsumer.assign(Collections.singleton(topicPartition));
         long startOffset = testConsumer.endOffsets(Collections.singleton(topicPartition)).get(topicPartition);
         testConsumer.seek(topicPartition, startOffset);
@@ -95,7 +96,7 @@ class PostKafkaIntegrationTest {
         String target = String.valueOf(event.payload().postId());
         while (matchingRecord == null && System.currentTimeMillis() < deadline) {
             ConsumerRecords<String, byte[]> records = KafkaTestUtils.getRecords(testConsumer, Duration.ofMillis(500));
-            for (ConsumerRecord<String, byte[]> record : records.records(PostKafkaTopic.CREATED.value())) {
+            for (ConsumerRecord<String, byte[]> record : records.records(KafkaTopic.POST_CREATED.value())) {
                 if (record.offset() >= startOffset
                         && target.equals(record.key())) {
                     matchingRecord = record;
