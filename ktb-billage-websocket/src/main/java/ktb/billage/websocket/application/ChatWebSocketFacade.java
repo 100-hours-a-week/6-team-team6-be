@@ -8,7 +8,9 @@ import ktb.billage.domain.chat.service.ChatroomQueryService;
 import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.service.MembershipService;
+import ktb.billage.websocket.application.event.BuyerFirstMessageSentEvent;
 import ktb.billage.websocket.application.event.ChatInboxSendEvent;
+import ktb.billage.websocket.application.port.ChatEventPublisher;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,7 @@ public class ChatWebSocketFacade {
     private final ChatMessageQueryService chatMessageQueryService;
     private final ChatMessageCommandService chatMessageCommandService;
     private final ApplicationEventPublisher eventPublisher;
+    private final ChatEventPublisher chatEventPublisher;
 
     public ChatResponse.ChatroomMembershipDto joinChatroom(Long chatroomId, Long userId) {
         chatroomQueryService.validateChatroomExists(chatroomId);
@@ -56,12 +59,15 @@ public class ChatWebSocketFacade {
 
         GroupResponse.GroupProfile groupProfile = groupService.findGroupProfileByMembershipId(sendMembershipId);
 
+        if (isFirstMessage(chatroomId)) {
+            chatEventPublisher.publishFirstMessageSent(new BuyerFirstMessageSentEvent(chatroomId, sendMembershipId, receiveUserId));
+        }
+
         Instant now = Instant.now();
         Long messageId = chatMessageCommandService.sendMessage(chatroomId, sendMembershipId, message, now, clientMessageId);
 
         ChatSendAckResponse ack = new ChatSendAckResponse(chatroomId, sendMembershipId, String.valueOf(messageId), message, now, groupProfile.groupName(), clientMessageId);
 
-        log.info("[ChatFacade] arrive");
         eventPublisher.publishEvent(new ChatInboxSendEvent(receiveUserId, ack));
 
         return ack;
@@ -75,5 +81,9 @@ public class ChatWebSocketFacade {
 
         Instant now = Instant.now();
         chatroomCommandService.readMessage(chatroomId, membershipId, readMessageId, now);
+    }
+
+    private boolean isFirstMessage(Long chatroomId) {
+        return chatroomQueryService.isEmptyMessageChatroom(chatroomId);
     }
 }

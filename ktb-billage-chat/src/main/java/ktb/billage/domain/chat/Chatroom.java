@@ -60,10 +60,6 @@ public class Chatroom extends BaseEntity {
         this.roomStatus = RoomStatus.ACTIVE;
     }
 
-    public boolean isBuyerContaining(Set<Long> membershipIds) {
-        return membershipIds.contains(buyerId);
-    }
-
     public void readAllBySeller(Instant readAt) {
         this.sellerLastReadMessageId = lastMessageId;
         this.sellerLastReadAt = readAt;
@@ -98,5 +94,9 @@ public class Chatroom extends BaseEntity {
             this.sellerLastReadMessageId = chatId;
             this.sellerLastReadAt = sendAt;
         }
+    }
+
+    public boolean isNoMessage() {
+        return lastMessageId == null;
     }
 }

@@ -155,4 +155,9 @@ public class ChatroomQueryService {
                 pageRequest
         );
     }
+    
+    public boolean isEmptyMessageChatroom(Long chatroomId) {
+        Chatroom chatroom = findChatroom(chatroomId);
+        return chatroom.isNoMessage();
+    }
 }
