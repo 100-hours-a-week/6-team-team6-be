@@ -8,6 +8,7 @@ import ktb.billage.fixture.Fixtures;
 import ktb.billage.domain.user.User;
 import ktb.billage.support.AcceptanceTest;
 import ktb.billage.support.AcceptanceTestSupport;
+import ktb.billage.websocket.application.port.ChatEventPublisher;
 import ktb.billage.websocket.config.WebSocketDestinations;
 import ktb.billage.websocket.dto.ChatSendAckResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,7 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
@@ -34,6 +36,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @AcceptanceTest
 class ChatWebSocketAcceptanceTest extends AcceptanceTestSupport {
+    @MockitoBean
+    private ChatEventPublisher chatEventPublisher;
+
     @Autowired
     private Fixtures fixtures;
 
