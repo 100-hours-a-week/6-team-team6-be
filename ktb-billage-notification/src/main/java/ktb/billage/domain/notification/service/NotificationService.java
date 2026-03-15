@@ -91,4 +91,8 @@ public class NotificationService {
     public void saveAllNotifications(List<Notification> notificationsToSave) {
         notificationRepository.saveAll(notificationsToSave);
     }
+
+    public Notification save(Notification notificationToSave) {
+        return notificationRepository.save(notificationToSave);
+    }
 }
