@@ -133,16 +133,16 @@ jobs:
             exit 1
           EOF
           
+      # Deprecated - cd-docker.yml 파일 사용
+      # - name: Notify Dev Deploy success
+      #   if: success()
+      #   run: |
+      #     curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 완료**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
 
-      - name: Notify Dev Deploy success
-        if: success()
-        run: |
-          curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 완료**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
-
-      - name: Notify Dev Deploy failure
-        if: failure()
-        run: |
-          curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 실패**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
+      # - name: Notify Dev Deploy failure
+      #   if: failure()
+      #   run: |
+      #     curl -H "Content-Type: application/json" -X POST -d '{"content": "**DEV 배포 실패**: ${{ github.event.workflow_run.head_sha }}"}' ${{ secrets.DISCORD_WEBHOOK }}
 
 
   # =================================================================================
