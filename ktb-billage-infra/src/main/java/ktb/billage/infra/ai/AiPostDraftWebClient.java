@@ -31,12 +31,13 @@ import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
 @Component
 @RequiredArgsConstructor
 public class AiPostDraftWebClient implements AiPostDraftClient {
+    private static final String POST_DRAFT_PATH = "/ai/generate";
+
     private final WebClient webClient;
 
     @Value("${ai.base-url}")
     private String baseUrl;
 
-    private static final String POST_DRAFT_PATH = "/ai/generate";
 
     @Override
     public PostResponse.PostDraft requestPostDraft(List<PostRequest.ImageComponent> images) {
