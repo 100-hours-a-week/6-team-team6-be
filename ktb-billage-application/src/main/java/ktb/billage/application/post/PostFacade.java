@@ -11,6 +11,7 @@ import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.post.RentalStatus;
 import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
+import ktb.billage.domain.post.service.AiPostValidateService;
 import ktb.billage.domain.post.service.PostCommandService;
 import ktb.billage.domain.post.service.PostQueryService;
 import ktb.billage.domain.chat.service.ChatroomQueryService;
@@ -35,6 +36,7 @@ public class PostFacade {
     private final MembershipService membershipService;
     private final ChatroomQueryService chatroomQueryService;
     private final UserService userService;
+    private final AiPostValidateService aiPostValidateService;
     private final ApplicationEventPublisher eventPublisher;
     private final PostEventPublisher postEventPublisher;
 
@@ -42,6 +44,8 @@ public class PostFacade {
     public PostResponse.Id create(Long groupId, Long userId, PostRequest.Create request) {
         GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
+
+        aiPostValidateService.validateRestrictedItemInPost(request.imageUrls(), request.title(), request.content());
 
         PostResponse.Id response = postCommandService.create(
                 membershipId,
