@@ -3,10 +3,14 @@ package ktb.billage.api.post;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import ktb.billage.application.post.port.PostEventPublisher;
+import ktb.billage.application.userbehavior.event.UserBehaviorCapturedEvent;
+import ktb.billage.application.userbehavior.port.UserBehaviorEventPublisher;
 import ktb.billage.domain.group.Group;
 import ktb.billage.domain.membership.Membership;
 import ktb.billage.domain.post.Post;
+import ktb.billage.domain.post.userbehavior.UserBehaviorType;
 import ktb.billage.domain.post.dto.PostResponse;
+import ktb.billage.domain.post.service.AiPostValidateService;
 import ktb.billage.domain.user.User;
 import ktb.billage.fixture.Fixtures;
 import ktb.billage.support.AcceptanceTest;
@@ -29,12 +33,20 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @AcceptanceTest
 @Import(GlobalExceptionHandler.class)
 class PostAcceptanceTest extends AcceptanceTestSupport {
     @MockitoBean
     private PostEventPublisher postEventPublisher;
+
+    @MockitoBean
+    private UserBehaviorEventPublisher userBehaviorEventPublisher;
+
+    @MockitoBean
+    private AiPostValidateService aiPostValidateService;
 
     @Autowired
     private Fixtures fixtures;
@@ -413,6 +425,12 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
                     .toList();
 
             assertThat(resultList).allMatch(item -> item.contains(keyword));
+            verify(userBehaviorEventPublisher).publishCaptured(new UserBehaviorCapturedEvent(
+                    myMembership.getId(),
+                    group.getId(),
+                    UserBehaviorType.SEARCH,
+                    keyword
+            ));
         }
     }
 
@@ -422,14 +440,46 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
         @Test
         @DisplayName("게시글 상세 조회 - 판매자 시나리오")
         void get_post_detail_seller() {
+            Post post = fixtures.게시글_생성(myMembership);
 
-           // TODO. 채팅방 생성을 포함해서 작성 필요
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}/posts/{postId}", group.getId(), post.getId())
+                    .then()
+                    .statusCode(200)
+                    .body("isSeller", equalTo(true));
+
+            verify(userBehaviorEventPublisher, never()).publishCaptured(new UserBehaviorCapturedEvent(
+                    myMembership.getId(),
+                    group.getId(),
+                    UserBehaviorType.CLICK,
+                    String.valueOf(post.getId())
+            ));
         }
 
         @Test
         @DisplayName("게시글 상세 조회 - 구매자 시나리오")
         void get_post_detail_buyer() {
-            // TODO. 채팅방 포함해서 작성 필요
+            User seller = fixtures.또_다른_유저_생성();
+            Membership sellerMembership = fixtures.그룹_가입(group, seller);
+            Post post = fixtures.게시글_생성(sellerMembership);
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}/posts/{postId}", group.getId(), post.getId())
+                    .then()
+                    .statusCode(200)
+                    .body("isSeller", equalTo(false))
+                    .body("chatroomId", nullValue());
+
+            verify(userBehaviorEventPublisher).publishCaptured(new UserBehaviorCapturedEvent(
+                    myMembership.getId(),
+                    group.getId(),
+                    UserBehaviorType.CLICK,
+                    String.valueOf(post.getId())
+            ));
         }
     }
 
