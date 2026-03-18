@@ -5,6 +5,8 @@ import ktb.billage.application.post.event.PostDeleteEvent;
 import ktb.billage.application.post.event.PostUpdateEvent;
 import ktb.billage.application.post.event.PostUpsertPayload;
 import ktb.billage.application.post.port.PostEventPublisher;
+import ktb.billage.application.userbehavior.event.UserBehaviorCapturedEvent;
+import ktb.billage.application.userbehavior.port.UserBehaviorEventPublisher;
 import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.membership.dto.MembershipProfile;
@@ -14,6 +16,7 @@ import ktb.billage.domain.post.dto.PostResponse;
 import ktb.billage.domain.post.service.AiPostValidateService;
 import ktb.billage.domain.post.service.PostCommandService;
 import ktb.billage.domain.post.service.PostQueryService;
+import ktb.billage.domain.post.userbehavior.UserBehaviorType;
 import ktb.billage.domain.chat.service.ChatroomQueryService;
 import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.service.MembershipService;
@@ -39,6 +42,7 @@ public class PostFacade {
     private final AiPostValidateService aiPostValidateService;
     private final ApplicationEventPublisher eventPublisher;
     private final PostEventPublisher postEventPublisher;
+    private final UserBehaviorEventPublisher userBehaviorEventPublisher;
 
     @Transactional
     public PostResponse.Id create(Long groupId, Long userId, PostRequest.Create request) {
@@ -136,7 +140,7 @@ public class PostFacade {
     @Transactional(readOnly = true)
     public PostResponse.Summaries getPostsByKeywordAndCursor(Long groupId, Long userId, String keyword, String cursor) {
         groupService.validateGroup(groupId);
-        membershipService.validateMembership(groupId, userId);
+        Long membershipId = membershipService.findMembershipId(groupId, userId);
         PostResponse.Summaries summaries = postQueryService.getPostsByKeywordAndCursor(groupId, keyword, cursor);
         var resolvedSummaries = summaries.summaries().stream()
                 .map(summary -> new PostResponse.Summary(
@@ -150,6 +154,12 @@ public class PostFacade {
                         summary.updatedAt()
                 ))
                 .toList();
+        userBehaviorEventPublisher.publishCaptured(new UserBehaviorCapturedEvent(
+                membershipId,
+                groupId,
+                UserBehaviorType.SEARCH,
+                keyword
+        ));
         return new PostResponse.Summaries(resolvedSummaries, summaries.nextCursor(), summaries.hasNextPage());
     }
 
@@ -184,7 +194,7 @@ public class PostFacade {
                         .toList()
         );
 
-        return new PostResponse.Detail(
+        PostResponse.Detail detail = new PostResponse.Detail(
                 core.title(),
                 core.content(),
                 resolvedImageUrls,
@@ -199,6 +209,15 @@ public class PostFacade {
                 chatroomId,
                 activeChatroomCount
         );
+        if (!isSeller) {
+            userBehaviorEventPublisher.publishCaptured(new UserBehaviorCapturedEvent(
+                    membershipId,
+                    groupId,
+                    UserBehaviorType.CLICK,
+                    String.valueOf(postId)
+            ));
+        }
+        return detail;
     }
 
     public PostResponse.MySummaries getMyPostsByCursor(Long userId, String cursor) {
