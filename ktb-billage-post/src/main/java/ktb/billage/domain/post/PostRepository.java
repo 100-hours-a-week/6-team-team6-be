@@ -51,7 +51,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 limit :candidateWindowSize
             ) c
             straight_join post p on p.id = c.id
-            where match(p.title) against (:keyword in boolean mode)
+            where p.title like :keyword
             order by p.updated_at desc, p.id desc
             limit :pageSize
             """, nativeQuery = true)
@@ -74,7 +74,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 limit :candidateWindowSize
             ) c
            straight_join post p on p.id = c.id
-            where match(p.title) against (:keyword in boolean mode)
+            where p.title like :keyword
             order by p.updated_at desc, p.id desc
             limit :pageSize
             """, nativeQuery = true)
@@ -84,6 +84,34 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                                             @Param("cursorId") Long cursorId,
                                                             @Param("candidateWindowSize") int candidateWindowSize,
                                                             @Param("pageSize") int pageSize);
+
+    @Query("""
+            select p from Post p
+            join Membership m on m.id = p.sellerId
+            where m.groupId = :groupId
+              and p.deletedAt is null
+              and p.title like :keyword
+            order by p.updatedAt desc, p.id desc
+            """)
+    List<Post> findTopByGroupIdAndKeywordLike(@Param("groupId") Long groupId,
+                                              @Param("keyword") String keyword,
+                                              Pageable pageable);
+
+    @Query("""
+            select p from Post p
+            join Membership m on m.id = p.sellerId
+            where m.groupId = :groupId
+              and p.deletedAt is null
+              and p.title like :keyword
+              and (p.updatedAt < :cursorTime
+               or (p.updatedAt = :cursorTime and p.id < :cursorId))
+            order by p.updatedAt desc, p.id desc
+            """)
+    List<Post> findNextByGroupIdAndKeywordLike(@Param("groupId") Long groupId,
+                                               @Param("keyword") String keyword,
+                                               @Param("cursorTime") Instant cursorTime,
+                                               @Param("cursorId") Long cursorId,
+                                               Pageable pageable);
 
     @Query("""
         select m.groupId

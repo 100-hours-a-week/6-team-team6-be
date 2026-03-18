@@ -27,7 +27,7 @@ import static ktb.billage.common.exception.ExceptionCode.POST_NOT_FOUND;
 @RequiredArgsConstructor
 public class PostQueryService {
     private static final int PAGE_FETCH_SIZE = 21;
-    private static final int KEYWORD_CANDIDATE_WINDOW_SIZE = 2000;
+    private static final List<Integer> KEYWORD_CANDIDATE_WINDOW_SIZES = List.of(1000, 2000, 5000);
 
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
@@ -142,30 +142,50 @@ public class PostQueryService {
     }
 
     private List<Post> loadPostsByKeyword(Long groupId, String keyword, CursorCodec.Cursor decoded) {
-        String fullTextKeyword = toBooleanModeKeyword(keyword);
-        if (decoded == null) {
-            return postRepository.findTopByGroupIdAndKeywordWithCandidateJoin(
+        String likeKeyword = toLikeKeyword(keyword);
+
+        for (int candidateWindowSize : KEYWORD_CANDIDATE_WINDOW_SIZES) {
+            List<Post> posts = decoded == null
+                    ? postRepository.findTopByGroupIdAndKeywordWithCandidateJoin(
                     groupId,
-                    fullTextKeyword,
-                    KEYWORD_CANDIDATE_WINDOW_SIZE,
+                    likeKeyword,
+                    candidateWindowSize,
                     PAGE_FETCH_SIZE
+            )
+                    : postRepository.findNextByGroupIdAndKeywordWithCandidateJoin(
+                    groupId,
+                    likeKeyword,
+                    decoded.time(),
+                    decoded.id(),
+                    candidateWindowSize,
+                    PAGE_FETCH_SIZE
+            );
+
+            if (posts.size() >= PAGE_FETCH_SIZE) {
+                return posts;
+            }
+        }
+
+        if (decoded == null) {
+            return postRepository.findTopByGroupIdAndKeywordLike(
+                    groupId,
+                    likeKeyword,
+                    PageRequest.of(0, PAGE_FETCH_SIZE)
             );
         }
 
-        return postRepository.findNextByGroupIdAndKeywordWithCandidateJoin(
+        return postRepository.findNextByGroupIdAndKeywordLike(
                 groupId,
-                fullTextKeyword,
+                likeKeyword,
                 decoded.time(),
                 decoded.id(),
-                KEYWORD_CANDIDATE_WINDOW_SIZE,
-                PAGE_FETCH_SIZE
+                PageRequest.of(0, PAGE_FETCH_SIZE)
         );
     }
 
-    private String toBooleanModeKeyword(String keyword) {
+    private String toLikeKeyword(String keyword) {
         String normalized = keyword.trim().replaceAll("\\s+", " ");
-
-        return "+\"" + normalized.replace("\"", "\\\"") + "\"";
+        return "%" + normalized + "%";
     }
 
     private PostResponse.Summaries buildSummaries(List<Post> posts) {
