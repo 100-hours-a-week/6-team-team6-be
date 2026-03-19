@@ -8,6 +8,7 @@ import ktb.billage.domain.post.dto.AiPostValidationResult;
 import ktb.billage.domain.post.ai.AiPostRecommendationClient;
 import ktb.billage.application.userbehavior.event.UserBehaviorCapturedEvent;
 import ktb.billage.application.userbehavior.port.UserBehaviorEventPublisher;
+import ktb.billage.common.exception.PostAiValidateException;
 import ktb.billage.domain.group.Group;
 import ktb.billage.domain.membership.Membership;
 import ktb.billage.domain.post.Post;
@@ -31,12 +32,16 @@ import java.time.Instant;
 import java.util.List;
 
 import static ktb.billage.common.exception.ExceptionCode.AI_RECOMMENDATION_RETRIEVE_FAILED;
+import static ktb.billage.common.exception.ExceptionCode.AI_POST_PROHIBITED_ITEMS;
 import static org.hamcrest.Matchers.emptyCollectionOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -74,7 +79,7 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
         accessToken = fixtures.토큰_생성(user);
         group = fixtures.그룹_생성("test group");
         myMembership = fixtures.그룹_가입(group, user);
-        given(aiPostValidatorClient.validatePost(org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
+        given(aiPostValidatorClient.validatePost(anyList(), anyString(), anyString()))
                 .willReturn(new AiPostValidationResult(true, null));
         given(aiPostRecommendationClient.recommendNeeds(anyLong()))
                 .willReturn(List.of());
@@ -371,7 +376,45 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
                     .get("/posts/{postId}/recommendations", targetPost.getId())
                     .then()
                     .statusCode(400)
-                    .body("code", equalTo("AI01"));
+                    .body("code", equalTo("AI07"));
+        }
+    }
+
+    @Nested
+    class 게시글_AI_검증_테스트 {
+
+        @Test
+        @DisplayName("게시글 AI 검증 성공 시 204를 반환한다")
+        void check_post_content_success() {
+            Post post = fixtures.게시글_생성(myMembership);
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .post("/posts/{postId}/content-checks", post.getId())
+                    .then()
+                    .statusCode(204);
+        }
+
+        @Test
+        @DisplayName("게시글 AI 검증 실패 시 AI 검증 예외를 그대로 반환한다")
+        void check_post_content_fail_ai_validation() {
+            Post post = fixtures.게시글_생성(myMembership);
+            willThrow(new PostAiValidateException(AI_POST_PROHIBITED_ITEMS))
+                    .given(aiPostValidateService)
+                    .validateRestrictedItemInPost(
+                            anyList(),
+                            anyString(),
+                            anyString()
+                    );
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .post("/posts/{postId}/content-checks", post.getId())
+                    .then()
+                    .statusCode(400)
+                    .body("code", equalTo("AI06"));
         }
     }
 
