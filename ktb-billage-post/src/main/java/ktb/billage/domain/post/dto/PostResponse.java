@@ -66,6 +66,21 @@ public class PostResponse {
     ) {
     }
 
+    public record Recommendations(
+            int size,
+            List<Recommendation> recommendations
+    ) {
+    }
+
+    public record Recommendation(
+            Long postId,
+            String postTitle,
+            String postFirstImageUrl,
+            BigDecimal rentalFee,
+            FeeUnit feeUnit
+    ) {
+    }
+
     public record DetailCore(
         String title,
         String content,

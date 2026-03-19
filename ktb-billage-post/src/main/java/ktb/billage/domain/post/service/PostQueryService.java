@@ -2,6 +2,7 @@ package ktb.billage.domain.post.service;
 
 import ktb.billage.common.cursor.CursorCodec;
 import ktb.billage.common.exception.PostException;
+import ktb.billage.domain.post.FeeUnit;
 import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.post.PostImage;
@@ -18,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static ktb.billage.common.exception.ExceptionCode.IMAGE_NOT_FOUND;
 import static ktb.billage.common.exception.ExceptionCode.POST_NOT_FOUND;
@@ -105,6 +108,24 @@ public class PostQueryService {
             firstImageUrls.put(postImage.getPost().getId(), postImage.getImageUrl());
         }
         return firstImageUrls;
+    }
+
+    public PostResponse.Recommendations getRecommendations(List<Long> recommendedPostIds) {
+        if (recommendedPostIds.isEmpty()) {
+            return new PostResponse.Recommendations(0, List.of());
+        }
+
+        Map<Long, Post> postsById = postRepository.findAllByIdInAndDeletedAtIsNull(recommendedPostIds).stream()
+                .collect(Collectors.toMap(Post::getId, Function.identity()));
+        Map<Long, String> firstImageUrls = findPostFirstImageUrls(recommendedPostIds);
+
+        List<PostResponse.Recommendation> recommendations = recommendedPostIds.stream()
+                .filter(postsById::containsKey)
+                .filter(firstImageUrls::containsKey)
+                .map(postId -> toRecommendation(postsById.get(postId), firstImageUrls.get(postId)))
+                .toList();
+
+        return new PostResponse.Recommendations(recommendations.size(), recommendations);
     }
 
     private Post findPost(Long postId) {
@@ -244,6 +265,16 @@ public class PostQueryService {
                 post.getFeeUnit(),
                 post.getRentalStatus(),
                 post.getUpdatedAt()
+        );
+    }
+
+    private PostResponse.Recommendation toRecommendation(Post post, String firstImageUrl) {
+        return new PostResponse.Recommendation(
+                post.getId(),
+                post.getTitle(),
+                imageService.resolveUrl(firstImageUrl),
+                post.getRentalFee(),
+                post.getFeeUnit()
         );
     }
 }

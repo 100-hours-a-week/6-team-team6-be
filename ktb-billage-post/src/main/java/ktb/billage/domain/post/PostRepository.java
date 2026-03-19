@@ -14,6 +14,7 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<Post> findByIdAndDeletedAtIsNull(Long postId);
+    List<Post> findAllByIdInAndDeletedAtIsNull(List<Long> postIds);
     Boolean existsByIdAndDeletedAtIsNull(Long postId);
 
     @Query("""
