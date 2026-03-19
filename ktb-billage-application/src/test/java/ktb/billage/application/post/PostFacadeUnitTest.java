@@ -1,24 +1,16 @@
 package ktb.billage.application.post;
 
-import ktb.billage.application.post.port.PostEventPublisher;
-import ktb.billage.application.userbehavior.port.UserBehaviorEventPublisher;
 import ktb.billage.common.image.ImageService;
-import ktb.billage.domain.chat.service.ChatroomQueryService;
 import ktb.billage.domain.group.service.GroupService;
 import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.post.ai.AiPostRecommendationClient;
 import ktb.billage.domain.post.dto.PostResponse;
-import ktb.billage.domain.post.service.AiPostValidateService;
-import ktb.billage.domain.post.service.PostCommandService;
 import ktb.billage.domain.post.service.PostQueryService;
-import ktb.billage.domain.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -37,13 +29,13 @@ class PostFacadeUnitTest {
     private ImageService imageService;
 
     @Mock
+    private GroupService groupService;
+
+    @Mock
     private MembershipService membershipService;
 
     @Mock
     private AiPostRecommendationClient aiPostRecommendationClient;
-
-    @InjectMocks
-    private PostFacade postFacade;
 
     @Test
     @DisplayName("그룹 게시글이 10개 미만이면 추천 게시글 조회를 수행하지 않는다")
@@ -68,6 +60,21 @@ class PostFacadeUnitTest {
         given(postQueryService.getPostsByCursor(groupId, null))
                 .willReturn(new PostResponse.Summaries(List.of(summary), null, false));
         given(imageService.resolveUrl("img-1")).willReturn("resolved-img-1");
+
+        PostFacade postFacade = new PostFacade(
+                null,
+                postQueryService,
+                imageService,
+                groupService,
+                membershipService,
+                null,
+                null,
+                null,
+                aiPostRecommendationClient,
+                null,
+                null,
+                null
+        );
 
         postFacade.getPostsByCursor(groupId, userId, null);
 
