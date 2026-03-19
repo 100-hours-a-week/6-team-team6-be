@@ -225,6 +225,85 @@ public interface PostApiDoc {
                                                @AuthenticatedId Long userId);
 
     @Operation(
+            summary = "게시글 AI 검증",
+            description = "기존 게시글의 제목, 내용, 이미지 정보로 AI 검증을 수행합니다.",
+            security = { @SecurityRequirement(name = "Bearer Auth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "게시글 AI 검증 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "AI 검증 실패",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "게시글 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "POST01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "그룹 멤버가 아님",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "GROUP02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 토큰 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "AUTH02"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "유효하지 않은 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN01"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "만료된 토큰",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code" : "TOKEN04"
+                                            }
+                                            """
+                            ))
+            )
+    })
+    ResponseEntity<Void> checkPostContent(@PathVariable Long postId,
+                                          @AuthenticatedId Long userId);
+
+    @Operation(
             summary = "게시글 대여 상태 변경",
             description = "게시글의 대여 상태를 변경합니다.",
             security = { @SecurityRequirement(name = "Bearer Auth") }
@@ -810,42 +889,6 @@ public interface PostApiDoc {
                                     value = """
                                             {
                                                 "code" : "POST01"
-                                            }
-                                            """
-                            ))
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "인증 토큰 없음",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
-                            examples = @ExampleObject(
-                                    value = """
-                                            {
-                                                "code" : "AUTH02"
-                                            }
-                                            """
-                            ))
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "유효하지 않은 토큰",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
-                            examples = @ExampleObject(
-                                    value = """
-                                            {
-                                                "code" : "TOKEN01"
-                                            }
-                                            """
-                            ))
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "만료된 토큰",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
-                            examples = @ExampleObject(
-                                    value = """
-                                            {
-                                                "code" : "TOKEN04"
                                             }
                                             """
                             ))
