@@ -9,6 +9,7 @@ import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.group.dto.GroupResponse;
 import ktb.billage.domain.membership.dto.MembershipProfile;
 import ktb.billage.domain.post.RentalStatus;
+import ktb.billage.domain.post.ai.AiPostRecommendationClient;
 import ktb.billage.domain.post.dto.PostRequest;
 import ktb.billage.domain.post.dto.PostResponse;
 import ktb.billage.domain.post.service.AiPostValidateService;
@@ -37,6 +38,7 @@ public class PostFacade {
     private final ChatroomQueryService chatroomQueryService;
     private final UserService userService;
     private final AiPostValidateService aiPostValidateService;
+    private final AiPostRecommendationClient aiPostRecommendationClient;
     private final ApplicationEventPublisher eventPublisher;
     private final PostEventPublisher postEventPublisher;
 
@@ -205,6 +207,15 @@ public class PostFacade {
         List<Long> membershipIds = membershipService.findMembershipIds(userId);
 
         return postQueryService.getMyPostsByCursor(membershipIds, cursor);
+    }
+
+    public PostResponse.Recommendations getRecommendations(Long postId, Long userId) {
+        postQueryService.validatePost(postId);
+        Long groupId = postQueryService.findGroupIdByPostId(postId);
+        membershipService.validateMembership(groupId, userId);
+
+        List<Long> recommendationPostIds = aiPostRecommendationClient.recommend(postId);
+        return postQueryService.getRecommendations(recommendationPostIds);
     }
 
     private String getImagePresignedUrl(String imageKey) {
