@@ -1,12 +1,10 @@
 package ktb.billage.domain.post.service;
 
-import ktb.billage.common.cursor.CursorCodec;
 import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.post.FeeUnit;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.post.PostImage;
 import ktb.billage.domain.post.PostImageRepository;
-import ktb.billage.domain.post.PostQueryRepository;
 import ktb.billage.domain.post.PostRepository;
 import ktb.billage.domain.post.dto.PostResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -53,6 +52,10 @@ class PostQueryServiceUnitTest {
                         new PostImage(first, "img-104", 1),
                         new PostImage(second, "img-105", 1)
                 ));
+        given(postImageRepository.findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(104L))
+                .willReturn(Optional.of(new PostImage(first, "img-104", 1)));
+        given(postImageRepository.findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(105L))
+                .willReturn(Optional.of(new PostImage(second, "img-105", 1)));
         given(imageService.resolveUrl("img-104")).willReturn("resolved-img-104");
         given(imageService.resolveUrl("img-105")).willReturn("resolved-img-105");
 
@@ -60,11 +63,14 @@ class PostQueryServiceUnitTest {
 
         assertThat(response.size()).isEqualTo(2);
         assertThat(response.recommendations())
-                .extracting(PostResponse.Recommendation::postId)
+                .extracting(PostResponse.FeedSummary::postId)
                 .containsExactly(104L, 105L);
         assertThat(response.recommendations())
-                .extracting(PostResponse.Recommendation::postFirstImageUrl)
+                .extracting(PostResponse.FeedSummary::postFirstImageUrl)
                 .containsExactly("resolved-img-104", "resolved-img-105");
+        assertThat(response.recommendations())
+                .extracting(PostResponse.FeedSummary::feedItemType)
+                .containsOnly(PostResponse.FeedItemType.RECOMMENDATION);
     }
 
     private void setId(Post post, Long id) {
