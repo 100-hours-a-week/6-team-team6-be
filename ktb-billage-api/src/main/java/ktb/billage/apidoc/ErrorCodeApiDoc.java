@@ -184,6 +184,24 @@ public interface ErrorCodeApiDoc {
             ),
             @ApiResponse(
                     responseCode = "12",
+                    description = "ai 예외 코드",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "AI01": "게시글 AI 검증 결과 폭력/위협 정책(S1)에 위반됨",
+                                                "AI02": "게시글 AI 검증 결과 성적 수치심 유발 정책(S2)에 위반됨",
+                                                "AI03": "게시글 AI 검증 결과 성적 노출 정책(S3)에 위반됨",
+                                                "AI04": "게시글 AI 검증 결과 혐오/혐오감 유발 정책(S4)에 위반됨",
+                                                "AI05": "게시글 AI 검증 결과 고문/잔혹 표현 정책(S5)에 위반됨",
+                                                "AI06": "게시글 AI 검증 결과 금지 물품 정책(S11)에 위반됨",
+                                                "AI07": "추천 게시글 조회 시 AI 서버가 잘못된 요청(400)으로 추천 결과를 반환하지 못함"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "13",
                     description = "application 예외 코드",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
                             examples = @ExampleObject(
