@@ -2,7 +2,6 @@ package ktb.billage.domain.post.service;
 
 import ktb.billage.common.cursor.CursorCodec;
 import ktb.billage.common.exception.PostException;
-import ktb.billage.domain.post.FeeUnit;
 import ktb.billage.common.image.ImageService;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.post.PostImage;
@@ -29,7 +28,8 @@ import static ktb.billage.common.exception.ExceptionCode.POST_NOT_FOUND;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PostQueryService {
-    private static final int PAGE_FETCH_SIZE = 21;
+    private static final int PAGE_SIZE = 20;
+    private static final int PAGE_FETCH_SIZE = PAGE_SIZE + 1;
     private static final List<Integer> KEYWORD_CANDIDATE_WINDOW_SIZES = List.of(1000, 2000, 5000);
 
     private final PostRepository postRepository;
@@ -40,15 +40,23 @@ public class PostQueryService {
     private final ImageService imageService;
 
     public PostResponse.Summaries getPostsByCursor(Long groupId, String cursor) {
+        return getPostsByCursor(groupId, cursor, PAGE_SIZE);
+    }
+
+    public PostResponse.Summaries getPostsByCursor(Long groupId, String cursor, int pageSize) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
-        List<Post> posts = loadPosts(groupId, decoded);
-        return buildSummaries(posts);
+        List<Post> posts = loadPosts(groupId, decoded, pageSize + 1);
+        return buildSummaries(posts, pageSize);
     }
 
     public PostResponse.Summaries getPostsByKeywordAndCursor(Long groupId, String keyword, String cursor) {
         CursorCodec.Cursor decoded = decodeCursor(cursor);
         List<Post> posts = loadPostsByKeyword(groupId, keyword, decoded);
-        return buildSummaries(posts);
+        return buildSummaries(posts, PAGE_SIZE);
+    }
+
+    public long countActivePostsByGroupId(Long groupId) {
+        return postRepository.countActiveByGroupId(groupId);
     }
 
     public PostResponse.DetailCore getPostDetailCore(Long postId) {
@@ -119,7 +127,7 @@ public class PostQueryService {
                 .collect(Collectors.toMap(Post::getId, Function.identity()));
         Map<Long, String> firstImageUrls = findPostFirstImageUrls(recommendedPostIds);
 
-        List<PostResponse.Recommendation> recommendations = recommendedPostIds.stream()
+        List<PostResponse.FeedSummary> recommendations = recommendedPostIds.stream()
                 .filter(postsById::containsKey)
                 .filter(firstImageUrls::containsKey)
                 .map(postId -> toRecommendation(postsById.get(postId), firstImageUrls.get(postId)))
@@ -154,12 +162,12 @@ public class PostQueryService {
         return postRepository.findNextMyPosts(membershipIds, cursor.time(), cursor.id(), PageRequest.of(0, 21));
     }
 
-    private List<Post> loadPosts(Long groupId, CursorCodec.Cursor decoded) {
+    private List<Post> loadPosts(Long groupId, CursorCodec.Cursor decoded, int fetchSize) {
         if (decoded == null) {
-            return postRepository.findTop21ByGroupIdOrderByUpdatedAtDescIdDesc(groupId, PageRequest.of(0, PAGE_FETCH_SIZE));
+            return postRepository.findTop21ByGroupIdOrderByUpdatedAtDescIdDesc(groupId, PageRequest.of(0, fetchSize));
         }
 
-        return postRepository.findNextPage(groupId, decoded.time(), decoded.id(), PageRequest.of(0, PAGE_FETCH_SIZE));
+        return postRepository.findNextPage(groupId, decoded.time(), decoded.id(), PageRequest.of(0, fetchSize));
     }
 
     private List<Post> loadPostsByKeyword(Long groupId, String keyword, CursorCodec.Cursor decoded) {
@@ -209,11 +217,11 @@ public class PostQueryService {
         return "%" + normalized + "%";
     }
 
-    private PostResponse.Summaries buildSummaries(List<Post> posts) {
-        boolean hasNextPage = posts.size() > 20;
-        List<Post> pagePosts = hasNextPage ? posts.subList(0, 20) : posts;
+    private PostResponse.Summaries buildSummaries(List<Post> posts, int pageSize) {
+        boolean hasNextPage = posts.size() > pageSize;
+        List<Post> pagePosts = hasNextPage ? posts.subList(0, pageSize) : posts;
 
-        List<PostResponse.Summary> summaries = pagePosts.stream()
+        List<PostResponse.FeedSummary> summaries = pagePosts.stream()
                 .map(this::toSummary)
                 .toList();
 
@@ -251,12 +259,12 @@ public class PostQueryService {
         return new PostResponse.MySummaries(results, nextCursor, hasNextPage);
     }
 
-    private PostResponse.Summary toSummary(Post post) { // FIXME. 이미지 N + 1 문제 야기
+    private PostResponse.FeedSummary toSummary(Post post) { // FIXME. 이미지 N + 1 문제 야기
         PostImage firstImage = postImageRepository
                 .findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(post.getId())
                 .orElseThrow(() -> new PostException(IMAGE_NOT_FOUND));
 
-        return new PostResponse.Summary(
+        return new PostResponse.FeedSummary(
                 post.getId(),
                 post.getTitle(),
                 firstImage.getId(),
@@ -264,17 +272,26 @@ public class PostQueryService {
                 post.getRentalFee(),
                 post.getFeeUnit(),
                 post.getRentalStatus(),
-                post.getUpdatedAt()
+                post.getUpdatedAt(),
+                PostResponse.FeedItemType.BASIC
         );
     }
 
-    private PostResponse.Recommendation toRecommendation(Post post, String firstImageUrl) {
-        return new PostResponse.Recommendation(
+    private PostResponse.FeedSummary toRecommendation(Post post, String firstImageUrl) {
+        PostImage firstImage = postImageRepository
+                .findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(post.getId())
+                .orElseThrow(() -> new PostException(IMAGE_NOT_FOUND));
+
+        return new PostResponse.FeedSummary(
                 post.getId(),
                 post.getTitle(),
+                firstImage.getId(),
                 imageService.resolveUrl(firstImageUrl),
                 post.getRentalFee(),
-                post.getFeeUnit()
+                post.getFeeUnit(),
+                post.getRentalStatus(),
+                post.getUpdatedAt(),
+                PostResponse.FeedItemType.RECOMMENDATION
         );
     }
 }

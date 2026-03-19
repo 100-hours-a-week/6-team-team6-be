@@ -27,6 +27,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findTop21ByGroupIdOrderByUpdatedAtDescIdDesc(@Param("groupId") Long groupId, Pageable pageable);
 
     @Query("""
+            select count(p)
+            from Post p
+            join Membership m on m.id = p.sellerId
+            where m.groupId = :groupId
+              and p.deletedAt is null
+            """)
+    long countActiveByGroupId(@Param("groupId") Long groupId);
+
+    @Query("""
             select p from Post p
             join Membership m on m.id = p.sellerId
             where m.groupId = :groupId

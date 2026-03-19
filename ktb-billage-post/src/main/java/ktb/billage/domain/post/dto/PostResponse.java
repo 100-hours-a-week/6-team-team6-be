@@ -9,18 +9,23 @@ import java.util.List;
 
 public class PostResponse {
 
+    public enum FeedItemType {
+        BASIC,
+        RECOMMENDATION
+    }
+
     public record Id(Long postId) {}
 
     public record ChangedStatus(Long postId, RentalStatus rentalStatus) {}
 
     public record Summaries(
-            List<Summary> summaries,
+            List<FeedSummary> summaries,
             String nextCursor,
             Boolean hasNextPage
     ) {
     }
 
-    public record Summary(
+    public record FeedSummary(
             Long postId,
             String postTitle,
             Long postImageId,
@@ -28,8 +33,9 @@ public class PostResponse {
             BigDecimal rentalFee,
             FeeUnit feeUnit,
             RentalStatus rentalStatus,
-            Instant updatedAt
-    ) {
+            Instant updatedAt,
+            FeedItemType feedItemType
+        ) {
     }
 
     public record MySummaries(
@@ -68,16 +74,7 @@ public class PostResponse {
 
     public record Recommendations(
             int size,
-            List<Recommendation> recommendations
-    ) {
-    }
-
-    public record Recommendation(
-            Long postId,
-            String postTitle,
-            String postFirstImageUrl,
-            BigDecimal rentalFee,
-            FeeUnit feeUnit
+            List<FeedSummary> recommendations
     ) {
     }
 

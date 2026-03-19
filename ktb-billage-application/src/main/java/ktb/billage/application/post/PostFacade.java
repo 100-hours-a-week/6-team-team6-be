@@ -33,6 +33,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PostFacade {
+    private static final int MIN_RECOMMENDATION_CANDIDATE_POST_COUNT = 10;
+
     private final PostCommandService postCommandService;
     private final PostQueryService postQueryService;
     private final ImageService imageService;
@@ -45,6 +47,7 @@ public class PostFacade {
     private final ApplicationEventPublisher eventPublisher;
     private final PostEventPublisher postEventPublisher;
     private final UserBehaviorEventPublisher userBehaviorEventPublisher;
+    private final PostFeedComposer postFeedComposer = new PostFeedComposer();
 
     @Transactional
     public PostResponse.Id create(Long groupId, Long userId, PostRequest.Create request) {
@@ -122,21 +125,49 @@ public class PostFacade {
 
     public PostResponse.Summaries getPostsByCursor(Long groupId, Long userId, String cursor) {
         groupService.validateGroup(groupId);
-        membershipService.validateMembership(groupId, userId);
-        PostResponse.Summaries summaries = postQueryService.getPostsByCursor(groupId, cursor);
-        var resolvedSummaries = summaries.summaries().stream()
-                .map(summary -> new PostResponse.Summary(
-                        summary.postId(),
-                        summary.postTitle(),
-                        summary.postImageId(),
-                        getImagePresignedUrl(summary.postFirstImageUrl()),
-                        summary.rentalFee(),
-                        summary.feeUnit(),
-                        summary.rentalStatus(),
-                        summary.updatedAt()
-                ))
-                .toList();
-        return new PostResponse.Summaries(resolvedSummaries, summaries.nextCursor(), summaries.hasNextPage());
+        Long membershipId = membershipService.findMembershipId(groupId, userId);
+
+        if (cursor != null && !cursor.isBlank()) {
+            PostResponse.Summaries summaries = postQueryService.getPostsByCursor(groupId, cursor);
+            return new PostResponse.Summaries(
+                    resolveFeedSummaries(summaries.summaries()),
+                    summaries.nextCursor(),
+                    summaries.hasNextPage()
+            );
+        }
+
+        long activePostCount = postQueryService.countActivePostsByGroupId(groupId);
+        if (activePostCount <= MIN_RECOMMENDATION_CANDIDATE_POST_COUNT) {
+            PostResponse.Summaries summaries = postQueryService.getPostsByCursor(groupId, cursor);
+            return new PostResponse.Summaries(
+                    resolveFeedSummaries(summaries.summaries()),
+                    summaries.nextCursor(),
+                    summaries.hasNextPage()
+            );
+        }
+
+        List<PostResponse.FeedSummary> recommendations = postQueryService.getRecommendations(
+                aiPostRecommendationClient.recommendNeeds(membershipId)
+        ).recommendations();
+        int recommendationCount = postFeedComposer.calculateRecommendationCount(
+                Math.toIntExact(activePostCount),
+                recommendations.size()
+        );
+
+        PostResponse.Summaries summaries = postQueryService.getPostsByCursor(
+                groupId,
+                cursor,
+                PostFeedComposer.POST_PAGE_SIZE - recommendationCount
+        );
+
+        return new PostResponse.Summaries(
+                postFeedComposer.composeFirstPageFeed(
+                        resolveFeedSummaries(summaries.summaries()),
+                        recommendations.subList(0, recommendationCount)
+                ),
+                summaries.nextCursor(),
+                summaries.hasNextPage()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -144,18 +175,7 @@ public class PostFacade {
         groupService.validateGroup(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
         PostResponse.Summaries summaries = postQueryService.getPostsByKeywordAndCursor(groupId, keyword, cursor);
-        var resolvedSummaries = summaries.summaries().stream()
-                .map(summary -> new PostResponse.Summary(
-                        summary.postId(),
-                        summary.postTitle(),
-                        summary.postImageId(),
-                        getImagePresignedUrl(summary.postFirstImageUrl()),
-                        summary.rentalFee(),
-                        summary.feeUnit(),
-                        summary.rentalStatus(),
-                        summary.updatedAt()
-                ))
-                .toList();
+        var resolvedSummaries = resolveFeedSummaries(summaries.summaries());
         userBehaviorEventPublisher.publishCaptured(new UserBehaviorCapturedEvent(
                 membershipId,
                 groupId,
@@ -228,13 +248,33 @@ public class PostFacade {
         return postQueryService.getMyPostsByCursor(membershipIds, cursor);
     }
 
-    public PostResponse.Recommendations getRecommendations(Long postId, Long userId) {
+    public PostResponse.Recommendations getRecommendationsByPost(Long postId, Long userId) {
         postQueryService.validatePost(postId);
         Long groupId = postQueryService.findGroupIdByPostId(postId);
         membershipService.validateMembership(groupId, userId);
 
         List<Long> recommendationPostIds = aiPostRecommendationClient.recommend(postId);
         return postQueryService.getRecommendations(recommendationPostIds);
+    }
+
+    private List<PostResponse.FeedSummary> resolveFeedSummaries(List<PostResponse.FeedSummary> summaries) {
+        return summaries.stream()
+                .map(this::resolveFeedSummary)
+                .toList();
+    }
+
+    private PostResponse.FeedSummary resolveFeedSummary(PostResponse.FeedSummary summary) {
+        return new PostResponse.FeedSummary(
+                summary.postId(),
+                summary.postTitle(),
+                summary.postImageId(),
+                getImagePresignedUrl(summary.postFirstImageUrl()),
+                summary.rentalFee(),
+                summary.feeUnit(),
+                summary.rentalStatus(),
+                summary.updatedAt(),
+                summary.feedItemType()
+        );
     }
 
     private String getImagePresignedUrl(String imageKey) {
