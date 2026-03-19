@@ -3,6 +3,9 @@ package ktb.billage.api.post;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import ktb.billage.application.post.port.PostEventPublisher;
+import ktb.billage.domain.post.ai.AiPostValidatorClient;
+import ktb.billage.domain.post.dto.AiPostValidationResult;
+import ktb.billage.domain.post.ai.AiPostRecommendationClient;
 import ktb.billage.application.userbehavior.event.UserBehaviorCapturedEvent;
 import ktb.billage.application.userbehavior.port.UserBehaviorEventPublisher;
 import ktb.billage.domain.group.Group;
@@ -27,6 +30,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.time.Instant;
 import java.util.List;
 
+import static ktb.billage.common.exception.ExceptionCode.AI_RECOMMENDATION_RETRIEVE_FAILED;
 import static org.hamcrest.Matchers.emptyCollectionOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -35,6 +39,8 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
 
 @AcceptanceTest
 @Import(GlobalExceptionHandler.class)
@@ -47,6 +53,12 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
 
     @MockitoBean
     private AiPostValidateService aiPostValidateService;
+
+    @MockitoBean
+    private AiPostRecommendationClient aiPostRecommendationClient;
+
+    @MockitoBean
+    private AiPostValidatorClient aiPostValidatorClient;
 
     @Autowired
     private Fixtures fixtures;
@@ -62,6 +74,8 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
         accessToken = fixtures.토큰_생성(user);
         group = fixtures.그룹_생성("test group");
         myMembership = fixtures.그룹_가입(group, user);
+        given(aiPostValidatorClient.validatePost(org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
+                .willReturn(new AiPostValidationResult(true, null));
     }
 
     @Nested
@@ -266,6 +280,92 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
                     .statusCode(200)
                     .body("postId", equalTo(post.getId().intValue()))
                     .body("rentalStatus", equalTo("RENTED_OUT"));
+        }
+    }
+
+    @Nested
+    class 게시글_추천_조회_테스트 {
+
+        @Test
+        @DisplayName("게시글 추천 조회 성공 시 AI 추천 순서대로 게시글 응답을 반환한다")
+        void get_recommendations_success() {
+            Post targetPost = fixtures.게시글_생성(myMembership, 1);
+            Post secondPost = fixtures.게시글_생성(myMembership, 2);
+            Post thirdPost = fixtures.게시글_생성(myMembership, 3);
+
+            given(aiPostRecommendationClient.recommend(targetPost.getId()))
+                    .willReturn(List.of(thirdPost.getId(), secondPost.getId()));
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/posts/{postId}/recommendations", targetPost.getId())
+                    .then()
+                    .statusCode(200)
+                    .body("size", equalTo(2))
+                    .body("recommendations[0].postId", equalTo(thirdPost.getId().intValue()))
+                    .body("recommendations[0].postTitle", equalTo("dummy title"))
+                    .body("recommendations[0].postFirstImageUrl", equalTo("img-3"))
+                    .body("recommendations[0].rentalFee", equalTo(1000.0f))
+                    .body("recommendations[0].feeUnit", equalTo("HOUR"))
+                    .body("recommendations[1].postId", equalTo(secondPost.getId().intValue()));
+        }
+
+        @Test
+        @DisplayName("게시글 추천 조회 시 AI 서버가 빈 목록을 반환하면 빈 응답을 반환한다")
+        void get_recommendations_empty() {
+            Post targetPost = fixtures.게시글_생성(myMembership, 1);
+
+            given(aiPostRecommendationClient.recommend(targetPost.getId()))
+                    .willReturn(List.of());
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/posts/{postId}/recommendations", targetPost.getId())
+                    .then()
+                    .statusCode(200)
+                    .body("size", equalTo(0))
+                    .body("recommendations", emptyCollectionOf(Object.class));
+        }
+
+        @Test
+        @DisplayName("게시글 추천 조회 시 존재하지 않거나 삭제된 추천 게시글은 응답에서 제외한다")
+        void get_recommendations_skip_missing_or_deleted_posts() {
+            Post targetPost = fixtures.게시글_생성(myMembership, 1);
+            Post deletedPost = fixtures.게시글_생성(myMembership, 2);
+            Post validPost = fixtures.게시글_생성(myMembership, 3);
+            fixtures.게시글_삭제(deletedPost);
+
+            given(aiPostRecommendationClient.recommend(targetPost.getId()))
+                    .willReturn(List.of(deletedPost.getId(), 999999L, validPost.getId()));
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/posts/{postId}/recommendations", targetPost.getId())
+                    .then()
+                    .statusCode(200)
+                    .body("size", equalTo(1))
+                    .body("recommendations", hasSize(1))
+                    .body("recommendations[0].postId", equalTo(validPost.getId().intValue()));
+        }
+
+        @Test
+        @DisplayName("게시글 추천 조회 시 AI 서버의 retrieve failed 예외는 400으로 전달한다")
+        void get_recommendations_ai_retrieve_failed() {
+            Post targetPost = fixtures.게시글_생성(myMembership, 1);
+
+            given(aiPostRecommendationClient.recommend(anyLong()))
+                    .willThrow(new ktb.billage.common.exception.PostException(AI_RECOMMENDATION_RETRIEVE_FAILED));
+
+            RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/posts/{postId}/recommendations", targetPost.getId())
+                    .then()
+                    .statusCode(400)
+                    .body("code", equalTo("AI01"));
         }
     }
 
