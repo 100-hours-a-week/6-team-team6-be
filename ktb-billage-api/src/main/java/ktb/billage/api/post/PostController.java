@@ -78,6 +78,6 @@ public class PostController implements PostApiDoc {
     @GetMapping("/posts/{postId}/recommendations")
     public ResponseEntity<PostResponse.Recommendations> getRecommendations(@PathVariable Long postId,
                                                                            @AuthenticatedId Long userId) {
-        return ResponseEntity.ok(postFacade.getRecommendations(postId, userId));
+        return ResponseEntity.ok(postFacade.getRecommendationsByPost(postId, userId));
     }
 }

@@ -23,16 +23,26 @@ import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
 @RequiredArgsConstructor
 public class AiPostRecommendationWebClient implements AiPostRecommendationClient {
     private static final String POST_RECOMMEND_PATH = "/ai/items/recommend";
+    private static final String NEED_RECOMMEND_PATH = "/ai/needs/recommend";
 
     private final WebClient webClient;
 
     @Override
     public List<Long> recommend(Long postId) {
+        return requestRecommendations(POST_RECOMMEND_PATH, new RecommendRequest(postId));
+    }
+
+    @Override
+    public List<Long> recommendNeeds(Long membershipId) {
+        return requestRecommendations(NEED_RECOMMEND_PATH, new NeedRecommendRequest(membershipId));
+    }
+
+    private List<Long> requestRecommendations(String path, Object requestBody) {
         try {
             RecommendResponse response = webClient.post()
-                    .uri(POST_RECOMMEND_PATH)
+                    .uri(path)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(new RecommendRequest(postId))
+                    .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(RecommendResponse.class)
                     .block();
@@ -44,7 +54,7 @@ public class AiPostRecommendationWebClient implements AiPostRecommendationClient
             return response.recommendations();
         } catch (WebClientResponseException ex) {
             log.error("[AI Server Error Response] path={}, status={}, body={}",
-                    POST_RECOMMEND_PATH, ex.getStatusCode(), ex.getResponseBodyAsString());
+                    path, ex.getStatusCode(), ex.getResponseBodyAsString());
 
             if (ex.getStatusCode().value() == 400) {
                 throw new PostException(AI_RECOMMENDATION_RETRIEVE_FAILED);
@@ -54,12 +64,15 @@ public class AiPostRecommendationWebClient implements AiPostRecommendationClient
             log.error("[AI Server Exception] Time out");
             throw new AiTimeoutException(TIME_OUT);
         } catch (Exception ex) {
-            log.error("[AI Server Exception] Not Handle Error path={}, msg={}", POST_RECOMMEND_PATH, ex.getMessage());
+            log.error("[AI Server Exception] Not Handle Error path={}, msg={}", path, ex.getMessage());
             throw new InternalException(SERVER_ERROR);
         }
     }
 
     private record RecommendRequest(Long post_id) {
+    }
+
+    private record NeedRecommendRequest(Long user_id) {
     }
 
     private record RecommendResponse(List<Long> recommendations) {
