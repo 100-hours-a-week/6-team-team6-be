@@ -76,6 +76,8 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
         myMembership = fixtures.그룹_가입(group, user);
         given(aiPostValidatorClient.validatePost(org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
                 .willReturn(new AiPostValidationResult(true, null));
+        given(aiPostRecommendationClient.recommendNeeds(anyLong()))
+                .willReturn(List.of());
     }
 
     @Nested
@@ -305,9 +307,13 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
                     .body("size", equalTo(2))
                     .body("recommendations[0].postId", equalTo(thirdPost.getId().intValue()))
                     .body("recommendations[0].postTitle", equalTo("dummy title"))
+                    .body("recommendations[0].postImageId", notNullValue())
                     .body("recommendations[0].postFirstImageUrl", equalTo("img-3"))
                     .body("recommendations[0].rentalFee", equalTo(1000.0f))
                     .body("recommendations[0].feeUnit", equalTo("HOUR"))
+                    .body("recommendations[0].rentalStatus", equalTo("AVAILABLE"))
+                    .body("recommendations[0].updatedAt", notNullValue())
+                    .body("recommendations[0].feedItemType", equalTo("RECOMMENDATION"))
                     .body("recommendations[1].postId", equalTo(secondPost.getId().intValue()));
         }
 
@@ -433,8 +439,8 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
                     .toList();
             assertThat(responsePostIds).doesNotContainAnyElementsOf(otherGroupPostIds);
 
-            Instant firstUpdatedPostAt = response.jsonPath().getList("summaries", PostResponse.Summary.class).getLast().updatedAt();
-            Instant lastUpdatedPostAt = response.jsonPath().getList("summaries", PostResponse.Summary.class).getFirst().updatedAt();
+            Instant firstUpdatedPostAt = response.jsonPath().getList("summaries", PostResponse.FeedSummary.class).getLast().updatedAt();
+            Instant lastUpdatedPostAt = response.jsonPath().getList("summaries", PostResponse.FeedSummary.class).getFirst().updatedAt();
             assertThat(firstUpdatedPostAt).isBefore(lastUpdatedPostAt);
         }
 
@@ -473,9 +479,83 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
                     .extract()
                     .response();
 
-            Instant firstUpdatedPostAt = result.jsonPath().getList("summaries", PostResponse.Summary.class).getLast().updatedAt();
-            Instant lastUpdatedPostAt = result.jsonPath().getList("summaries", PostResponse.Summary.class).getFirst().updatedAt();
+            Instant firstUpdatedPostAt = result.jsonPath().getList("summaries", PostResponse.FeedSummary.class).getLast().updatedAt();
+            Instant lastUpdatedPostAt = result.jsonPath().getList("summaries", PostResponse.FeedSummary.class).getFirst().updatedAt();
             assertThat(firstUpdatedPostAt).isBefore(lastUpdatedPostAt);
+        }
+
+        @Test
+        @DisplayName("그룹 첫 게시글 조회 시 추천 게시글은 최대 4개까지 섞여서 반환된다")
+        void get_posts_first_page_with_recommendations() {
+            fixtures.여러_게시글_생성(myMembership, 30);
+            List<Post> recommendedPosts = List.of(
+                    fixtures.게시글_생성(myMembership, 101),
+                    fixtures.게시글_생성(myMembership, 102),
+                    fixtures.게시글_생성(myMembership, 103),
+                    fixtures.게시글_생성(myMembership, 104),
+                    fixtures.게시글_생성(myMembership, 105)
+            );
+
+            given(aiPostRecommendationClient.recommendNeeds(myMembership.getId()))
+                    .willReturn(recommendedPosts.stream().map(Post::getId).toList());
+
+            Response response = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}/posts", group.getId())
+                    .then()
+                    .statusCode(200)
+                    .body("summaries", hasSize(20))
+                    .body("nextCursor", notNullValue())
+                    .body("hasNextPage", equalTo(true))
+                    .extract()
+                    .response();
+
+            List<String> feedTypes = response.jsonPath().getList("summaries.feedItemType", String.class);
+            assertThat(feedTypes).filteredOn("RECOMMENDATION"::equals).hasSize(4);
+            assertThat(feedTypes).filteredOn("BASIC"::equals).hasSize(16);
+
+            String nextCursor = response.jsonPath().getString("nextCursor");
+
+            Response nextPageResponse = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}/posts?cursor=%s".formatted(nextCursor), group.getId())
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .response();
+
+            assertThat(nextPageResponse.jsonPath().getList("summaries.feedItemType", String.class))
+                    .allMatch("BASIC"::equals);
+        }
+
+        @Test
+        @DisplayName("그룹 게시글이 10개 미만이면 첫 조회에서도 추천 게시글을 섞지 않는다")
+        void get_posts_first_page_without_recommendations_when_group_post_count_is_less_than_ten() {
+            fixtures.여러_게시글_생성(myMembership, 9);
+            Group anotherGroup = fixtures.그룹_생성("recommendation-group");
+            Membership anotherMembership = fixtures.그룹_가입(anotherGroup, fixtures.또_다른_유저_생성());
+            List<Post> recommendedPosts = List.of(
+                    fixtures.게시글_생성(anotherMembership, 201),
+                    fixtures.게시글_생성(anotherMembership, 202)
+            );
+
+            given(aiPostRecommendationClient.recommendNeeds(myMembership.getId()))
+                    .willReturn(recommendedPosts.stream().map(Post::getId).toList());
+
+            Response response = RestAssured.given()
+                    .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .when()
+                    .get("/groups/{groupId}/posts", group.getId())
+                    .then()
+                    .statusCode(200)
+                    .body("summaries", hasSize(9))
+                    .extract()
+                    .response();
+
+            List<String> feedTypes = response.jsonPath().getList("summaries.feedItemType", String.class);
+            assertThat(feedTypes).allMatch("BASIC"::equals);
         }
 
         @Test
@@ -488,7 +568,7 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
                     .get("/groups/{groupId}/posts", group.getId())
                     .then()
                     .statusCode(200)
-                    .body("summaries", emptyCollectionOf(PostResponse.Summary.class))
+                    .body("summaries", emptyCollectionOf(PostResponse.FeedSummary.class))
                     .body("nextCursor", nullValue())
                     .body("hasNextPage", equalTo(false));
         }
@@ -520,7 +600,7 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
                     .extract()
                     .response();
 
-            List<String> resultList = response.jsonPath().getList("summaries", PostResponse.Summary.class).stream()
+            List<String> resultList = response.jsonPath().getList("summaries", PostResponse.FeedSummary.class).stream()
                     .map(post -> post.postTitle())
                     .toList();
 
