@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,6 +52,12 @@ public class PostController implements PostApiDoc {
     public ResponseEntity<Void> deletePost(@PathVariable Long groupId, @PathVariable Long postId, @AuthenticatedId Long userId) {
         postFacade.delete(groupId, postId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/posts/{postId}/content-checks")
+    public ResponseEntity<Void> checkPostContent(@PathVariable Long postId, @AuthenticatedId Long userId) {
+        postFacade.checkPostContent(postId, userId);
+        return ResponseEntity.status(NO_CONTENT).build();
     }
 
     @GetMapping("/groups/{groupId}/posts")

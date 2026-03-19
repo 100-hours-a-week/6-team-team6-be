@@ -54,8 +54,6 @@ public class PostFacade {
         GroupResponse.GroupProfile groupProfile = groupService.findGroupProfile(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
 
-        aiPostValidateService.validateRestrictedItemInPost(request.imageUrls(), request.title(), request.content());
-
         PostResponse.Id response = postCommandService.create(
                 membershipId,
                 request.title(),
@@ -105,6 +103,22 @@ public class PostFacade {
         );
         eventPublisher.publishEvent(new PostUpdateEvent(payload));
         return response;
+    }
+
+    @Transactional(readOnly = true)
+    public void checkPostContent(Long postId, Long userId) {
+        postQueryService.validatePost(postId);
+        Long groupId = postQueryService.findGroupIdByPostId(postId);
+        membershipService.validateMembership(groupId, userId);
+
+        PostResponse.DetailCore core = postQueryService.getPostDetailCore(postId);
+        aiPostValidateService.validateRestrictedItemInPost(
+                core.imageUrls().imageInfos().stream()
+                        .map(PostResponse.ImageInfo::imageUrl)
+                        .toList(),
+                core.title(),
+                core.content()
+        );
     }
 
     @Transactional
