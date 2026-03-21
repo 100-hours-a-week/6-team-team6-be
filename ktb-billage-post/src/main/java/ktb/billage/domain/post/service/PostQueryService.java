@@ -112,7 +112,7 @@ public class PostQueryService {
 
     public Map<Long, String> findPostFirstImageUrls(List<Long> postIds) {
         Map<Long, String> firstImageUrls = new LinkedHashMap<>();
-        for (PostImage postImage : postImageRepository.findAllFirstImagesByPostIds(postIds)) {
+        for (PostImage postImage : findPostFirstImages(postIds).values()) {
             firstImageUrls.put(postImage.getPost().getId(), postImage.getImageUrl());
         }
         return firstImageUrls;
@@ -125,12 +125,12 @@ public class PostQueryService {
 
         Map<Long, Post> postsById = postRepository.findAllByIdInAndDeletedAtIsNull(recommendedPostIds).stream()
                 .collect(Collectors.toMap(Post::getId, Function.identity()));
-        Map<Long, String> firstImageUrls = findPostFirstImageUrls(recommendedPostIds);
+        Map<Long, PostImage> firstImagesByPostId = findPostFirstImages(recommendedPostIds);
 
         List<PostResponse.FeedSummary> recommendations = recommendedPostIds.stream()
                 .filter(postsById::containsKey)
-                .filter(firstImageUrls::containsKey)
-                .map(postId -> toRecommendation(postsById.get(postId), firstImageUrls.get(postId)))
+                .filter(firstImagesByPostId::containsKey)
+                .map(postId -> toRecommendation(postsById.get(postId), firstImagesByPostId.get(postId)))
                 .toList();
 
         return new PostResponse.Recommendations(recommendations.size(), recommendations);
@@ -220,9 +220,15 @@ public class PostQueryService {
     private PostResponse.Summaries buildSummaries(List<Post> posts, int pageSize) {
         boolean hasNextPage = posts.size() > pageSize;
         List<Post> pagePosts = hasNextPage ? posts.subList(0, pageSize) : posts;
+        Map<Long, PostImage> firstImagesByPostId = findPostFirstImages(
+                pagePosts.stream()
+                        .map(Post::getId)
+                        .toList()
+        );
 
         List<PostResponse.FeedSummary> summaries = pagePosts.stream()
-                .map(this::toSummary)
+                .filter(post -> firstImagesByPostId.containsKey(post.getId()))
+                .map(post -> toSummary(post, firstImagesByPostId.get(post.getId())))
                 .toList();
 
         String nextCursor = null;
@@ -259,11 +265,19 @@ public class PostQueryService {
         return new PostResponse.MySummaries(results, nextCursor, hasNextPage);
     }
 
-    private PostResponse.FeedSummary toSummary(Post post) { // FIXME. 이미지 N + 1 문제 야기
-        PostImage firstImage = postImageRepository
-                .findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(post.getId())
-                .orElseThrow(() -> new PostException(IMAGE_NOT_FOUND));
+    private Map<Long, PostImage> findPostFirstImages(List<Long> postIds) {
+        if (postIds.isEmpty()) {
+            return Map.of();
+        }
 
+        Map<Long, PostImage> firstImagesByPostId = new LinkedHashMap<>();
+        for (PostImage postImage : postImageRepository.findAllFirstImagesByPostIds(postIds)) {
+            firstImagesByPostId.put(postImage.getPost().getId(), postImage);
+        }
+        return firstImagesByPostId;
+    }
+
+    private PostResponse.FeedSummary toSummary(Post post, PostImage firstImage) {
         return new PostResponse.FeedSummary(
                 post.getId(),
                 post.getTitle(),
@@ -277,16 +291,12 @@ public class PostQueryService {
         );
     }
 
-    private PostResponse.FeedSummary toRecommendation(Post post, String firstImageUrl) {
-        PostImage firstImage = postImageRepository
-                .findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(post.getId())
-                .orElseThrow(() -> new PostException(IMAGE_NOT_FOUND));
-
+    private PostResponse.FeedSummary toRecommendation(Post post, PostImage firstImage) {
         return new PostResponse.FeedSummary(
                 post.getId(),
                 post.getTitle(),
                 firstImage.getId(),
-                imageService.resolveUrl(firstImageUrl),
+                imageService.resolveUrl(firstImage.getImageUrl()),
                 post.getRentalFee(),
                 post.getFeeUnit(),
                 post.getRentalStatus(),
