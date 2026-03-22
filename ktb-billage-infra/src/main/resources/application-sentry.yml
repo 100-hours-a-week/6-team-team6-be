@@ -5,6 +5,7 @@ sentry:
   send-default-pii: true
   traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:1.0}
   profiles-sample-rate: ${SENTRY_PROFILES_SAMPLE_RATE:1.0}
+  debug: ${SENTRY_DEBUG:false}
   logging:
     minimum-event-level: ${SENTRY_MINIMUM_EVENT_LEVEL:warn}
     minimum-breadcrumb-level: ${SENTRY_MINIMUM_BREADCRUMB_LEVEL:info}
@@ -16,6 +17,7 @@ spring:
       on-profile: prod
 
 sentry:
+  enabled: ${SENTRY_ENABLED:true}
   traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
   profiles-sample-rate: ${SENTRY_PROFILES_SAMPLE_RATE:0.1}
 
@@ -26,8 +28,9 @@ spring:
       on-profile: dev
 
 sentry:
-  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.3}
-  profiles-sample-rate: ${SENTRY_PROFILES_SAMPLE_RATE:0.3}
+  enabled: ${SENTRY_ENABLED:true}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
+  profiles-sample-rate: ${SENTRY_PROFILES_SAMPLE_RATE:0.0}
 
 ---
 spring:
@@ -38,4 +41,4 @@ spring:
 sentry:
   enabled: ${SENTRY_ENABLED:true}
   traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:1.0}
-  profiles-sample-rate: ${SENTRY_PROFILES_SAMPLE_RATE:1.0}
+  profiles-sample-rate: ${SENTRY_PROFILES_SAMPLE_RATE:0.0}
