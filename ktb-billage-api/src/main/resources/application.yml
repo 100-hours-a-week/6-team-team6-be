@@ -45,7 +45,7 @@ management:
       percentiles-histogram:
         http.server.requests: true
       maximum-expected-value:
-        http.server.requsets: 480s
+        http.server.requests: 480s
 
   endpoints:
     web:
