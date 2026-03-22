@@ -54,9 +54,9 @@ public class PostController implements PostApiDoc {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/posts/{postId}/content-checks")
-    public ResponseEntity<Void> checkPostContent(@PathVariable Long postId, @AuthenticatedId Long userId) {
-        postFacade.checkPostContent(postId, userId);
+    @PostMapping("/posts/content-checks")
+    public ResponseEntity<Void> checkPostContent(@RequestBody PostRequest.Validation request) {
+        postFacade.checkPostContent(request.imageUrls(), request.title(), request.content());
         return ResponseEntity.status(NO_CONTENT).build();
     }
 

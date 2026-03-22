@@ -106,18 +106,9 @@ public class PostFacade {
     }
 
     @Transactional(readOnly = true)
-    public void checkPostContent(Long postId, Long userId) {
-        postQueryService.validatePost(postId);
-        Long groupId = postQueryService.findGroupIdByPostId(postId);
-        membershipService.validateMembership(groupId, userId);
-
-        PostResponse.DetailCore core = postQueryService.getPostDetailCore(postId);
+    public void checkPostContent(List<String> imageUrls, String title, String content) {
         aiPostValidateService.validateRestrictedItemInPost(
-                core.imageUrls().imageInfos().stream()
-                        .map(PostResponse.ImageInfo::imageUrl)
-                        .toList(),
-                core.title(),
-                core.content()
+                imageUrls, title, content
         );
     }
 

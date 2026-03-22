@@ -50,4 +50,11 @@ public class PostRequest {
       long size
     ){
     }
+
+    public record Validation(
+            List<String> imageUrls,
+            String title,
+            String content
+    ) {
+    }
 }
