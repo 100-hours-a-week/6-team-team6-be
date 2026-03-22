@@ -386,12 +386,21 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
         @Test
         @DisplayName("게시글 AI 검증 성공 시 204를 반환한다")
         void check_post_content_success() {
-            Post post = fixtures.게시글_생성(myMembership);
+            given(aiPostValidatorClient.validatePost(anyList(), anyString(), anyString()))
+                    .willReturn(new AiPostValidationResult(true, null));
 
             RestAssured.given()
                     .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .contentType("application/json")
+                    .body("""
+                            {
+                              "imageUrls": ["posts/test-image-1.jpg"],
+                              "title": "정상 게시글 제목",
+                              "content": "정상 게시글 내용"
+                            }
+                            """)
                     .when()
-                    .post("/posts/{postId}/content-checks", post.getId())
+                    .post("/posts/content-checks")
                     .then()
                     .statusCode(204);
         }
@@ -399,7 +408,6 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
         @Test
         @DisplayName("게시글 AI 검증 실패 시 AI 검증 예외를 그대로 반환한다")
         void check_post_content_fail_ai_validation() {
-            Post post = fixtures.게시글_생성(myMembership);
             willThrow(new PostAiValidateException(AI_POST_PROHIBITED_ITEMS))
                     .given(aiPostValidateService)
                     .validateRestrictedItemInPost(
@@ -410,8 +418,16 @@ class PostAcceptanceTest extends AcceptanceTestSupport {
 
             RestAssured.given()
                     .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
+                    .contentType("application/json")
+                    .body("""
+                            {
+                              "imageUrls": ["posts/test-image-1.jpg"],
+                              "title": "금지 물품 제목",
+                              "content": "금지 물품 내용"
+                            }
+                            """)
                     .when()
-                    .post("/posts/{postId}/content-checks", post.getId())
+                    .post("/posts/content-checks")
                     .then()
                     .statusCode(400)
                     .body("code", equalTo("AI06"));
