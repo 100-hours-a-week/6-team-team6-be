@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,6 +30,7 @@ import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
 
 @Slf4j
 @Component
+@Profile("!dev & !loadtest")
 @RequiredArgsConstructor
 public class AiPostDraftWebClient implements AiPostDraftClient {
     private static final String POST_DRAFT_PATH = "/ai/generate";

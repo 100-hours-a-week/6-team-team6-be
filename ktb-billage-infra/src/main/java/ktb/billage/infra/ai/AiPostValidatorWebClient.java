@@ -8,6 +8,7 @@ import ktb.billage.domain.post.dto.AiPostValidationResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -20,6 +21,7 @@ import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
 
 @Slf4j
 @Component
+@Profile("!dev & !loadtest")
 @RequiredArgsConstructor
 public class AiPostValidatorWebClient implements AiPostValidatorClient {
     private static final String POST_VALIDATE_PATH = "/ai/validator";
