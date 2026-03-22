@@ -22,6 +22,9 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework:spring-webflux'
     implementation 'io.projectreactor.netty:reactor-netty'
+    implementation platform('io.sentry:sentry-bom:8.26.0')
+    implementation 'io.sentry:sentry-spring-boot-4-starter'
+    implementation 'io.sentry:sentry-logback'
     implementation 'io.jsonwebtoken:jjwt-api'
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:auth'
