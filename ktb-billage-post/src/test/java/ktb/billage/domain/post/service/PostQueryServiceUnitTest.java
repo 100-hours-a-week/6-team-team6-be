@@ -52,10 +52,6 @@ class PostQueryServiceUnitTest {
                         new PostImage(first, "img-104", 1),
                         new PostImage(second, "img-105", 1)
                 ));
-        given(postImageRepository.findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(104L))
-                .willReturn(Optional.of(new PostImage(first, "img-104", 1)));
-        given(postImageRepository.findFirstByPostIdAndDeletedAtIsNullOrderBySortOrderAsc(105L))
-                .willReturn(Optional.of(new PostImage(second, "img-105", 1)));
         given(imageService.resolveUrl("img-104")).willReturn("resolved-img-104");
         given(imageService.resolveUrl("img-105")).willReturn("resolved-img-105");
 
