@@ -3,6 +3,7 @@ package ktb.billage.infra.ai;
 import ktb.billage.application.userbehavior.port.UserBehaviorAiSyncPort;
 import ktb.billage.domain.post.userbehavior.UserBehaviorLog;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.util.List;
 
 @Component
+@Profile("!dev & !loadtest")
 @RequiredArgsConstructor
 public class AiUserBehaviorSyncClient implements UserBehaviorAiSyncPort {
     private static final String USER_BEHAVIOR_PATH = "/ai/needs/upsert";

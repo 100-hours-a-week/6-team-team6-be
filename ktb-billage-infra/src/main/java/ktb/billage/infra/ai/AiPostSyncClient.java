@@ -3,6 +3,7 @@ package ktb.billage.infra.ai;
 import ktb.billage.application.post.event.PostUpsertPayload;
 import ktb.billage.application.post.listener.AiSyncPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.math.BigDecimal;
 
 @Component
+@Profile("!dev & !loadtest")
 @RequiredArgsConstructor
 public class AiPostSyncClient implements AiSyncPort {
     private static final String POST_UPSERT_PATH = "/ai/items/upsert";
