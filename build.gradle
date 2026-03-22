@@ -70,6 +70,8 @@ subprojects {
 
     test {
         useJUnitPlatform()
+        maxParallelForks = 1
+        maxHeapSize = "1024m"
         finalizedBy(tasks.named('jacocoTestReport'))
     }
 
