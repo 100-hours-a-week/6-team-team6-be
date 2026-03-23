@@ -26,6 +26,9 @@ import static ktb.billage.common.exception.ExceptionCode.POST_NOT_FOUND;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PostQueryService {
+    private static final int PAGE_FETCH_SIZE = 21;
+    private static final int KEYWORD_CANDIDATE_WINDOW_SIZE = 2000;
+
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
 
@@ -132,28 +135,30 @@ public class PostQueryService {
 
     private List<Post> loadPosts(Long groupId, CursorCodec.Cursor decoded) {
         if (decoded == null) {
-            return postRepository.findTop21ByGroupIdOrderByUpdatedAtDescIdDesc(groupId, PageRequest.of(0, 21));
+            return postRepository.findTop21ByGroupIdOrderByUpdatedAtDescIdDesc(groupId, PageRequest.of(0, PAGE_FETCH_SIZE));
         }
 
-        return postRepository.findNextPage(groupId, decoded.time(), decoded.id(), PageRequest.of(0, 21));
+        return postRepository.findNextPage(groupId, decoded.time(), decoded.id(), PageRequest.of(0, PAGE_FETCH_SIZE));
     }
 
     private List<Post> loadPostsByKeyword(Long groupId, String keyword, CursorCodec.Cursor decoded) {
         String fullTextKeyword = toBooleanModeKeyword(keyword);
         if (decoded == null) {
-            return postRepository.findTop21ByGroupIdAndContainingKeywordOrderByUpdatedAtDescIdDesc(
+            return postRepository.findTopByGroupIdAndKeywordWithCandidateJoin(
                     groupId,
                     fullTextKeyword,
-                    PageRequest.of(0, 21)
+                    KEYWORD_CANDIDATE_WINDOW_SIZE,
+                    PAGE_FETCH_SIZE
             );
         }
 
-        return postRepository.findNextPageByKeyword(
+        return postRepository.findNextByGroupIdAndKeywordWithCandidateJoin(
                 groupId,
                 fullTextKeyword,
                 decoded.time(),
                 decoded.id(),
-                PageRequest.of(0, 21)
+                KEYWORD_CANDIDATE_WINDOW_SIZE,
+                PAGE_FETCH_SIZE
         );
     }
 

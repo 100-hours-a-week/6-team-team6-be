@@ -62,7 +62,7 @@ class ChatAcceptanceTest extends AcceptanceTestSupport {
     @Nested
     class 채팅방_생성_테스트 {
         @Test
-        @DisplayName("채팅하기 진행 - 아직 채팅 내역은 없을 때, 채팅방은 생성되었지만 채팅방 조회 시 조회되지 않음")
+        @DisplayName("채팅하기 진행 - 아직 채팅 내역은 없을 때, 채팅방은 생성되었지만 채팅방 목록 조회 시 조회되지 않음")
         void create_chatroom_without_message() {
             Response response = RestAssured.given()
                     .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
@@ -74,15 +74,13 @@ class ChatAcceptanceTest extends AcceptanceTestSupport {
                     .extract()
                     .response();
 
-            long chatroomId = response.jsonPath().getLong("chatroomId");
-
             RestAssured.given()
                     .header(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken)
                     .when()
-                    .get("/posts/{postId}/chatrooms/{chatroomId}/messages",
-                            anotherPost.getId(), chatroomId)
+                    .get("/users/me/chatrooms")
                     .then()
-                    .statusCode(404);
+                    .statusCode(200)
+                    .body("chatroomSummaries", hasSize(0));
         }
 
         @Test

@@ -30,11 +30,15 @@ public class ChatMessage extends BaseEntity {
 
     private String content;
 
-    public ChatMessage(Long senderId, Chatroom chatroom, String content, Instant sendAt) {
+    @Column(name = "client_message_id", nullable = false)
+    private String clientMessageId;
+
+    public ChatMessage(Long senderId, Chatroom chatroom, String content, Instant sendAt, String clientMessageId) {
         this.senderId = senderId;
         this.chatroom = chatroom;
         this.content = content;
         this.createdAt = sendAt;
+        this.clientMessageId = clientMessageId;
     }
 
     public boolean sentBy(Long senderId) {

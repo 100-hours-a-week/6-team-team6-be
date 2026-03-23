@@ -7,13 +7,19 @@ import ktb.billage.domain.chat.Chatroom;
 import ktb.billage.domain.chat.ChatroomRepository;
 import ktb.billage.domain.group.Group;
 import ktb.billage.domain.group.GroupRepository;
+import ktb.billage.domain.keywordsubscription.KeywordSubscription;
+import ktb.billage.domain.keywordsubscription.KeywordSubscriptionRepository;
 import ktb.billage.domain.membership.Membership;
 import ktb.billage.domain.membership.MembershipRepository;
+import ktb.billage.domain.notification.Notification;
+import ktb.billage.domain.notification.NotificationRepository;
 import ktb.billage.domain.post.Post;
 import ktb.billage.domain.post.PostImage;
 import ktb.billage.domain.post.PostImageRepository;
 import ktb.billage.domain.post.PostRepository;
 import ktb.billage.domain.user.User;
+import ktb.billage.domain.user.UserPushToken;
+import ktb.billage.domain.user.UserPushTokenRepository;
 import ktb.billage.domain.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -25,6 +31,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntPredicate;
+import java.util.stream.IntStream;
 
 @Component
 public class Fixtures {
@@ -52,6 +59,12 @@ public class Fixtures {
     private ChatMessageRepository chatMessageRepository;
 
     @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Autowired
+    private KeywordSubscriptionRepository keywordSubscriptionRepository;
+
+    @Autowired
     private TokenGenerator tokenGenerator;
 
     @Autowired
@@ -59,6 +72,8 @@ public class Fixtures {
 
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    @Autowired
+    private UserPushTokenRepository userPushTokenRepository;
 
     public String 토큰_생성(User user) {
         return tokenGenerator.generateAccessToken(user.getId());
@@ -104,7 +119,7 @@ public class Fixtures {
         for (int i = 1; i <= count; i++) {
             jdbcTemplate.update(
                     "INSERT INTO billage_group (group_name, group_cover_image_url, created_at, updated_at, deleted_at) " +
-                    "VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
+                            "VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
                     "group-" + i,
                     "dummy.png"
             );
@@ -135,8 +150,8 @@ public class Fixtures {
         for (int i = 1; i <= count; i++) {
             String loginId = "bulk_user_" + group.getId() + "_" + i;
             jdbcTemplate.update(
-                    "INSERT INTO users (login_id, password, avatar_url, created_at, updated_at, deleted_at) " +
-                            "VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
+                    "INSERT INTO users (login_id, password, avatar_url, web_push_enabled, created_at, updated_at, deleted_at) " +
+                            "VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)",
                     loginId,
                     "test-password",
                     "images/default-avatar.png"
@@ -212,7 +227,7 @@ public class Fixtures {
 
     public ChatMessage 채팅_전송(Chatroom chatroom, Membership senderMembership, int sendAtPlusOffset) {
         Instant sendAt = BASE_TIME.plusSeconds(sendAtPlusOffset * 1000L);
-        ChatMessage message = chatMessageRepository.save(new ChatMessage(senderMembership.getId(), chatroom, "message", BASE_TIME.plusSeconds(sendAtPlusOffset * 1000L)));
+        ChatMessage message = chatMessageRepository.save(new ChatMessage(senderMembership.getId(), chatroom, "message", BASE_TIME.plusSeconds(sendAtPlusOffset * 1000L), "clientMessageId"));
 
         chatroom.sendMessage(message.getId(), senderMembership.getId(), sendAt);
         chatroomRepository.save(chatroom);
@@ -224,10 +239,62 @@ public class Fixtures {
         Chatroom chatroom = chatroomRepository.findById(chatroomId)
                 .orElseThrow(() -> new IllegalArgumentException("Chatroom not found"));
 
-        ChatMessage message = chatMessageRepository.save(new ChatMessage(senderMembership.getId(), chatroom, "message", Instant.now()));
+        ChatMessage message = chatMessageRepository.save(new ChatMessage(senderMembership.getId(), chatroom, "message", Instant.now(), "clientMessageId"));
         chatroom.sendMessage(message.getId(), senderMembership.getId(), Instant.now());
         chatroomRepository.save(chatroom);
 
         return message;
+    }
+
+    public Notification 알림_생성_게시글(User user, Group group, Post post, int offset) {
+        var notification = notificationRepository.save(NotificationFixture.one(user, group, post));
+
+        알림_생성시간_변경(notification, offset);
+        return notification;
+    }
+
+    public Notification 알림_생성_채팅방(User user, Group group, Chatroom chatroom, int offset) {
+        var notification = notificationRepository.save(NotificationFixture.one(user, group, chatroom));
+
+        알림_생성시간_변경(notification, offset);
+        return notification;
+    }
+
+    public void 알림_삭제(Long notificationId) {
+        jdbcTemplate.update("UPDATE notification SET deleted_at = ? WHERE id = ?", Instant.now(), notificationId);
+    }
+
+    private void 알림_생성시간_변경(Notification notification, int offset) {
+        Instant adjusted = BASE_TIME.plusSeconds(offset * 1000L);
+
+        jdbcTemplate.update("UPDATE notification SET created_at = ? WHERE id = ?", adjusted, notification.getId());
+    }
+
+    public KeywordSubscription 키워드_구독_등록(User user, Group group, String keyword) {
+        return keywordSubscriptionRepository.save(KeywordSubscriptionFixture.one(user, group, keyword));
+    }
+
+    public List<KeywordSubscription> 키워드_구독_벌크_등록(User user, Group group, int size) {
+        return IntStream.range(0, size)
+                .mapToObj(i -> {
+                    var subscription = keywordSubscriptionRepository.save(KeywordSubscriptionFixture.one(user, group, "keyword" + i));
+                    구독_등록시간_변경(subscription, i);
+                    return subscription;
+                })
+                .toList();
+    }
+
+    private void 구독_등록시간_변경(KeywordSubscription subscription, int offset) {
+        Instant adjusted = BASE_TIME.plusSeconds(offset * 1000L);
+
+        jdbcTemplate.update("UPDATE keyword_subscription SET created_at = ? WHERE id = ?", adjusted, subscription.getId());
+    }
+
+    public void 키워드_구독_삭제(Long subscriptionId) {
+        jdbcTemplate.update("UPDATE keyword_subscription SET deleted_at = ? WHERE id = ?", Instant.now(), subscriptionId);
+    }
+
+    public UserPushToken 유저_푸시_토큰_생성(User user, UserPushToken.PushPlatform platform, String deviceToken, String fcmToken) {
+        return userPushTokenRepository.save(UserPushTokenFixture.one(user, platform, deviceToken, fcmToken));
     }
 }

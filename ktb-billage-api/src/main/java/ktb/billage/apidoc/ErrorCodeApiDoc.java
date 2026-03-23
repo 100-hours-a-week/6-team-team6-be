@@ -102,7 +102,10 @@ public interface ErrorCodeApiDoc {
                                             {
                                                 "CHAT01": "자기 자신과의 채팅은 불가",
                                                 "CHAT02": "존재하지 않는 채팅방",
-                                                "CHAT03": "채팅방에 참여중이지 않음(권한 없음)"
+                                                "CHAT03": "채팅방에 참여중이지 않음(권한 없음)",
+                                                "CHAT04": "이미 존재하는 채팅방",
+                                                "CHAT05": "상대방이 탈퇴하여 채팅방이 동결됨",
+                                                "CHAT06": "존재하지 않는 채팅 메시지"
                                             }
                                             """
                             ))
@@ -125,6 +128,36 @@ public interface ErrorCodeApiDoc {
             ),
             @ApiResponse(
                     responseCode = "8",
+                    description = "notification 예외 코드",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "NOTIFICATION01": "알림을 찾을 수 없음",
+                                                "NOTIFICATION02": "이미 삭제된 알림",
+                                                "NOTIFICATION03": "본인 소유 알림이 아님"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "9",
+                    description = "keyword subscription 예외 코드",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "KEYWORD01": "이미 등록된 키워드",
+                                                "KEYWORD02": "키워드 구독 최대 개수 초과",
+                                                "KEYWORD03": "이미 삭제된 키워드 구독",
+                                                "KEYWORD04": "키워드 구독을 찾을 수 없음",
+                                                "KEYWORD05": "본인 소유 키워드 구독이 아님"
+                                            }
+                                            """
+                            ))
+            ),
+            @ApiResponse(
+                    responseCode = "10",
                     description = "websocket 예외 코드",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
                             examples = @ExampleObject(
@@ -137,7 +170,7 @@ public interface ErrorCodeApiDoc {
                             ))
             ),
             @ApiResponse(
-                    responseCode = "9",
+                    responseCode = "11",
                     description = "common 예외 코드",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
                             examples = @ExampleObject(
@@ -150,7 +183,7 @@ public interface ErrorCodeApiDoc {
                             ))
             ),
             @ApiResponse(
-                    responseCode = "10",
+                    responseCode = "12",
                     description = "application 예외 코드",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class),
                             examples = @ExampleObject(

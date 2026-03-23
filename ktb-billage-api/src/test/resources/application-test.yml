@@ -15,6 +15,9 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
 
+  kafka:
+    bootstrap-servers: localhost:9092
+
   servlet:
     multipart:
       max-file-size: 10MB      # 파일 1개 최대 크기
