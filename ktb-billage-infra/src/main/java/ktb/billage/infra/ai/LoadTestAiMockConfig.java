@@ -19,25 +19,22 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 
 @Configuration
 @Profile({"dev", "loadtest"})
 @RequiredArgsConstructor
 public class LoadTestAiMockConfig {
-    private static final int DEFAULT_RECOMMENDATION_POOL_SIZE = 200;
-    private static final int DEFAULT_RECOMMENDATION_RESULT_SIZE = 24;
+    private static final int DEFAULT_RECOMMENDATION_RESULT_SIZE = 5;
 
     private final JdbcTemplate jdbcTemplate;
 
     @Bean
     @Primary
     public AiPostRecommendationClient loadTestAiPostRecommendationClient(
-            @Value("${loadtest.ai.recommendation-pool-size:" + DEFAULT_RECOMMENDATION_POOL_SIZE + "}") int poolSize,
             @Value("${loadtest.ai.recommendation-result-size:" + DEFAULT_RECOMMENDATION_RESULT_SIZE + "}") int resultSize
     ) {
-        return new LoadTestAiPostRecommendationClient(jdbcTemplate, Math.max(poolSize, 1), Math.max(resultSize, 1));
+        return new LoadTestAiPostRecommendationClient(jdbcTemplate, Math.max(resultSize, 1));
     }
 
     @Bean
@@ -87,47 +84,84 @@ public class LoadTestAiMockConfig {
     }
 
     public static class LoadTestAiPostRecommendationClient implements AiPostRecommendationClient {
-        private final List<Long> recommendationPool;
+        private static final String FIND_GROUP_ID_BY_POST_ID = """
+                select m.group_id
+                from post p
+                join membership m on m.id = p.membership_id
+                where p.id = ?
+                  and p.deleted_at is null
+                """;
+        private static final String FIND_GROUP_ID_BY_MEMBERSHIP_ID = """
+                select group_id
+                from membership
+                where id = ?
+                  and deleted_at is null
+                """;
+        private static final String FIND_ACTIVE_POST_IDS_BY_GROUP_ID = """
+                select id
+                from (
+                    select p.id, p.updated_at
+                    from post p
+                    join membership m on m.id = p.membership_id
+                    where m.group_id = ?
+                      and p.deleted_at is null
+                    order by p.updated_at desc, p.id desc
+                    limit ?
+                ) recent_posts
+                order by updated_at desc, id desc
+                limit ?
+                """;
+
+        private final JdbcTemplate jdbcTemplate;
         private final int resultSize;
 
-        public LoadTestAiPostRecommendationClient(JdbcTemplate jdbcTemplate, int poolSize, int resultSize) {
+        public LoadTestAiPostRecommendationClient(JdbcTemplate jdbcTemplate, int resultSize) {
+            this.jdbcTemplate = jdbcTemplate;
             this.resultSize = resultSize;
-            this.recommendationPool = Collections.unmodifiableList(
-                    jdbcTemplate.queryForList(
-                            """
-                            select id
-                            from post
-                            where deleted_at is null
-                            order by updated_at desc, id desc
-                            limit ?
-                            """,
-                            Long.class,
-                            poolSize
-                    )
-            );
         }
 
         @Override
         public List<Long> recommend(Long postId) {
-            return slice(postId);
+            Long groupId = findGroupIdByPostId(postId);
+            if (groupId == null) {
+                return List.of();
+            }
+            return findRecentActivePostIdsByGroupId(groupId);
         }
 
         @Override
         public List<Long> recommendNeeds(Long membershipId) {
-            return slice(membershipId);
-        }
-
-        private List<Long> slice(Long seed) {
-            if (recommendationPool.isEmpty()) {
+            Long groupId = findGroupIdByMembershipId(membershipId);
+            if (groupId == null) {
                 return List.of();
             }
+            return findRecentActivePostIdsByGroupId(groupId);
+        }
 
-            int safeSeed = Math.floorMod(seed == null ? 0 : seed.hashCode(), recommendationPool.size());
-            int size = Math.min(resultSize, recommendationPool.size());
+        private Long findGroupIdByPostId(Long postId) {
+            return jdbcTemplate.query(
+                    FIND_GROUP_ID_BY_POST_ID,
+                    rs -> rs.next() ? rs.getLong("group_id") : null,
+                    postId
+            );
+        }
 
-            return java.util.stream.IntStream.range(0, size)
-                    .mapToObj(index -> recommendationPool.get((safeSeed + index) % recommendationPool.size()))
-                    .toList();
+        private Long findGroupIdByMembershipId(Long membershipId) {
+            return jdbcTemplate.query(
+                    FIND_GROUP_ID_BY_MEMBERSHIP_ID,
+                    rs -> rs.next() ? rs.getLong("group_id") : null,
+                    membershipId
+            );
+        }
+
+        private List<Long> findRecentActivePostIdsByGroupId(Long groupId) {
+            return jdbcTemplate.queryForList(
+                    FIND_ACTIVE_POST_IDS_BY_GROUP_ID,
+                    Long.class,
+                    groupId,
+                    resultSize,
+                    resultSize
+            );
         }
     }
 }
