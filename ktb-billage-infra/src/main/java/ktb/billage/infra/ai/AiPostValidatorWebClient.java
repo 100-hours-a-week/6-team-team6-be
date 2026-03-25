@@ -24,7 +24,7 @@ import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
 @Profile("!loadtest")
 @RequiredArgsConstructor
 public class AiPostValidatorWebClient implements AiPostValidatorClient {
-    private static final String POST_VALIDATE_PATH = "/ai/validator";
+    private static final String POST_VALIDATE_PATH = "/ai/validate";
     private static final String SAFE = "safe";
 
     private final WebClient webClient;
@@ -42,9 +42,7 @@ public class AiPostValidatorWebClient implements AiPostValidatorClient {
                     .uri(POST_VALIDATE_PATH)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(new ValidatePostRequest(
-                            imageUrls.stream()
-                                    .map(ImageRequest::new)
-                                    .toList(),
+                            imageUrls,
                             title,
                             content
                     ))
@@ -75,14 +73,9 @@ public class AiPostValidatorWebClient implements AiPostValidatorClient {
     }
 
     private record ValidatePostRequest(
-            List<ImageRequest> images,
+            List<String> images,
             String title,
             String content
-    ) {
-    }
-
-    private record ImageRequest(
-            String image
     ) {
     }
 
