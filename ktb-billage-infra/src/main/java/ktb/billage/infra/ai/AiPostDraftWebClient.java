@@ -4,8 +4,8 @@ import io.netty.handler.timeout.TimeoutException;
 import ktb.billage.common.exception.AiTimeoutException;
 import ktb.billage.common.exception.InternalException;
 import ktb.billage.domain.post.ai.AiPostDraftClient;
+import ktb.billage.domain.post.dto.PostDraft;
 import ktb.billage.domain.post.dto.PostRequest;
-import ktb.billage.domain.post.dto.PostResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,7 +41,7 @@ public class AiPostDraftWebClient implements AiPostDraftClient {
     private String baseUrl;
 
     @Override
-    public PostResponse.PostDraft requestPostDraft(List<PostRequest.ImageComponent> images) {
+    public PostDraft requestPostDraft(List<PostRequest.ImageComponent> images) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         int limit = Math.min(images.size(), 3);
         for (int i = 0; i < limit; i++) {
@@ -67,7 +67,7 @@ public class AiPostDraftWebClient implements AiPostDraftClient {
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(BodyInserters.fromMultipartData(builder.build()))
                     .retrieve()
-                    .bodyToMono(PostResponse.PostDraft.class)
+                    .bodyToMono(PostDraft.class)
                     .block();
         } catch (WebClientResponseException e) {
             log.error("[AI Server Error Response] url={}, status={}, body={}",

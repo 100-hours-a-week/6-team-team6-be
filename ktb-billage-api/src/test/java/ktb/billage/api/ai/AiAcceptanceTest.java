@@ -4,7 +4,7 @@ import io.restassured.RestAssured;
 import ktb.billage.common.exception.AiTimeoutException;
 import ktb.billage.common.exception.InternalException;
 import ktb.billage.domain.post.ai.AiPostDraftClient;
-import ktb.billage.domain.post.dto.PostResponse;
+import ktb.billage.domain.post.dto.PostDraft;
 import ktb.billage.domain.user.User;
 import ktb.billage.fixture.Fixtures;
 import ktb.billage.support.AcceptanceTest;
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
 import static ktb.billage.common.exception.ExceptionCode.SERVER_ERROR;
@@ -46,11 +45,10 @@ class AiAcceptanceTest extends AcceptanceTestSupport {
     @DisplayName("AI 게시글 초안 생성 요청 시나리오 테스트 성공")
     void makePostDraftByAi_success() {
         given(aiPostDraftClient.requestPostDraft(anyList()))
-                .willReturn(new PostResponse.PostDraft(
+                .willReturn(new PostDraft(
                         "AI 추천 제목",
                         "AI 추천 내용",
-                        BigDecimal.ZERO,
-                        "HOUR",
+                        0,
                         true
                 ));
 

@@ -7,8 +7,7 @@ import ktb.billage.domain.post.ai.AiPostDraftClient;
 import ktb.billage.domain.post.ai.AiPostRecommendationClient;
 import ktb.billage.domain.post.ai.AiPostValidatorClient;
 import ktb.billage.domain.post.dto.AiPostValidationResult;
-import ktb.billage.domain.post.dto.PostRequest;
-import ktb.billage.domain.post.dto.PostResponse;
+import ktb.billage.domain.post.dto.PostDraft;
 import ktb.billage.domain.post.userbehavior.UserBehaviorLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +17,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Configuration
@@ -46,11 +44,10 @@ public class LoadTestAiMockConfig {
     @Bean
     @Primary
     public AiPostDraftClient loadTestAiPostDraftClient() {
-        return images -> new PostResponse.PostDraft(
+        return images -> new PostDraft(
                 "loadtest draft title",
                 "loadtest draft content",
-                BigDecimal.valueOf(1000),
-                "HOUR",
+                1000,
                 true
         );
     }
