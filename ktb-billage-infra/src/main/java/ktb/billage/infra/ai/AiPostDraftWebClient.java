@@ -30,7 +30,7 @@ import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
 
 @Slf4j
 @Component
-@Profile("!dev & !loadtest")
+@Profile("!loadtest")
 @RequiredArgsConstructor
 public class AiPostDraftWebClient implements AiPostDraftClient {
     private static final String POST_DRAFT_PATH = "/ai/generate";
@@ -39,7 +39,6 @@ public class AiPostDraftWebClient implements AiPostDraftClient {
 
     @Value("${ai.base-url}")
     private String baseUrl;
-
 
     @Override
     public PostResponse.PostDraft requestPostDraft(List<PostRequest.ImageComponent> images) {

@@ -21,7 +21,7 @@ import static ktb.billage.common.exception.ExceptionCode.TIME_OUT;
 
 @Slf4j
 @Component
-@Profile("!dev & !loadtest")
+@Profile("!loadtest")
 @RequiredArgsConstructor
 public class AiPostRecommendationWebClient implements AiPostRecommendationClient {
     private static final String POST_RECOMMEND_PATH = "/ai/items/recommend";

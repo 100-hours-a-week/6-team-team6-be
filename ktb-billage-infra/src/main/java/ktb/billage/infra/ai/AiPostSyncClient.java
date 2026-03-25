@@ -12,7 +12,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.math.BigDecimal;
 
 @Component
-@Profile("!dev & !loadtest")
+@Profile("!loadtest")
 @RequiredArgsConstructor
 public class AiPostSyncClient implements AiSyncPort {
     private static final String POST_UPSERT_PATH = "/ai/items/upsert";

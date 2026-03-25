@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Configuration
-@Profile({"dev", "loadtest"})
+@Profile("loadtest")
 @RequiredArgsConstructor
 public class LoadTestAiMockConfig {
     private static final int DEFAULT_RECOMMENDATION_RESULT_SIZE = 5;

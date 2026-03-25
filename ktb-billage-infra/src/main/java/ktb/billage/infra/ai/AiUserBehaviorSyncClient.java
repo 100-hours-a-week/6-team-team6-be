@@ -12,7 +12,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.util.List;
 
 @Component
-@Profile("!dev & !loadtest")
+@Profile("!loadtest")
 @RequiredArgsConstructor
 public class AiUserBehaviorSyncClient implements UserBehaviorAiSyncPort {
     private static final String USER_BEHAVIOR_PATH = "/ai/needs/upsert";
