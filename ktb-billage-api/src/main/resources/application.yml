@@ -6,6 +6,10 @@ app:
   cookie:
     secure: false
 
+post:
+  feed:
+    first-page-recommendation-enabled: ${POST_FEED_FIRST_PAGE_RECOMMENDATION_ENABLED:true}
+
 springdoc:
   override-with-generic-response: false
 

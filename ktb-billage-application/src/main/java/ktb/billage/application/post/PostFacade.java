@@ -24,6 +24,7 @@ import ktb.billage.domain.membership.service.MembershipService;
 import ktb.billage.domain.user.dto.UserResponse;
 import ktb.billage.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +49,9 @@ public class PostFacade {
     private final PostEventPublisher postEventPublisher;
     private final UserBehaviorEventPublisher userBehaviorEventPublisher;
     private final PostFeedComposer postFeedComposer = new PostFeedComposer();
+
+    @Value("${post.feed.first-page-recommendation-enabled:true}")
+    private boolean firstPageRecommendationEnabled = true;
 
     @Transactional
     public PostResponse.Id create(Long groupId, Long userId, PostRequest.Create request) {
@@ -131,6 +135,15 @@ public class PostFacade {
     public PostResponse.Summaries getPostsByCursor(Long groupId, Long userId, String cursor) {
         groupService.validateGroup(groupId);
         Long membershipId = membershipService.findMembershipId(groupId, userId);
+
+        if (!firstPageRecommendationEnabled) {
+            PostResponse.Summaries summaries = postQueryService.getPostsByCursor(groupId, cursor);
+            return new PostResponse.Summaries(
+                    resolveFeedSummaries(summaries.summaries()),
+                    summaries.nextCursor(),
+                    summaries.hasNextPage()
+            );
+        }
 
         if (cursor != null && !cursor.isBlank()) {
             PostResponse.Summaries summaries = postQueryService.getPostsByCursor(groupId, cursor);
